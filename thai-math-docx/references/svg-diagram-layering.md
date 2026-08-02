@@ -71,8 +71,8 @@ size of standalone or one-column diagrams.
 
 The approved source implementation is:
 
-- `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_shading_spike.py`
+- `~/Documents/ปรับชีท/outputs/set_intro/build_venn_shading_spike.py`
 
 Its generated spike is:
 
-- `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`
+- `~/Documents/ปรับชีท/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`

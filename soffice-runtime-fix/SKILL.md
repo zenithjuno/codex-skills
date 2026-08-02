@@ -53,7 +53,7 @@ Use the current paths from `load_workspace_dependencies`:
 
 ```bash
 python scripts/repair_soffice_runtime.py \
-  --dependency-root /Users/chutpong/.cache/codex-runtimes/codex-primary-runtime/dependencies \
+  --dependency-root ~/.cache/codex-runtimes/codex-primary-runtime/dependencies \
   --bundle-version 26.x.y \
   --knowledge-doc outputs/soffice-docx-render-fix-knowledge.md
 ```

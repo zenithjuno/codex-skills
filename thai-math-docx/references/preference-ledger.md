@@ -107,7 +107,7 @@ of truth for confirmed user-specific preferences across Thai mathematics DOCX wo
 
 - Status: confirmed
 - Tags: equations, set-builder, spacing
-- Source: teacher statement, 2026-07-12; `/Users/chutpong/Downloads/pref for table of example.docx`, page 2
+- Source: teacher statement, 2026-07-12; `~/Downloads/pref for table of example.docx`, page 2
 - Evidence: the student-facing equations use visible spaces on both sides of `∣`.
 - Decision: write set-builder notation as `{x ∈ ℕ ∣ x < 5}` rather than a packed
   form such as `{x∈ℕ∣x<5}`.
@@ -116,7 +116,7 @@ of truth for confirmed user-specific preferences across Thai mathematics DOCX wo
 
 - Status: confirmed
 - Tags: layout, questions, columns, student-facing
-- Source: teacher statement, 2026-07-12; `/Users/chutpong/Downloads/pref for table of example.docx`, page 2
+- Source: teacher statement, 2026-07-12; `~/Downloads/pref for table of example.docx`, page 2
 - Decision: create ordinary question layouts in one column unless the teacher
   explicitly requests one or two columns. On an explicit two-column request, use
   a fixed, borderless Word table with equal columns and row-major question order.
@@ -141,7 +141,7 @@ of truth for confirmed user-specific preferences across Thai mathematics DOCX wo
 
 - Status: confirmed
 - Tags: diagrams, svg, png, Word, answer-visuals, editability
-- Source: teacher approval of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_เฉลยออยเลอร์และเวนน์_PNGความละเอียดสูง.docx`, 2026-07-14
+- Source: teacher approval of `~/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_เฉลยออยเลอร์และเวนน์_PNGความละเอียดสูง.docx`, 2026-07-14
 - Evidence: native SVG diagram text had previously drifted in Word when diagrams became text-heavy. The spike used two 3900 × 1450 px, 600 dpi PNG diagrams inserted inline; the teacher judged the output “คุณภาพดีมากๆ”.
 - Decision: retain SVG as the canonical editable/customizable diagram asset. For finalized answer diagrams where position fidelity matters more than in-Word editability, render the diagram to high-resolution PNG first, use inline DOCX placement, and preserve the SVG/source alongside it. Keep real equations and math notation outside the image as editable OMML.
 - Non-inference: this does not authorize rasterizing equations, ordinary math text, or student-facing diagrams that the teacher needs to alter in Word; nor does it make PNG the universal replacement for SVG.
@@ -150,7 +150,7 @@ of truth for confirmed user-specific preferences across Thai mathematics DOCX wo
 
 - Status: confirmed
 - Tags: diagrams, svg, Word, convert-to-shape, text-editing, golden-test
-- Source: teacher Word test of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_PNGเทียบ_SVGtext_16ptObject.docx`, 2026-07-14
+- Source: teacher Word test of `~/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_PNGเทียบ_SVGtext_16ptObject.docx`, 2026-07-14
 - Evidence: SVG built on a `475.2 pt × 176.4 pt` canvas with direct `16pt` text displayed oversized before conversion, but after Word Convert to Shape/Object the teacher judged the main visual quality acceptable and substantially better when compared against the PNG golden reference.
 - Decision: for SVGs intended for conversion and later text editing, use the intended physical dimensions and explicit point-size text, then judge the converted Word object against a same-geometry PNG golden reference. Do not treat the unconverted SVG appearance as the final gate.
 - Decision: symbols that the teacher must edit after conversion, including `∅`, must be real SVG text rather than geometry/path artwork.
@@ -176,7 +176,7 @@ of truth for confirmed user-specific preferences across Thai mathematics DOCX wo
 
 - Status: confirmed
 - Tags: diagrams, svg, Venn, shading, Word, layers, editability
-- Source: teacher approval of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`, 2026-07-15
+- Source: teacher approval of `~/Documents/ปรับชีท/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`, 2026-07-15
 - Evidence: the teacher explicitly approved the result “เป๊ะๆ” and identified
   the essential construction: shading belongs in a lower layer, outlines stay
   on top, and the shaded curves must match the circles exactly.
