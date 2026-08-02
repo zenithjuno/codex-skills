@@ -52,18 +52,46 @@
 
 ---
 
-## ติดตั้ง
+## 🖥️ อ่านตรงนี้ก่อน ถ้าคุณคือ AI agent ที่ทำงานอยู่บนเครื่องต้นทาง
 
-**Codex** — วางไว้ที่ `~/.codex/skills/<name>/`
+**`~/.codex/skills/` คือทั้งโฟลเดอร์ทำงานจริงและตัว repo นี้ — ไม่ใช่สำเนา**
+
+- **แหล่งความจริงเดียวคือดิสก์** ที่ `~/.codex/skills/<name>/` — แก้ที่นี่ที่เดียว
+- `~/.claude/skills/<name>` เป็น **symlink ชี้กลับมาที่นี่ทุกตัว** ไม่ใช่ไฟล์คนละชุด → แก้ที่เดียวเห็นทั้ง Codex และ Claude ไม่มีวัน drift
+- **GitHub มีไว้เพื่อ ประวัติ / สำรอง / ทบทวน diff เท่านั้น ไม่ใช่ที่ติดตั้ง**
+- 🚫 **ห้าม `git clone` ทับ `~/.codex/skills`** — มันเป็น repo อยู่แล้ว โคลนทับจะพังของจริง
+  ถ้าจะดูของเก่าใช้ `git show <commit>:<path>` แทน
+
+> ### ⚠️ `git ls-files` ไม่ใช่รายชื่อสกิลทั้งหมด
+>
+> บนดิสก์มีสกิลที่ **มีอยู่จริงและใช้งานได้ แต่จงใจไม่ track** (ดู [`.gitignore`](.gitignore)):
+> **`pdf/`** และ **`.system/`** (`skill-creator`, `skill-installer`, `openai-docs`, `imagegen`, `plugin-creator`, `review-agent`)
+>
+> ถ้าจะตรวจว่า "เครื่องนี้มีสกิลอะไรบ้าง" ให้ `ls ~/.codex/skills/` **อย่าดูจากรายการไฟล์ใน git**
+> เพราะจะสรุปผิดว่าสกิล `pdf` ไม่มีอยู่
+
+เพิ่มสกิลใหม่แล้วต้อง symlink ให้ Claude เห็นด้วย (ทำซ้ำได้ ไม่พังของเดิม):
 
 ```bash
-git clone https://github.com/zenithjuno/codex-skills.git ~/.codex/skills
+for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"; done
 ```
 
-**Claude Code** — symlink เข้ามาให้เห็นทั้งสองเครื่องมือจากต้นทางเดียว ไม่มี drift
+บันทึกการเปลี่ยนแปลง:
 
 ```bash
-mkdir -p ~/.claude/skills
+cd ~/.codex/skills && git add -A && git commit -m "..." && git push
+```
+
+---
+
+## 📦 ติดตั้งบนเครื่องอื่น
+
+*(ส่วนนี้สำหรับเครื่องที่ยังไม่มีสกิลชุดนี้ — ไม่ใช่เครื่องต้นทางด้านบน)*
+
+```bash
+git clone https://github.com/zenithjuno/codex-skills.git ~/.codex/skills   # Codex อ่านจากที่นี่
+
+mkdir -p ~/.claude/skills                                                  # ให้ Claude Code เห็นด้วย
 for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"; done
 ```
 
