@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ship Check"
+  short_description: "Read-only pre-publish gate for HTML learning games"
+  default_prompt: "Use $ship-check to run my final pre-publish gate: static-scan my HTML/JS for ship blockers, do a functional dry-run (or hand me a manual checklist if no browser tool), confirm content/playtest/data readiness, and give me a PASS/CONCERNS/FAIL verdict. Do not edit my files."
+
+policy:
+  allow_implicit_invocation: true

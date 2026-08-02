@@ -1,0 +1,7 @@
+interface:
+  display_name: "Thai Math DOCX"
+  short_description: "Build and audit Thai math Word files with editable equations"
+  default_prompt: "Use $thai-math-docx to create or repair this Thai mathematics Word document with the shared source adapter, DOCX builder, editable equations, and robust Thai font audits."
+
+policy:
+  allow_implicit_invocation: true

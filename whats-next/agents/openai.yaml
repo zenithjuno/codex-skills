@@ -1,0 +1,7 @@
+interface:
+  display_name: "What's Next"
+  short_description: "Non-dev orientation — what to do next on the learning game"
+  default_prompt: "Use $whats-next to look at my learning-game project, tell me in plain language which stage I'm at, and recommend the one next thing to do and which skill to run."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "item12-option-a",
+  "version": "v5",
+  "kind": "venn",
+  "canvas": {"width_in": 2.88, "height_in": 1.728, "dpi": 600, "expected_px": [1728, 1037]},
+  "style": {"outline_color": "#111111", "outline_width_pt": 1.35, "shade_color": "#B9DDF1", "background_color": "#FFFFFF", "label_size_pt": 12, "font": "stix-two-italic"},
+  "circles": [
+    {"name": "P", "cx_pt": 77, "cy_pt": 49, "r_pt": 33},
+    {"name": "Q", "cx_pt": 131, "cy_pt": 49, "r_pt": 33},
+    {"name": "R", "cx_pt": 104, "cy_pt": 82, "r_pt": 33}
+  ],
+  "labels": [
+    {"text": "P", "role": "set", "set": "P", "x_pt": 56, "y_pt": 11},
+    {"text": "Q", "role": "set", "set": "Q", "x_pt": 144, "y_pt": 11},
+    {"text": "R", "role": "set", "set": "R", "x_pt": 151, "y_pt": 103}
+  ],
+  "universe": null,
+  "answer": {"expression": "P ∪ (Q − R)"},
+  "numerals": [],
+  "qa": {
+    "relations": [
+      {"kind": "overlap", "sets": ["P", "Q"], "expect": true},
+      {"kind": "overlap", "sets": ["P", "R"], "expect": true},
+      {"kind": "overlap", "sets": ["Q", "R"], "expect": true},
+      {"kind": "triple_intersection", "sets": ["P", "Q", "R"], "expect": true},
+      {"kind": "atomic_regions", "expect_all": true}
+    ],
+    "pixel_samples": [
+      {"name": "P-only", "x_pt": 71, "y_pt": 39, "expect_fill": true},
+      {"name": "Q-only", "x_pt": 137, "y_pt": 39, "expect_fill": true},
+      {"name": "R-only", "x_pt": 104, "y_pt": 95, "expect_fill": false},
+      {"name": "PR-only", "x_pt": 90, "y_pt": 66, "expect_fill": true},
+      {"name": "QR-only", "x_pt": 118, "y_pt": 66, "expect_fill": false},
+      {"name": "PQR", "x_pt": 104, "y_pt": 55, "expect_fill": true},
+      {"name": "PQ-only", "x_pt": 104, "y_pt": 43, "expect_fill": true}
+    ]
+  },
+  "outputs": {"filename": "item12-option-ก_P-union-Q-minus-R_600dpi.png"}
+}

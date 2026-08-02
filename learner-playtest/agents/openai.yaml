@@ -1,0 +1,7 @@
+interface:
+  display_name: "Learner Playtest"
+  short_description: "Human feedback (Google Form / observation) for learning games"
+  default_prompt: "Use $learner-playtest to make a Google Form question set I can give learners (feedback + a short comprehension check), or to analyze the responses — focused on whether learners actually learned the target thing and where they got stuck, not just whether it was fun."
+
+policy:
+  allow_implicit_invocation: true

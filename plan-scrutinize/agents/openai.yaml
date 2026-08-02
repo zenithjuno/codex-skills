@@ -1,0 +1,6 @@
+interface:
+  display_name: "Plan Scrutinize"
+  short_description: "Outsider cold-read of a plan/BLUEPRINT before building"
+  default_prompt: "Use $plan-scrutinize to pressure-test my plan or BLUEPRINT before I build — catch wrong-thing, scope drift, and assumptions that break against reality, while a fix still costs one sentence."
+policy:
+  allow_implicit_invocation: true

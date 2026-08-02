@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Control and Changelog"
+  short_description: "Bounded build state, cold logs, and checkpoints"
+  default_prompt: "Use $build-changelog to resume this Mode L coding build from its exact BUILD-CONTROL path, load only the Task Contract and current stage, and continue to the next genuine gate."

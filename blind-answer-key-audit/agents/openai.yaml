@@ -1,0 +1,7 @@
+interface:
+  display_name: "Blind Answer-Key Audit"
+  short_description: "Blind-resolve an answer key, diff against it, flag issues for a human"
+  default_prompt: "Use $blind-answer-key-audit to verify this answer key by blind re-solving: solve each item independently before revealing the producer's answer, diff, bucket disagreements as flags, and export a per-item report for human review. Works whether I produced the answers or am checking someone else's."
+
+policy:
+  allow_implicit_invocation: true

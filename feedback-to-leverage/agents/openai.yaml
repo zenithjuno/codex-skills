@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feedback to Leverage"
+  short_description: "Turn corrections into durable safeguards"
+  default_prompt: "Use $feedback-to-leverage to fix this correction and place the smallest durable safeguard in the right system surface."

@@ -1,0 +1,13 @@
+# ── ไม่เผยแพร่: ของบุคคลที่สาม ──
+# pdf/ = © Anthropic PBC, All rights reserved — ห้ามเผยแพร่ต่อ
+pdf/
+# .system/ = สกิลระบบของ Codex (skill-creator/installer/openai-docs/imagegen/…) ไม่ใช่ผลงานเรา
+.system/
+
+# ── ขยะระบบ / ไฟล์สำรองเก่า ──
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.bak-*

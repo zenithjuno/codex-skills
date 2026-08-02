@@ -1,0 +1,7 @@
+interface:
+  display_name: "Learning Game Design"
+  short_description: "Discussion-first lite design for educational browser games"
+  default_prompt: "Use $learning-game-design to help me design my educational game in chat first — objective, core loop, content architecture, minimal tech — then write one lean design spec after I approve."
+
+policy:
+  allow_implicit_invocation: true

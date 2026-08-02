@@ -1,0 +1,7 @@
+interface:
+  display_name: "Systematic Debugging"
+  short_description: "Find root cause before any fix — 4 phases, no guessing"
+  default_prompt: "Use $systematic-debugging on this bug: do NOT propose a fix yet. Phase 1 first — read the error, reproduce it, check what changed in git, and instrument the layer boundaries (browser -> Apps Script -> Sheet) if needed. Then one hypothesis, one minimal change, and a failing test I can watch fail before the fix. If three fixes fail, stop and tell me the architecture is wrong."
+
+policy:
+  allow_implicit_invocation: true

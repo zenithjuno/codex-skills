@@ -1,0 +1,6 @@
+interface:
+  display_name: "soffice Runtime Fix"
+  short_description: "Auto-repair bundled soffice render failures"
+  default_prompt: "Use $soffice-runtime-fix to auto-repair a failed bundled soffice or render_docx.py DOCX render path."
+policy:
+  allow_implicit_invocation: true

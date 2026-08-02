@@ -1,0 +1,650 @@
+#!/bin/bash
+# fix-thai-font v3.3
+#
+# XML-aware Thai font normalization for .docx files. It repairs the common
+# Word fallback where Thai appears to be TH Sarabun New, but Clear Formatting,
+# style application, or PDF export routes Thai through Angsana/Cordia because
+# the Complex Script path is broken.
+#
+# v3.3 changes (over v3.2):
+#   - FIX: repack wrote the output zip to "<tmp>" but `zip` auto-appends ".zip"
+#     when the path has no extension and the file is absent, so the produced
+#     archive was "<tmp>.zip". The subsequent `mv "<tmp>" ...` then failed and
+#     repair was a silent no-op (file came out byte-identical, yet "OK" printed).
+#     The temp zip path now carries the .zip extension explicitly.
+#   - FIX: a failed repack (zip or mv) now fails the file loudly and marks it
+#     as failed, instead of being swallowed and reported as success.
+#   - FIX: in repair mode the post-repair audit now gates success — if the
+#     repaired file still violates invariants, the file is reported failed.
+
+set -euo pipefail
+
+TARGET_FONT="TH Sarabun New"
+IN_PLACE=false
+RECURSIVE=false
+VERBOSE=true
+CHECK_ONLY=false
+
+if [ -t 1 ]; then
+  RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'
+  BLUE=$'\033[0;34m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
+else
+  RED=""; GREEN=""; YELLOW=""; BLUE=""; BOLD=""; RESET=""
+fi
+
+show_help() {
+  cat <<EOF
+${BOLD}fix-thai-font${RESET} v3.3 - Fix Thai Complex Script font routing in .docx files
+
+USAGE
+  fix-thai-font [options] <file-or-folder> [more files...]
+
+OPTIONS
+  -i, --in-place       Overwrite the original file (backup saved as .bak)
+  -r, --recursive      When given a folder, process subfolders too
+  -f, --font NAME      Target Thai font name (default: "TH Sarabun New")
+  -c, --check          Audit only; do not write a fixed file
+  -q, --quiet          Suppress per-file success output
+  -h, --help           Show this help
+
+WHAT IT FIXES
+  1. Replaces known Thai fallback fonts in Complex Script slots with the target font.
+  2. Sets every theme Thai mapping to the target font, regardless of XML
+     attribute order.
+  3. Ensures styles.xml docDefaults has w:cs, w:bidi="th-TH", and w:szCs.
+  4. Adds a true <w:cs/> toggle to every run containing Thai text.
+  5. Ensures Thai runs have w:rFonts w:cs="TARGET" and w:lang w:bidi="th-TH".
+  6. Verifies after repair and exits nonzero if required invariants still fail.
+
+REQUIREMENTS
+  bash, unzip, zip, and python3
+EOF
+  exit 0
+}
+
+TARGETS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help) show_help ;;
+    -i|--in-place) IN_PLACE=true; shift ;;
+    -r|--recursive) RECURSIVE=true; shift ;;
+    -q|--quiet) VERBOSE=false; shift ;;
+    -c|--check) CHECK_ONLY=true; shift ;;
+    -f|--font)
+      if [ $# -lt 2 ]; then
+        echo "${RED}Error: --font requires a font name${RESET}" >&2
+        exit 1
+      fi
+      TARGET_FONT="$2"
+      shift 2
+      ;;
+    -*) echo "${RED}Unknown option: $1${RESET}" >&2; exit 1 ;;
+    *) TARGETS+=("$1"); shift ;;
+  esac
+done
+
+if [ ${#TARGETS[@]} -eq 0 ]; then
+  echo "${RED}Error: no file or folder given${RESET}" >&2
+  echo "Run: fix-thai-font -h" >&2
+  exit 1
+fi
+
+for tool in unzip zip python3; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "${RED}Error: '$tool' not found.${RESET}" >&2
+    exit 1
+  fi
+done
+
+PYHELPER=$(mktemp -t fix-thai-font-XXXXXX)
+trap "rm -f '$PYHELPER'" EXIT
+
+cat > "$PYHELPER" << 'PYEOF'
+import glob
+import os
+import re
+import sys
+import xml.etree.ElementTree as ET
+
+BASE = sys.argv[1]
+TARGET_FONT = sys.argv[2]
+CHECK_ONLY = sys.argv[3] == "check"
+
+NS = {
+    "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+    "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+    "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+    "wp": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+    "pic": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+    "mc": "http://schemas.openxmlformats.org/markup-compatibility/2006",
+    "v": "urn:schemas-microsoft-com:vml",
+    "o": "urn:schemas-microsoft-com:office:office",
+}
+
+for prefix, uri in NS.items():
+    ET.register_namespace(prefix, uri)
+
+W_NS = NS["w"]
+A_NS = NS["a"]
+XML_NS = "http://www.w3.org/XML/1998/namespace"
+
+def w(name):
+    return f"{{{W_NS}}}{name}"
+
+def a(name):
+    return f"{{{A_NS}}}{name}"
+
+WRONG_FONTS = {
+    "angsana new",
+    "angsana new regular",
+    "angsanaupc",
+    "cordia new",
+    "cordia new regular",
+    "cordiaupc",
+    "browallia new",
+    "browalliaupc",
+    "dilleniaupc",
+    "eucrosiaupc",
+    "freesiaupc",
+    "irisupc",
+    "jasmineupc",
+    "kodchiangupc",
+    "lilyupc",
+    "th sarabunpsk",
+    "th sarabun psk",
+}
+
+FONT_SLOTS = ("ascii", "hAnsi", "cs", "eastAsia")
+FALSE_VALUES = {"0", "false", "off", "no"}
+THAI_RE = re.compile(r"[\u0E00-\u0E7F]")
+NON_FONT_RE = re.compile(r"var\(|\{\{|\}\}|\$\(.*\)|--[A-Za-z0-9_-]+")
+
+def norm_font(value):
+    return " ".join((value or "").strip().split()).casefold()
+
+def is_wrong_font(value):
+    return norm_font(value) in WRONG_FONTS
+
+def is_target(value):
+    return norm_font(value) == norm_font(TARGET_FONT)
+
+def is_false_value(value):
+    return value is not None and value.strip().casefold() in FALSE_VALUES
+
+def has_bad_font_token(value):
+    return bool(value and NON_FONT_RE.search(value))
+
+def direct_child(parent, tag):
+    for child in list(parent):
+        if child.tag == tag:
+            return child
+    return None
+
+def ensure_child(parent, tag, *, first=False, changed=None):
+    child = direct_child(parent, tag)
+    if child is not None:
+        return child
+    child = ET.Element(tag)
+    if first:
+        parent.insert(0, child)
+    else:
+        parent.append(child)
+    if changed is not None:
+        changed[0] = True
+    return child
+
+def set_attr_if_needed(element, attr, value, changed):
+    if element.get(attr) != value:
+        element.set(attr, value)
+        changed[0] = True
+
+def remove_attr_if_present(element, attr, changed):
+    if attr in element.attrib:
+        del element.attrib[attr]
+        changed[0] = True
+
+def run_contains_thai(run):
+    for node in run.iter():
+        if node.text and THAI_RE.search(node.text):
+            return True
+        if node.tail and THAI_RE.search(node.tail):
+            return True
+    return False
+
+def true_toggle(element):
+    if element is None:
+        return False
+    return not is_false_value(element.get(w("val")))
+
+def ensure_true_toggle(parent, tag, changed):
+    element = direct_child(parent, tag)
+    if element is None:
+        element = ET.SubElement(parent, tag)
+        changed[0] = True
+    remove_attr_if_present(element, w("val"), changed)
+    return element
+
+def ensure_rpr_in_run(run, changed):
+    return ensure_child(run, w("rPr"), first=True, changed=changed)
+
+def ensure_rfonts(rpr, changed):
+    return ensure_child(rpr, w("rFonts"), first=True, changed=changed)
+
+def repair_rfonts(root, changed):
+    for rfonts in root.iter(w("rFonts")):
+        attr = w("cs")
+        value = rfonts.get(attr)
+        if value and is_wrong_font(value):
+            rfonts.set(attr, TARGET_FONT)
+            changed[0] = True
+
+def repair_thai_run(run, changed):
+    rpr = ensure_rpr_in_run(run, changed)
+    rfonts = ensure_rfonts(rpr, changed)
+    set_attr_if_needed(rfonts, w("cs"), TARGET_FONT, changed)
+
+    sz = direct_child(rpr, w("sz"))
+    szcs = direct_child(rpr, w("szCs"))
+    if sz is not None and sz.get(w("val")) and szcs is None:
+        szcs = ET.SubElement(rpr, w("szCs"))
+        szcs.set(w("val"), sz.get(w("val")))
+        changed[0] = True
+
+    lang = ensure_child(rpr, w("lang"), changed=changed)
+    set_attr_if_needed(lang, w("bidi"), "th-TH", changed)
+
+    ensure_true_toggle(rpr, w("cs"), changed)
+    if direct_child(rpr, w("b")) is not None and direct_child(rpr, w("bCs")) is None:
+        ET.SubElement(rpr, w("bCs"))
+        changed[0] = True
+    if direct_child(rpr, w("i")) is not None and direct_child(rpr, w("iCs")) is None:
+        ET.SubElement(rpr, w("iCs"))
+        changed[0] = True
+
+def repair_thai_runs(root, changed):
+    for run in root.iter(w("r")):
+        if run_contains_thai(run):
+            repair_thai_run(run, changed)
+
+def ensure_doc_defaults(root, changed):
+    doc_defaults = ensure_child(root, w("docDefaults"), first=True, changed=changed)
+    rpr_default = ensure_child(doc_defaults, w("rPrDefault"), changed=changed)
+    rpr = ensure_child(rpr_default, w("rPr"), changed=changed)
+    rfonts = ensure_rfonts(rpr, changed)
+    set_attr_if_needed(rfonts, w("cs"), TARGET_FONT, changed)
+
+    szcs = ensure_child(rpr, w("szCs"), changed=changed)
+    if not szcs.get(w("val")):
+        set_attr_if_needed(szcs, w("val"), "32", changed)
+
+    lang = ensure_child(rpr, w("lang"), changed=changed)
+    if not lang.get(w("val")):
+        set_attr_if_needed(lang, w("val"), "en-US", changed)
+    set_attr_if_needed(lang, w("bidi"), "th-TH", changed)
+
+def style_label(style):
+    bits = [style.get(w("styleId"), "")]
+    name = direct_child(style, w("name"))
+    if name is not None:
+        bits.append(name.get(w("val"), ""))
+    return " ".join(bits).casefold()
+
+def style_is_thai_candidate(style, rfonts):
+    label = style_label(style)
+    western_target = is_target(rfonts.get(w("ascii"))) or is_target(rfonts.get(w("hAnsi")))
+    named_thai = "thai" in label or "sarabun" in label or "bidi" in label
+    return is_target(rfonts.get(w("cs"))) and (western_target or named_thai)
+
+def repair_style_routing(root, changed):
+    for style in root.iter(w("style")):
+        rpr = direct_child(style, w("rPr"))
+        if rpr is None:
+            continue
+        rfonts = direct_child(rpr, w("rFonts"))
+        if rfonts is None or not is_target(rfonts.get(w("cs"))):
+            continue
+        if not style_is_thai_candidate(style, rfonts):
+            continue
+        lang = ensure_child(rpr, w("lang"), changed=changed)
+        set_attr_if_needed(lang, w("bidi"), "th-TH", changed)
+        sz = direct_child(rpr, w("sz"))
+        if sz is not None and sz.get(w("val")) and direct_child(rpr, w("szCs")) is None:
+            szcs = ET.SubElement(rpr, w("szCs"))
+            szcs.set(w("val"), sz.get(w("val")))
+            changed[0] = True
+        ensure_true_toggle(rpr, w("cs"), changed)
+
+def repair_style_cs_fonts(root, changed):
+    for style in root.iter(w("style")):
+        rpr = direct_child(style, w("rPr"))
+        if rpr is None:
+            continue
+        rfonts = direct_child(rpr, w("rFonts"))
+        if rfonts is None:
+            continue
+        value = rfonts.get(w("cs"))
+        if value and is_wrong_font(value):
+            rfonts.set(w("cs"), TARGET_FONT)
+            changed[0] = True
+
+def repair_theme(root, changed):
+    thai_fonts = []
+    for font in root.iter(a("font")):
+        if font.get("script") == "Thai":
+            thai_fonts.append(font)
+            set_attr_if_needed(font, "typeface", TARGET_FONT, changed)
+
+    for parent_tag in (a("majorFont"), a("minorFont")):
+        for parent in root.iter(parent_tag):
+            has_thai = any(child.tag == a("font") and child.get("script") == "Thai" for child in list(parent))
+            if not has_thai:
+                child = ET.SubElement(parent, a("font"))
+                child.set("script", "Thai")
+                child.set("typeface", TARGET_FONT)
+                changed[0] = True
+
+def parse_xml(path):
+    parser = ET.XMLParser()
+    return ET.parse(path, parser=parser)
+
+def write_xml(tree, path):
+    tree.write(path, encoding="UTF-8", xml_declaration=True, short_empty_elements=True)
+
+def process_xml_file(path):
+    try:
+        tree = parse_xml(path)
+    except ET.ParseError as exc:
+        return [f"{rel(path)}: cannot parse XML: {exc}"]
+
+    root = tree.getroot()
+    changed = [False]
+
+    base = os.path.basename(path)
+    if base == "styles.xml":
+        ensure_doc_defaults(root, changed)
+        repair_style_cs_fonts(root, changed)
+        repair_style_routing(root, changed)
+
+    if path.replace("\\", "/").endswith("/word/theme/theme1.xml") or "/word/theme/" in path.replace("\\", "/"):
+        repair_theme(root, changed)
+
+    if any(True for _ in root.iter(w("r"))):
+        repair_thai_runs(root, changed)
+
+    if changed[0] and not CHECK_ONLY:
+        write_xml(tree, path)
+    return []
+
+def rel(path):
+    return os.path.relpath(path, BASE)
+
+def iter_word_xml():
+    pattern = os.path.join(BASE, "word", "**", "*.xml")
+    return sorted(glob.glob(pattern, recursive=True))
+
+def child_path(parent, names):
+    node = parent
+    for name in names:
+        node = direct_child(node, name)
+        if node is None:
+            return None
+    return node
+
+def audit_styles(root, path, issues):
+    rpr = child_path(root, [w("docDefaults"), w("rPrDefault"), w("rPr")])
+    if rpr is None:
+        issues.append(f"{rel(path)}: missing docDefaults/rPrDefault/rPr")
+        return
+    rfonts = direct_child(rpr, w("rFonts"))
+    if rfonts is None or not is_target(rfonts.get(w("cs"))):
+        issues.append(f"{rel(path)}: docDefaults missing w:rFonts w:cs=\"{TARGET_FONT}\"")
+    lang = direct_child(rpr, w("lang"))
+    if lang is None or lang.get(w("bidi")) != "th-TH":
+        issues.append(f"{rel(path)}: docDefaults missing w:lang w:bidi=\"th-TH\"")
+    szcs = direct_child(rpr, w("szCs"))
+    if szcs is None or not szcs.get(w("val")):
+        issues.append(f"{rel(path)}: docDefaults missing w:szCs")
+    for style in root.iter(w("style")):
+        rpr = direct_child(style, w("rPr"))
+        if rpr is None:
+            continue
+        rfonts = direct_child(rpr, w("rFonts"))
+        if rfonts is None:
+            continue
+        value = rfonts.get(w("cs"))
+        if value and is_wrong_font(value):
+            label = style_label(style) or "<unnamed style>"
+            issues.append(f"{rel(path)}: style {label!r} w:cs still uses fallback font {value!r}")
+        if not style_is_thai_candidate(style, rfonts):
+            continue
+        label = style_label(style) or "<unnamed style>"
+        cs_toggle = direct_child(rpr, w("cs"))
+        if not true_toggle(cs_toggle):
+            issues.append(f"{rel(path)}: Thai candidate style {label!r} missing true <w:cs/> toggle")
+        lang = direct_child(rpr, w("lang"))
+        if lang is None or lang.get(w("bidi")) != "th-TH":
+            issues.append(f"{rel(path)}: Thai candidate style {label!r} missing w:lang w:bidi=\"th-TH\"")
+
+def audit_theme(root, path, issues):
+    thai_fonts = [font for font in root.iter(a("font")) if font.get("script") == "Thai"]
+    if not thai_fonts:
+        issues.append(f"{rel(path)}: theme has no Thai font mappings")
+        return
+    for font in thai_fonts:
+        if not is_target(font.get("typeface")):
+            issues.append(f"{rel(path)}: Thai theme font is {font.get('typeface')!r}, expected {TARGET_FONT!r}")
+
+def audit_rfonts(root, path, issues):
+    for rfonts in root.iter(w("rFonts")):
+        value = rfonts.get(w("cs"))
+        if value and is_wrong_font(value):
+            issues.append(f"{rel(path)}: w:rFonts w:cs still uses fallback font {value!r}")
+        for slot in FONT_SLOTS:
+            attr = w(slot)
+            slot_value = rfonts.get(attr)
+            if slot_value and has_bad_font_token(slot_value):
+                issues.append(f"{rel(path)}: w:rFonts w:{slot} contains non-font token {slot_value!r}")
+
+def audit_thai_runs(root, path, issues):
+    for index, run in enumerate(root.iter(w("r")), start=1):
+        if not run_contains_thai(run):
+            continue
+        rpr = direct_child(run, w("rPr"))
+        if rpr is None:
+            issues.append(f"{rel(path)}: Thai run #{index} missing w:rPr")
+            continue
+        cs_toggle = direct_child(rpr, w("cs"))
+        if not true_toggle(cs_toggle):
+            issues.append(f"{rel(path)}: Thai run #{index} missing true <w:cs/> toggle")
+        rfonts = direct_child(rpr, w("rFonts"))
+        if rfonts is None or not is_target(rfonts.get(w("cs"))):
+            issues.append(f"{rel(path)}: Thai run #{index} missing w:rFonts w:cs=\"{TARGET_FONT}\"")
+        lang = direct_child(rpr, w("lang"))
+        if lang is None or lang.get(w("bidi")) != "th-TH":
+            issues.append(f"{rel(path)}: Thai run #{index} missing w:lang w:bidi=\"th-TH\"")
+
+def audit_xml_file(path):
+    issues = []
+    try:
+        tree = parse_xml(path)
+    except ET.ParseError as exc:
+        return [f"{rel(path)}: cannot parse XML: {exc}"]
+
+    root = tree.getroot()
+    audit_thai_runs(root, path, issues)
+    if os.path.basename(path) == "styles.xml":
+        audit_styles(root, path, issues)
+    if "/word/theme/" in path.replace("\\", "/"):
+        audit_theme(root, path, issues)
+    return issues
+
+def main():
+    issues = []
+    xml_files = iter_word_xml()
+    for path in xml_files:
+        issues.extend(process_xml_file(path))
+
+    issues = []
+    for path in xml_files:
+        issues.extend(audit_xml_file(path))
+
+    if issues:
+        print("Thai font normalization audit failed:", file=sys.stderr)
+        for issue in issues[:200]:
+            print(f"  - {issue}", file=sys.stderr)
+        if len(issues) > 200:
+            print(f"  ... {len(issues) - 200} more issue(s)", file=sys.stderr)
+        sys.exit(2)
+
+if __name__ == "__main__":
+    main()
+PYEOF
+
+process_docx() {
+  local input="$1"
+  local output=""
+  local tmpdir=""
+  local outzip=""
+
+  if [ "$CHECK_ONLY" = false ]; then
+    if [ "$IN_PLACE" = true ]; then
+      cp -p "$input" "${input}.bak"
+      output="$input"
+    else
+      local dir base
+      dir=$(dirname "$input")
+      base=$(basename "$input" .docx)
+      output="${dir}/${base}_fixed.docx"
+    fi
+  fi
+
+  tmpdir=$(mktemp -d -t fix-thai-docx-XXXXXX)
+  if ! unzip -q -o "$input" -d "$tmpdir" 2>/dev/null; then
+    echo "  ${RED}x Failed to unzip: $input${RESET}" >&2
+    rm -rf "$tmpdir"
+    return 1
+  fi
+
+  local mode="fix"
+  if [ "$CHECK_ONLY" = true ]; then
+    mode="check"
+  fi
+
+  if ! python3 "$PYHELPER" "$tmpdir" "$TARGET_FONT" "$mode"; then
+    rm -rf "$tmpdir"
+    return 1
+  fi
+
+  if [ "$CHECK_ONLY" = true ]; then
+    rm -rf "$tmpdir"
+    if [ "$VERBOSE" = true ]; then
+      echo "  ${GREEN}OK${RESET} ${input}"
+    fi
+    return 0
+  fi
+
+  # Build the output archive. NOTE: `zip` appends ".zip" to the output path when
+  # that path has no extension and the file does not already exist. So the temp
+  # path MUST carry the .zip extension, otherwise zip writes "<tmp>.zip" while we
+  # look for "<tmp>" and the mv fails (the v3.2 silent no-op bug).
+  outzip=$(mktemp -t fix-thai-out-XXXXXX).zip
+  rm -f "$outzip"
+  if ! (
+    cd "$tmpdir"
+    zip -q -r -X "$outzip" . -x "*.DS_Store"
+  ); then
+    echo "  ${RED}x Failed to repack: $input (zip error)${RESET}" >&2
+    rm -rf "$tmpdir"
+    rm -f "$outzip"
+    return 1
+  fi
+
+  if [ ! -f "$outzip" ]; then
+    echo "  ${RED}x Failed to repack: $input (no archive produced)${RESET}" >&2
+    rm -rf "$tmpdir"
+    return 1
+  fi
+
+  if ! mv "$outzip" "$output"; then
+    echo "  ${RED}x Failed to write output: $output${RESET}" >&2
+    rm -rf "$tmpdir"
+    rm -f "$outzip"
+    return 1
+  fi
+  rm -rf "$tmpdir"
+
+  # Post-repair audit gate: prove the written file actually satisfies the
+  # invariants. A repair that silently leaves the document broken is worse
+  # than no repair, so a failed audit here marks the file as failed.
+  local verify_dir
+  verify_dir=$(mktemp -d -t fix-thai-verify-XXXXXX)
+  if ! unzip -q -o "$output" -d "$verify_dir" 2>/dev/null; then
+    echo "  ${RED}x Wrote $output but it is not a readable archive${RESET}" >&2
+    rm -rf "$verify_dir"
+    return 1
+  fi
+  if ! python3 "$PYHELPER" "$verify_dir" "$TARGET_FONT" "check"; then
+    echo "  ${RED}x Repair did not satisfy invariants: $output${RESET}" >&2
+    rm -rf "$verify_dir"
+    return 1
+  fi
+  rm -rf "$verify_dir"
+
+  if [ "$VERBOSE" = true ]; then
+    if [ "$IN_PLACE" = true ]; then
+      echo "  ${GREEN}OK${RESET} ${input} ${BLUE}(backup: ${input}.bak)${RESET}"
+    else
+      echo "  ${GREEN}OK${RESET} ${input}"
+      echo "      -> ${output}"
+    fi
+  fi
+  return 0
+}
+
+FILES=()
+for target in "${TARGETS[@]}"; do
+  if [ -f "$target" ]; then
+    case "$target" in
+      *.docx|*.DOCX) FILES+=("$target") ;;
+      *) echo "${YELLOW}Skipping (not a .docx): $target${RESET}" >&2 ;;
+    esac
+  elif [ -d "$target" ]; then
+    if [ "$RECURSIVE" = true ]; then
+      while IFS= read -r -d '' file; do FILES+=("$file"); done < <(find "$target" -type f \( -name "*.docx" -o -name "*.DOCX" \) ! -name "._*" ! -name "~\$*" -print0)
+    else
+      while IFS= read -r -d '' file; do FILES+=("$file"); done < <(find "$target" -maxdepth 1 -type f \( -name "*.docx" -o -name "*.DOCX" \) ! -name "._*" ! -name "~\$*" -print0)
+    fi
+  else
+    echo "${RED}Not found: $target${RESET}" >&2
+  fi
+done
+
+if [ ${#FILES[@]} -eq 0 ]; then
+  echo "${YELLOW}No .docx files to process.${RESET}"
+  exit 0
+fi
+
+if [ "$CHECK_ONLY" = true ]; then
+  echo "${BOLD}fix-thai-font v3.3 check${RESET}: target font = ${BLUE}${TARGET_FONT}${RESET}"
+else
+  echo "${BOLD}fix-thai-font v3.3${RESET}: target font = ${BLUE}${TARGET_FONT}${RESET}"
+fi
+echo "Found ${#FILES[@]} file(s)"
+echo ""
+
+SUCCESS=0
+FAIL=0
+for file in "${FILES[@]}"; do
+  if process_docx "$file"; then
+    SUCCESS=$((SUCCESS + 1))
+  else
+    FAIL=$((FAIL + 1))
+  fi
+done
+
+echo ""
+echo "${BOLD}Done.${RESET} ${GREEN}${SUCCESS} succeeded${RESET}, ${RED}${FAIL} failed${RESET}"
+
+if [ "$FAIL" -ne 0 ]; then
+  exit 1
+fi

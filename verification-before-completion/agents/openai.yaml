@@ -1,0 +1,7 @@
+interface:
+  display_name: "Verification Before Completion"
+  short_description: "Gate that blocks 'done/fixed/passing' claims without fresh evidence"
+  default_prompt: "Use $verification-before-completion before you tell me anything is done, fixed, or passing: name the command that proves it, run it fresh, read the full output, and state the claim WITH that evidence. If you have not run it in this message, say so instead of claiming success."
+
+policy:
+  allow_implicit_invocation: true

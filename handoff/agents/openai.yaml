@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Handoff"
+  short_description: "Continue work in a fresh Codex session"
+  default_prompt: "Use $handoff to create a Codex continuity file so I can continue this work in a fresh session."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Game Content Audit"
+  short_description: "Read-only content & data audit for learning games"
+  default_prompt: "Use $game-content-audit to audit my learning game: review the question-generator code for correctness and run the data audit script on my questions sample and player-stat file, then give me a PASS/CONCERNS/FAIL report. Do not edit my files."
+
+policy:
+  allow_implicit_invocation: true

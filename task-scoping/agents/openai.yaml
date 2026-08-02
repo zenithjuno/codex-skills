@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Scoping"
+  short_description: "Right-size coding work before implementation"
+  default_prompt: "Use $task-scoping to define a compact task contract and choose the lightest safe coding workflow."

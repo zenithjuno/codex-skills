@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "item18-counted",
+  "version": "v5",
+  "kind": "venn",
+  "canvas": {"width_in": 3.7, "height_in": 2.55, "dpi": 600, "expected_px": [2220, 1530]},
+  "style": {"outline_color": "#111111", "outline_width_pt": 1.35, "shade_color": "#B9DDF1", "background_color": "#FFFFFF", "label_size_pt": 12, "font": "stix-two-italic"},
+  "circles": [{"name": "A", "cx_pt": 103, "cy_pt": 75, "r_pt": 47}, {"name": "B", "cx_pt": 164, "cy_pt": 75, "r_pt": 47}, {"name": "C", "cx_pt": 133.5, "cy_pt": 117, "r_pt": 47}],
+  "labels": [{"text": "A", "role": "set", "set": "A", "x_pt": 74, "y_pt": 25}, {"text": "B", "role": "set", "set": "B", "x_pt": 187, "y_pt": 25}, {"text": "C", "role": "set", "set": "C", "x_pt": 75, "y_pt": 154}, {"text": "U", "role": "universe", "x_pt": 247, "y_pt": 20}],
+  "universe": {"x_pt": 9, "y_pt": 8, "width_pt": 248.4, "height_pt": 167.6},
+  "answer": null,
+  "numerals": [
+    {"text": "4", "membership": {"A": true, "B": false, "C": false}, "position": "auto"},
+    {"text": "6", "membership": {"A": false, "B": true, "C": false}, "position": "auto"},
+    {"text": "5", "membership": {"A": false, "B": false, "C": true}, "position": "auto"},
+    {"text": "3", "membership": {"A": true, "B": true, "C": false}, "position": "auto"},
+    {"text": "2", "membership": {"A": true, "B": false, "C": true}, "position": "auto"},
+    {"text": "4", "membership": {"A": false, "B": true, "C": true}, "position": "auto"},
+    {"text": "1", "membership": {"A": true, "B": true, "C": true}, "position": "auto"}
+  ],
+  "qa": {"relations": [{"kind": "overlap", "sets": ["A", "B"], "expect": true}, {"kind": "overlap", "sets": ["A", "C"], "expect": true}, {"kind": "overlap", "sets": ["B", "C"], "expect": true}, {"kind": "triple_intersection", "sets": ["A", "B", "C"], "expect": true}, {"kind": "atomic_regions", "expect_all": true}], "pixel_samples": []},
+  "outputs": {"filename": "item18-counted-three-set-venn_600dpi.png"}
+}
