@@ -50,12 +50,6 @@
 | [`ship-check`](ship-check) | ด่านสุดท้ายก่อนปล่อยให้ผู้เรียนใช้ — สแกนหา ship-blocker + dry-run + เช็กลิสต์ความพร้อม |
 | [`playwright`](playwright) | ขับเบราว์เซอร์จริงจาก terminal เพื่อทดสอบหน้าเว็บ |
 
-## การสื่อสาร (communication)
-
-| skill | ทำอะไร |
-|---|---|
-| [`pordee`](pordee) | โหมดพูดไทยกระชับ ลด output token ~60-75% — **หมายเหตุ:** ต้นฉบับเป็น Claude Code plugin ที่มี hooks (auto-activate + `/pordee-stats`); ที่ symlink ไว้ในเครื่องนี้เป็นแค่ตัว `SKILL.md` เปล่า ๆ (prompt instruction) ไม่มี auto-activate และ `/pordee-stats` ใช้ไม่ได้ ต้องพิมพ์ `/pordee` เองทุก session — Claude Code ตัวจริงติดตั้งแยกผ่าน `claude plugin marketplace add kerlos/pordee` |
-
 ---
 
 ## 🖥️ อ่านตรงนี้ก่อน ถ้าคุณคือ AI agent ที่ทำงานอยู่บนเครื่องต้นทาง
@@ -119,7 +113,6 @@ for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"
 | `systematic-debugging` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT (เล็มและปรับให้เข้ากับงาน Apps Script/HTML) |
 | `verification-before-completion` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT |
 | `karpathy-guidelines` | เรียบเรียงจากข้อสังเกตของ [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) | MIT |
-| `pordee` | จาก [kerlos/pordee](https://github.com/kerlos/pordee) โดย Vatunyoo Suwannapisit — ติดตั้งเฉพาะส่วน `skills/pordee/SKILL.md` ผ่าน `npx skills add kerlos/pordee -a codex` | MIT |
 
 **ไม่รวมอยู่ใน repo นี้โดยตั้งใจ** (ดู [`.gitignore`](.gitignore)) — เป็นของบุคคลที่สาม ไม่ใช่ผลงานเรา
 และไม่มีสิทธิ์เผยแพร่ต่อ:
