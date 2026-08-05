@@ -80,6 +80,12 @@ Write the complete H2 title after `§` exactly as it appears after `## `,
 including its number, words, and punctuation. Matching is case-insensitive; a
 number alone is valid only when the H2 itself contains that number alone.
 
+**This table is the canonical index.** BUILD-CONTROL keeps a mirror of it so a
+resuming agent gets current routing from one bounded file, but the mirror is not
+a second source: edit this table first, then bring the mirror into agreement.
+`build_context.py validate` compares the two on scope and contract ids and fails
+when they disagree, so the copies cannot drift apart unnoticed.
+
 ## 2..N. Domain sections
 One section per major area: inputs/data (with exact schema + value vocab),
 rules, scoring/logic, outputs, UI/structure, edge cases & validation, etc.
@@ -130,12 +136,33 @@ Give each decision a stable id, scope, and status:
 | DEC-002 | `src/auth/**` | <old decision — why> | SUPERSEDED BY CHG-003 |
 ```
 
+Allowed statuses: `ACTIVE`, `SUPERSEDED BY DEC/CHG-###`, `CONSOLIDATED INTO
+DEC-###`, `DEFERRED`, `LOCAL / NON-BUILD-AFFECTING`. Only `ACTIVE` rows belong in
+the Active Contract Index.
+
 When an approved build-time CHG changes locked behavior, treat the durable
 updates as one transaction before editing the product: update the current domain
-section, Active Contract Index, affected plan stages, and declared test/static
-enforcement; mark the affected Decision Log row superseded; then append the CHG
-audit entry. Implement the planned tests and product change afterward. Never scan
-history to reconstruct current behavior.
+section, Active Contract Index, affected plan stages and lifecycle, and declared
+test/static enforcement; mark the affected Decision Log row superseded; then
+append the CHG audit entry. Implement the planned tests and product change
+afterward. Never scan history to reconstruct current behavior.
+
+The transaction is only half done when the new claim is written. State the
+negative diff too — what was **replaced**, what must be **removed** from current
+surfaces, and what is **superseded** — and search the current surfaces for the old
+wording before closing. New text sitting beside a contradictory old claim leaves
+the old claim authoritative.
+
+### Consolidation (optional, at a refresh)
+
+Long builds accumulate many correct-but-granular decisions. Do **not** mint a DEC
+per CHG. Consolidate only when several related approved changes now express one
+stable rule, when the index needs several CHG ids to state one constraint, or
+when a fresh agent would have to read history to understand a current domain
+section — and only with the owner's approval that the consolidated wording is
+faithful to what they already approved. The superseded rows stay as lineage and
+the historical CHG entries stay immutable: this is semantic compaction, never
+deletion of evidence.
 
 ## The Decision Log is mandatory
 

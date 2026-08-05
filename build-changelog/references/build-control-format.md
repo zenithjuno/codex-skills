@@ -6,6 +6,7 @@ the files deterministically.
 ## Contents
 
 1. Canonical BUILD-CONTROL template
+   1a. Current truth surfaces registry
 2. Project Map conventions
 3. Active Contract Index conventions
 4. Cold BUILD-LOG template
@@ -13,6 +14,7 @@ the files deterministically.
 6. Size and rotation rules
 7. Completion checklist
 8. Legacy migration checklist
+9. Current-truth maintenance checklist
 
 ## 1. Canonical BUILD-CONTROL template
 
@@ -52,6 +54,14 @@ the files deterministically.
 - Managed: `src/**`, `lib/**`, `config/**`, `db/**`, `tests/**`, `<contract files>`
 - Read-only: `fixtures/source/**`
 - Protected: `.env*`, `vendor/**`, `<unrelated paths>`
+
+### Current truth surfaces
+| Role | Canonical source | Refresh trigger | Coverage |
+|---|---|---|---|
+| product-contract | `BLUEPRINT-<slug>.md` | approved behavior/architecture change | semantic |
+| execution-plan | `CONSTRUCTION_PLAN-<slug>.md` | stage pass, scope/order/lifecycle change | semantic |
+| operational-state | `BUILD-CONTROL-<slug>.md §STATE` | every state transition | structural |
+| code-routing | `CODEMAP.md` | file ownership/topology change | `exact-files: src/*.py` |
 
 ## STATE
 - Current stage: `NOT STARTED`
@@ -103,6 +113,26 @@ location remains canonical. Never relocate it merely to match this default;
 handle an approved-build relocation as a CHG and update all pointers atomically.
 `Control schema` records the control-file protocol, not the skill release date.
 
+## 1a. Current truth surfaces registry
+
+The first three roles above are always present. Add another role **only when the
+repository already owns such an artifact** — never scaffold a `CODEMAP.md`,
+`docs/ARCHITECTURE.md`, or `docs/RUNBOOK.md` just to fill a row. One role may
+name several bounded sources when their domains do not overlap; two sources
+claiming the same role is a stop, not a merge.
+
+`Coverage` declares what the helper may check mechanically:
+
+- `semantic` (or blank) — agent judgment only; no file-by-file inference.
+- `structural` — the surface is a control section the helper already parses.
+- `exact-files: <glob>[, <glob>]` — opt in to inventory checking. `doctor` then
+  warns for any file matching those globs that the document does not name in
+  backticks. Use it where a stale routing map actually costs debugging time; a
+  project without a routing document simply omits the row.
+
+`Refresh trigger` names the event that makes the surface stale. It is what PRG
+closeout and the CHG surface map consult to decide what to review.
+
 ## 2. Project Map conventions
 
 - `Managed` means the staged build may modify/checkpoint the path when the
@@ -130,13 +160,21 @@ build-time change is itself the current source.
 `Enforcement` names an exact test/glob/command or `review-only`. Group rows by
 meaningful code scope; do not add one row per trivial decision.
 
+The copy in `BLUEPRINT-<slug>.md §Active Contract Index` is canonical; the control
+section is a mirror that keeps resume bounded. Edit the Blueprint first, then
+bring the mirror into agreement. `validate` compares the two on scope and on
+contract ids — wording and pointer style may differ, contract content may not —
+and fails on disagreement, so the two copies cannot drift apart unnoticed. If the
+Blueprint has no such section (an older bundle), the comparison is skipped.
+
 When superseding a contract:
 
 1. update the current BLUEPRINT section;
-2. replace/remove the old id in this index;
+2. replace/remove the old id in the canonical index and its control mirror;
 3. mark the Decision Log row `SUPERSEDED BY CHG-###`;
-4. update affected plan CONTRACT/TEST lines;
-5. append CHG audit evidence to the active cold log.
+4. update affected plan CONTRACT/TEST lines and stage lifecycle;
+5. sweep the registered current surfaces for the old claim (`grep-current`);
+6. append CHG audit evidence to the active cold log.
 
 ## 4. Cold BUILD-LOG template
 
@@ -152,6 +190,11 @@ Companion to `BUILD-CONTROL-<slug>.md`. Append-only audit history.
 - Paths: <managed paths changed>
 - Verified: <exact focused/regression/static checks and results>
 - You saw: <plain-language evidence>
+- Current truth reconciliation:
+  - Updated: <exact current surfaces/sections, or `(none)`>
+  - Replaced/removed: <old claims retired, or `(none)`>
+  - Reviewed unchanged: <registered surfaces reviewed>
+  - Validation: <doctor / grep-current result>
 - Gate: passed by <user/automatic contract>
 - Checkpoint: <stable Git ref/tag, snapshot id, or external version id>
 
@@ -159,10 +202,21 @@ Companion to `BUILD-CONTROL-<slug>.md`. Append-only audit history.
 - Current contract said: <current behavior before change>
 - Found: <build/test finding>
 - Decision: <approved override and rationale>
-- Current truth updated: <BLUEPRINT sections / index rows / plan stages / tests>
+- Truth delta:
+  - Added: <new claims that become current, or `(none)`>
+  - Replaced: <old claim → new claim, or `(none)`>
+  - Removed: <claims that must disappear from current surfaces, or `(none)`>
+  - Superseded: <DEC/CHG/stage lifecycle changes, or `(none)`>
+- Current surfaces updated: <exact paths/sections>
+- Current surfaces reviewed, unchanged: <exact paths/sections>
+- Stale-claim sweep: <literal search terms and result>
 - Approved by: <user>
 - Implemented/checkpointed at: <stage / checkpoint or pending>
 ```
+
+All four truth-delta lines are required; write `(none)` rather than omitting one.
+A maintenance stage that repairs current documentation without changing product
+behavior uses the PRG template with a derived stage id (`S16A`), not a CHG.
 
 Append without reading prior entries. Never edit closed entries. Use a new
 correction/supersession entry when audit history itself needs clarification.
@@ -179,6 +233,8 @@ correction/supersession entry when audit history itself needs clarification.
 - Context: `<helper command> context <exact control path>`
 - Lookup: `<helper command> lookup <exact control path> <DEC/CHG/PRG/S id>`
 - Scope gate: `<helper command> check-scope <exact control path> <path>...`
+- Doctor: `<helper command> doctor <exact control path>`
+- Stale-claim sweep: `<helper command> grep-current <exact control path> "<old claim>"`
 - Begin or resume with Validate, then Context; do not discover files by glob.
 - Read the ACTIVE CONTRACT INDEX before editing code, then only named current-contract sections and code/tests in scope.
 - Never bulk-read the control home's `history/`.
@@ -186,6 +242,7 @@ correction/supersession entry when audit history itself needs clarification.
 - A Scope gate exit `3` is a stop. `READ-ONLY` paths must not be edited.
 - To change behavior governed by an active DEC/CHG, open and obtain approval for a new CHG first; a conformance bug fix does not need one.
 - Run declared checks before presenting a PASS GATE.
+- At stage close and on every approved CHG, reconcile the registered current-truth surfaces: state what became true AND what stopped being true.
 <!-- grill-to-build:<slug>:end -->
 ```
 
@@ -239,3 +296,35 @@ Never leave command placeholders in the installed AGENTS.md block.
       branch/baseline/checkpoint; `--skip-vcs` is only for pre-baseline planning.
 - [ ] Archive/rename legacy changelog files so future agents cannot glob them as
       competing hot state.
+- [ ] Add the `### Current truth surfaces` registry from artifacts the repository
+      already has, and a `| Stage | Lifecycle |` map reflecting what is really built.
+
+## 9. Current-truth maintenance checklist
+
+Run as a derived maintenance stage (`S16A`) when `doctor` reports drift, a stage
+or phase closes, topology changes, or the owner asks. It changes no product
+behavior, so it never uses a CHG id.
+
+- [ ] Freeze product edits; clear the product gate; note the maintenance stage in STATE.
+- [ ] Run `validate` and `doctor`; record findings.
+- [ ] Read only registered current-truth surfaces, plus code/topology behind a
+      reported drift. Use `lookup` by exact id when rationale matters.
+- [ ] Classify each finding: factual · routing/topology · plan lifecycle ·
+      contract semantics · decision-lifecycle debt · historical-only.
+- [ ] Write the plan as ADD / REPLACE / REMOVE / SUPERSEDE-CONSOLIDATE /
+      REVIEWED UNCHANGED. Ask the owner only for semantic judgment.
+- [ ] Update current surfaces. Never rewrite a closed log entry; corrections are
+      new entries.
+- [ ] Set the Stage map lifecycle for any stage that was delivered, merged,
+      deferred, or retired. Keep the ids; never renumber or delete them.
+- [ ] Empty OPEN CHANGES of anything already resolved.
+- [ ] Re-run `grep-current` for each retired claim, then `doctor`, `validate`, and
+      the focused tests.
+- [ ] Append one PRG receipt with the truth reconciliation block, checkpoint, and
+      return STATE to the next real action.
+
+A fresh agent should then be able to answer, without bulk-reading history: what
+the product is now, which stage is actually active, what is already built, which
+future stage ids were merged or retired, where each implementation area lives,
+which current decision governs it, and what the next authorized action is. If any
+of those still needs the cold log, the refresh is incomplete.

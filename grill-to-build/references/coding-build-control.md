@@ -32,9 +32,28 @@ Keep current truth separate from history:
 - Cold BUILD-LOG files are audit history: useful for `why` and traceability, but
   never consulted wholesale to infer current behavior.
 
+### Artifact role contract
+
+Every artifact has exactly one primary authority role:
+
+| Artifact | Owns | Must not own |
+|---|---|---|
+| `AGENTS.md` | stable routing, invariants, executable bootstrap commands | changing stage state, audit bodies, temporary backlog |
+| `BLUEPRINT` | current product contract, canonical Active Contract Index, Decision Log lifecycle | build progress, raw debugging chronology |
+| `CONSTRUCTION_PLAN` | current stage sequence, lifecycle, scopes, tests, gates | product decisions made without approval, audit narrative |
+| `BUILD-CONTROL` | current operational state, project/path map, current-truth surface registry, VCS coordinates, unresolved changes, history index, checked index mirror | an independently editable product contract, completed history bodies |
+| current SPEC / code map / architecture / runbook | one bounded current technical domain | build chronology, unresolved discussion |
+| `BUILD-LOG` | immutable chronological evidence | current authority |
+
+Two hard rules follow. **A log entry is evidence, not current truth.** And **a
+current document is not an archive**: when a claim stops being true it must be
+removed, rewritten, or explicitly marked superseded/merged/deferred. Maintenance
+is incomplete until both the new claims and the retired claims are accounted for.
+
 When a later CHG supersedes an earlier decision, update the current BLUEPRINT,
-Active Contract Index, affected plan stages, and enforcing tests before editing
-the product. Mark the old Decision Log entry superseded and append the CHG to
+Active Contract Index, affected plan stages and their lifecycle, and enforcing
+tests before editing the product. Mark the old Decision Log entry superseded,
+sweep the registered current surfaces for the old claim, and append the CHG to
 cold history. A correct current contract makes rereading history unnecessary.
 
 At build start/resume, validate that active ids and source sections exist in the
@@ -84,6 +103,7 @@ existing file and preserve every unowned line:
 - Control file: `BUILD-CONTROL-<slug>.md`
 - Begin build work by reading that control file with the build-context helper.
 - Read only the current plan stage and its named contract sections.
+- At stage close and on every approved CHG, reconcile the registered current-truth surfaces: state what became true AND what stopped being true.
 - Never bulk-read the control home's `history/` or discover controls by glob.
 - Edit only paths declared by the current stage; classify extra paths first.
 - Run the stage's declared focused and regression checks before its PASS GATE.
@@ -128,14 +148,30 @@ Project Map roles:
 - read-only inputs;
 - protected or unrelated paths that must never be absorbed into a checkpoint.
 
+PROJECT MAP also carries a `### Current truth surfaces` registry: one row per
+role, naming the canonical source, the event that makes it stale, and the
+coverage a helper may check. Blueprint, plan, and control are always registered;
+add a code map, architecture note, runbook, or behavior spec **only when the
+repository already has one** — never scaffold a document to fill a row, and never
+let two files claim the same role. Unregistered current documents have no refresh
+trigger, which is precisely how they go stale while history stays perfect.
+
 Record the repo root, branch, baseline, current checkpoint, and checkpoint rule
 under VERSION CONTROL. STATE carries only current stage, completed summary,
-next action, active gate, active history log, and last change.
+next action, active gate, active history log, and last change — completed-stage
+detail belongs in the plan's Stage map, historical detail in BUILD-LOG, and
+unresolved deviations only in OPEN CHANGES.
 
 ENTRYPOINT also points to `BLUEPRINT-<slug>.md §Task contract`, the canonical
 goal/scope/authority/acceptance contract. Never copy that table into control.
 
 ## 5. Active contract compaction
+
+The canonical index lives in `BLUEPRINT-<slug>.md §Active Contract Index`. The
+control section is a mirror kept so resume stays bounded — edit the Blueprint
+first, then bring the mirror into agreement; `validate` compares the two on scope
+and contract ids and fails on disagreement. Never maintain two independently
+editable copies.
 
 Do not put every historical decision in BUILD-CONTROL. Group only currently
 effective constraints by code scope:
@@ -181,6 +217,25 @@ classify the path against the Project Map and active contracts. Expand scope as
 a how-level plan correction when it changes no locked behavior; otherwise open
 a CHG. Never silently absorb unrelated dirty files.
 
+At PASS, before the checkpoint: refresh the registered current-truth surfaces the
+stage made stale, retire the claims it displaced, and set this stage's Stage-map
+lifecycle plus that of any stage it consumed. Creating or removing files is
+enough to make a routing document false without any contract changing — that
+reconciliation is PRG work, not a CHG.
+
+### Maintenance without a product change
+
+When the current model has already drifted, repair it as a derived maintenance
+stage (`S16A`) rather than a CHG: freeze product edits, run `validate` and
+`doctor`, read only registered surfaces plus the code behind the reported drift,
+plan the repair as add / replace / remove / supersede / reviewed-unchanged, ask
+the owner only for semantic judgment, update current surfaces without ever
+rewriting a closed log entry, re-run the sweeps, and append one PRG receipt with
+a checkpoint. Trigger on events — stage or phase close, topology change, a
+detected source conflict, a document admitting known drift, control over budget,
+history rotation, repeated need to open cold history, or the owner's request —
+never on a fixed number of changes.
+
 ## 7. Version-control protocol
 
 Lock one mode during the grill: `git` (recommended), `snapshot`, `external`, or
@@ -207,11 +262,18 @@ VCS checkpoint preserves recoverable product state.
 A fresh coding agent performs this bounded sequence:
 
 1. Receive the control path from AGENTS.md; never search for all plan/log files.
-2. Use the build-context helper on BUILD-CONTROL.
+2. Use the build-context helper on BUILD-CONTROL (`validate`, then `context`).
 3. Read the current stage only.
 4. Read only the contract sections/ids named by that stage and index.
 5. Inspect the code/tests in declared scope and run targeted impact searches.
 6. Query cold history only by exact DEC/CHG/PRG/stage id when the reason matters.
+
+Run `doctor` when resuming a build that has been idle, after a stage or phase
+closes, or whenever a current source looks inconsistent. It blocks only on
+deterministic drift — a missing registered surface, duplicate role ownership, a
+mirror that disagrees with the canonical index, a current stage whose lifecycle
+contradicts STATE — and warns on everything that needs inference. Needing the
+cold log to answer "what is true now" is itself a drift signal.
 
 If AGENTS.md points to a missing or mismatched control file, stop. If more than
 one control file could apply and branch/subtree does not disambiguate it, ask the

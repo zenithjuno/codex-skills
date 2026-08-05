@@ -1,4 +1,4 @@
 interface:
   display_name: "Grill to Build"
   short_description: "Design substantial builds before coding begins"
-  default_prompt: "Use $grill-to-build to resolve this Mode L build through a locked Blueprint, tested Construction Plan, and bounded Build Control before implementation."
+  default_prompt: "Use $grill-to-build to resolve this Mode L build through a locked Blueprint, tested Construction Plan with stage lifecycle, and bounded Build Control with a registered current-truth surface set, before implementation."

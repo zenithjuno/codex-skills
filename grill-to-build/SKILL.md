@@ -2,7 +2,7 @@
 name: grill-to-build
 description: 'A rigorous, coding-first design-before-build process for Mode L substantial, high-risk, ambiguous, multi-system, or multi-session work. The agent grills the user with recommendation-backed questions, locks decisions in a live ledger, produces a BLUEPRINT (what) and CONSTRUCTION_PLAN (how and tests), and refuses to build before explicit approval. For coding it establishes bounded-context BUILD-CONTROL, exact path scopes, current contract indexes, AGENTS.md routing, checkpoints, and cold audit logs. Use when task-scoping routes work to L, when costly product decisions remain, or when the user explicitly asks "grill me", "plan this first", "spec this", "grill-to-build", or "deep-grill-to-build". Do not impose the full artifact set on clear one-session S/M coding tasks.'
 ---
-<!-- SKILL-VERSION: 2026.08.02.1 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.05.1 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
 
 # Grill to Build
 
@@ -18,6 +18,7 @@ Why each clause matters:
 - **Lock as you go.** Human memory and the model's context window are both easily polluted over a long design conversation. A decision that isn't *written down the moment it's made* will be silently re-litigated, contradicted, or lost. Locking makes progress visible and compounding.
 - **Human as judge, not author.** A non-expert (or any user) usually cannot author a complete spec from scratch — they can't foresee the edge cases. But they are expert at *judging options against their own ground truth*. Convert authorship into judgment: present options with a recommendation, and let them rule.
 - **Externalize into artifacts.** The conversation is volatile and finite. Two durable documents (BLUEPRINT + CONSTRUCTION_PLAN) become the project's memory, survive a fresh session, and turn building into checking-against-a-contract.
+- **Subtract stale authority as you go.** Externalizing is only half the job: a durable artifact that keeps a claim after it stopped being true is worse than no artifact, because it reads as current. Every transition must state what becomes true **and** what stops being true — retiring, rewriting, or explicitly marking superseded the claims it displaces. Long builds fail here far more often than they fail to record: history stays excellent while the current model quietly accumulates contradictions.
 
 ## When to use / when not to
 
@@ -54,6 +55,19 @@ decision surface, blast radius, reversibility, or continuity needs justify L.
    PROJECT-MAP or competing hot controls. On formal completion, move the intact
    bundle to the matching `completed/<slug>/` location and remove the active
    AGENTS block. For non-coding, add control only when continuity justifies it.
+
+   **One canonical owner per current truth.** The BLUEPRINT owns the current
+   product contract, the canonical Active Contract Index, and Decision Log
+   lifecycle; the CONSTRUCTION_PLAN owns stage sequence, lifecycle, scopes, and
+   gates; BUILD-CONTROL owns current operational state, the project/path map, the
+   current-truth surface registry, VCS coordinates, unresolved changes, and the
+   history index; AGENTS.md owns stable routing and bootstrap commands; BUILD-LOG
+   owns immutable chronological evidence and never current authority. Where one
+   artifact must repeat another for bounded resume, mark the copy a mirror and
+   make the helper check it — never leave two independently editable copies of the
+   same current truth. During coding control bootstrap, register every current-truth
+   surface the repository already has (code map, architecture note, runbook,
+   behavior spec) so later stages have an explicit refresh set.
 
 6. **Lock the problem first; re-frame it only out loud.** Before the design space expands, capture the single problem this build exists to solve and lock it as the very first decision — as a **banner that sits *above* the ledger, not a line within it** — and restate it each round so every later choice stays visibly tethered to it. Migrate it verbatim to the `## Original problem` anchor at the top of the BLUEPRINT, where the `plan-scrutinize` skill reads it to verify the plan never drifted. The problem *may* be re-framed mid-grill — design legitimately evolves — but only **deliberately**: announce the change (old → new, with the reason), get an explicit confirm word, update the banner, and record the full chain in the Decision Log. Never let the problem shift silently; silent drift is the exact failure `plan-scrutinize` exists to catch downstream, and this anchor is what makes the catch possible.
 
@@ -111,6 +125,8 @@ rationale only where the build cannot retrieve them from that named source.
 ## After approval
 
 Once the user explicitly approves, execute the CONSTRUCTION_PLAN stage by stage and honor every PASS GATE. For coding, begin from the AGENTS.md pointer, read the exact `BUILD-CONTROL-<slug>.md`, then only the canonical Task Contract, current stage, its named BLUEPRINT sections/contract ids, and the code/tests in scope. Use **`build-changelog`** to append PRG/CHG evidence to the active cold phase log, keep BUILD-CONTROL bounded, and checkpoint only managed paths. Never bulk-read the control home's history. Before implementing an approved CHG, update the current BLUEPRINT behavior, active contract index, affected plan stages, and enforcing tests; the old log remains audit history, not current truth. If design and build split across sessions, the fresh session starts from AGENTS.md/BUILD-CONTROL rather than replaying chat or logs.
+
+**Every stage pass reconciles current truth, not only the ones that open a CHG.** Planned work goes stale-making all by itself: new files leave a routing map incomplete, and behavior delivered early leaves a future stage looking actionable. At each pass, review the registered current-truth surfaces the stage could have affected, retire what it made false, and record the stage's lifecycle — including any stage it consumed. When a long build's current model has already drifted, stop feature work and run a maintenance stage that repairs it, validated by `doctor` and a stale-claim sweep, without rewriting a single historical entry.
 
 ### Build-phase control commands
 

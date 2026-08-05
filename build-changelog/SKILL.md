@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.02.3 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.05.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -25,6 +25,17 @@ truth compact and executable; keep audit history append-only and cold.
 > here." Never reconstruct current behavior by rereading history. Route every turn
 > through one bounded control file, then load only the current stage, applicable
 > contract sections, and code/tests in scope.**
+
+Current truth is maintained by subtraction as well as addition:
+
+> **new current truth = previous current truth + newly true claims − claims that
+> stopped being true ± claims that must be rewritten.**
+
+A current document is not an archive. When a claim stops being true it must be
+removed, rewritten, or explicitly marked superseded/merged/deferred — adding new
+text beside a contradictory old claim leaves the old claim authoritative. Every
+state transition therefore accounts for both its positive and its negative truth
+diff. A log entry is evidence, never current truth.
 
 ## Authority order
 
@@ -113,10 +124,33 @@ Maintain these H2 sections in this order:
 7. `HISTORY INDEX`
 
 Keep exact paths in backticks. Keep STATE small: current stage, compact completed
-summary, next action, active gate, active cold log, and last change. Keep only
-currently effective scope-to-contract routing in the index. Remove superseded
-contracts from the active index after recording their lineage in BLUEPRINT/log.
-Never put PRG/CHG bodies in BUILD-CONTROL.
+summary, next action, active gate, active cold log, and last change. Completed-stage
+detail belongs in the plan's Stage map, historical detail in BUILD-LOG, and
+unresolved contract deviations only in OPEN CHANGES — STATE carries the present
+transition coordinates, not an accumulating summary of the build. OPEN CHANGES
+holds only unresolved CHGs; remove an entry once its audit entry is appended
+rather than striking it through in place. Never put PRG/CHG bodies in BUILD-CONTROL.
+
+The BLUEPRINT Active Contract Index is canonical. The control section is a
+**mirror kept for bounded resume**, not a second editable source: edit the
+Blueprint first, then bring the mirror into agreement. `validate` compares the
+two on scope and contract ids and fails when they disagree. Remove superseded
+contracts from both after recording their lineage in BLUEPRINT/log.
+
+### Current truth surfaces
+
+Real repositories keep current truth in more places than Blueprint, plan, and
+control — a code map, an architecture note, a runbook, a user-facing behavior
+spec. An unregistered surface has no refresh trigger and silently goes stale.
+Register them in a `### Current truth surfaces` table under `PROJECT MAP`, one
+row per role, giving the canonical source, the event that makes it stale, and
+the coverage the helper may check. Blueprint, plan, and control are always
+registered. Register another role **only when the repository already has that
+artifact** — never create a code map, architecture doc, or runbook merely to
+fill the table. If two files claim the same role, stop and resolve ownership.
+
+That registry is the explicit review set for stage close, CHG, and `doctor`, and
+the exact search set for `grep-current`. Cold history is never in it.
 
 ## Cold phase logs
 
@@ -154,11 +188,23 @@ gate: passing a stage never approves a change.
 On a valid stage pass:
 
 1. Confirm declared focused, regression, and static checks passed.
-2. Create the declared VCS/snapshot checkpoint from managed paths only.
-3. Append one PRG entry to the active cold log with built result, tests, user
-   evidence, gate approver, touched paths, and checkpoint id.
-4. Update BUILD-CONTROL STATE and current checkpoint; do not copy the PRG body.
-5. Begin the next stage in the same turn, or complete the build if final.
+2. **Reconcile current truth.** Planned work changes current documentation even
+   when it changes no approved contract: creating, renaming, or removing files
+   makes a code map stale; delivering a behavior early makes a future stage stale.
+   Review the registered current-truth surfaces the stage could have affected,
+   update what the work made false, and set the stage's lifecycle in the Stage map
+   (plus any stage this work consumed — `RETIRED — merged into SNN by CHG-###`).
+3. Run `doctor` and any stale-claim searches the stage declared.
+4. Create the declared VCS/snapshot checkpoint from managed paths only.
+5. Append one PRG entry to the active cold log with built result, tests, user
+   evidence, gate approver, touched paths, checkpoint id, and a compact truth
+   receipt (updated / replaced-removed / reviewed unchanged / validation).
+6. Update BUILD-CONTROL STATE and current checkpoint; do not copy the PRG body.
+7. Begin the next stage in the same turn, or complete the build if final.
+
+Reconciliation is not a licence to redesign. A change to approved behavior,
+architecture, or declared topology still requires a CHG; a bug fix restoring the
+existing contract remains PRG evidence.
 
 On failure, keep the stage open, fix or investigate within scope, re-test, and
 present the same addressed gate. A bug fix that fulfills the existing stage
@@ -181,6 +227,32 @@ that restores the existing contract stays under the current stage and PRG. Do
 not create FBK ids/files; for a one-off preference, state that no system update
 is justified.
 
+## Current-truth maintenance without a product change
+
+A long build's documentation drifts even when every individual step was correct.
+Repairing it changes no approved behavior, so it is PRG work, not a CHG — run it
+as a derived maintenance stage (`S16A`, `S16B`, ...) rather than inventing another
+id family. Enter one when a stage or phase closes, when implementation absorbs or
+invalidates a future stage, when files are created/removed/renamed, when a current
+source conflict appears, when a registered document admits known drift, when
+BUILD-CONTROL exceeds its budget, when history rotates, when an agent repeatedly
+needs cold history to understand current behavior, or when the owner asks.
+Trigger on events, never on a fixed number of changes.
+
+The maintenance stage: freeze product edits and clear the product gate; run
+`validate` and `doctor`; read only registered current-truth surfaces, plus the
+actual code/topology behind a reported drift; use exact `lookup` only when the
+rationale matters. Classify each finding as factual, routing/topology, plan
+lifecycle, contract semantics, decision-lifecycle debt, or historical-only. Then
+produce a plan in the same four buckets as a CHG truth delta plus *reviewed
+unchanged*, ask the owner only for semantic judgment, update current surfaces —
+**never rewriting a closed log entry** — re-run the sweeps and checks, and append
+one PRG receipt with a checkpoint before returning to the build.
+
+A known contract mismatch must not sit in a current document as an ordinary
+note. Reconcile it, give it a bounded state with an owner and a closure trigger,
+or record it as intentionally outside the spec.
+
 Do not hand off a known-false Project Map command. When a declared check fails
 because its runner/path is stale or discovers no intended tests, establish the
 exact working project-environment command and update current control/plan in the
@@ -194,19 +266,39 @@ another approved contract must change:
 
 1. **Stop.** Assign the next CHG id, put its one-line status in OPEN CHANGES, and
    suspend the stage gate. Do not edit the product.
-2. **Propose.** State current contract, finding, realistic options, recommendation,
-   consequences, affected paths/contracts/tests, and exact approval/rejection
-   commands.
-3. **Decide.** Obtain the user's addressed decision. A stage pass is insufficient.
-4. **Compact current truth before code.** On approval, update the current
-   BLUEPRINT domain section, Active Contract Index, affected Decision Log status,
-   affected plan stages/scopes, and enforcing tests or their planned changes.
-   If any part cannot be made coherent, keep CHG open.
-5. **Record audit.** Append the resolved CHG entry to the active cold log, remove
+2. **Map the surfaces.** Identify every registered current-truth surface that
+   could still carry the old claim.
+3. **Propose, with the truth delta.** State current contract, finding, realistic
+   options, recommendation, consequences, affected paths/contracts/tests, and
+   exact approval/rejection commands — plus the four-part delta below.
+4. **Decide.** Obtain the user's addressed decision. A stage pass is insufficient.
+5. **Compact current truth before code.** On approval, update the canonical
+   BLUEPRINT domain section, the Active Contract Index and its control mirror,
+   affected Decision Log status, affected plan stages/scopes/lifecycle, and
+   enforcing tests or their planned changes. If any part cannot be made coherent,
+   keep CHG open.
+6. **Sweep for stale claims.** Search the registered current surfaces for the old
+   wording and identifiers (`grep-current`). Classify every surviving hit as
+   intentionally current or retire it. If old current claims survive unclassified,
+   the CHG stays open.
+7. **Record audit.** Append the resolved CHG entry to the active cold log, remove
    it from OPEN CHANGES, and update last-change state.
-6. **Implement and re-test.** Continue until the next genuine gate without asking
-   for another approval. Checkpoint at stage PASS, including CHG ids in the
-   message.
+8. **Implement and re-test.** Continue until the next genuine gate without asking
+   for another approval. Reconfirm the implementation created no further drift.
+   Checkpoint at stage PASS, including CHG ids in the message.
+
+### Truth delta (required in every approved CHG)
+
+Answer all four, even when the answer is `(none)`:
+
+- **Added** — new claims that become current.
+- **Replaced** — old claim → new claim.
+- **Removed** — claims that must disappear from current surfaces.
+- **Superseded** — DEC/CHG/stage lifecycle changes.
+
+`Added` alone is not compaction. The question that additive updates never ask is
+*which currently-authoritative statements must stop surviving after this change* —
+`(none)` is cheap to write, and makes an omission visible.
 
 On rejection, do not implement. Preserve current contract or propose a materially
 different alternative under a new CHG id. Historical entries remain immutable;
@@ -268,8 +360,19 @@ possible. Remove the owned block at formal completion unless the protocol should
 remain a durable repository convention.
 
 The block must contain the exact runnable helper invocation and exact control
-path for `validate`, `context`, `lookup`, and `check-scope`; placeholders or a
-bare instruction to "use the helper" are not sufficient bootstrap instructions.
+path for `validate`, `context`, `lookup`, `check-scope`, `doctor`, and
+`grep-current`; placeholders or a bare instruction to "use the helper" are not
+sufficient bootstrap instructions.
+
+`validate` is the strict structural/bootstrap gate. `doctor` is the broader
+drift diagnostic: it blocks only on facts derivable from file existence, id
+lookup, and table parsing (a missing registered surface, two sources claiming one
+role, a mirror that disagrees with the canonical index, a current stage whose
+lifecycle contradicts STATE), and warns on everything requiring inference —
+checkpoint distance from HEAD, completed residue in OPEN CHANGES, known-drift
+markers, inventory coverage. Language-dependent heuristics stay warnings.
+`grep-current` proves an old claim has left the current surfaces without reading
+history: exit `0` when clean, `4` while hits remain.
 
 Stable project-wide purpose, architecture boundaries, source-of-truth pointers,
 invariants, and common verification commands may remain in unowned AGENTS.md.
@@ -320,6 +423,13 @@ AGENTS.md is optional when the medium does not load it.
 
 - Bulk-reading a control home's history to orient or detect conflicts.
 - Treating historical decisions as current authority.
+- Adding new current truth without retiring the old claims it contradicts.
+- Editing the control mirror of the Active Contract Index as if it were canonical.
+- Leaving a future stage marked `PLANNED` after its behavior shipped elsewhere.
+- Passing a stage that created or removed files without refreshing the registered
+  routing/current documents.
+- Parking known spec drift as an open-ended note instead of a bounded state.
+- Leaving completed or struck-through entries in OPEN CHANGES.
 - Creating separate PROJECT-MAP or multiple hot control files for one slug.
 - Putting dynamic stage state or log bodies in AGENTS.md.
 - Editing code before compacting an approved CHG into current contract/index.

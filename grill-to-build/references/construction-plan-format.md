@@ -17,8 +17,9 @@ that contract instead of copying its fields.
 1. Governing method and coding control plane
 2. Addressed gate and design bounce-back protocols
 3. Six-part coding stage format
-4. Recommended skeleton and stage principles
-5. Lighter non-coding adaptation
+4. Stage map lifecycle
+5. Recommended skeleton and stage principles
+6. Lighter non-coding adaptation
 
 ## The governing method: create → test → pass
 
@@ -75,7 +76,14 @@ A foundational sequencing heuristic for things with logic/calculations: **build 
 📁 SCOPE    — exact read / modify / create / protected paths. Name files or
              narrow globs and identify the tests/config/schema that may be affected.
 🔗 CONTRACT — active DEC/CHG ids, current BLUEPRINT sections, and existing
-             tests/static checks that enforce them.
+             tests/static checks that enforce them. Add a `Current truth surfaces:`
+             line naming the registered documents this stage can make stale, and —
+             where the planner can already foresee it — a `Retire/replace on pass:`
+             line naming the claims that stop being true if this stage succeeds
+             (for example, a future stage whose behavior this one will deliver).
+             Do not force `(none)` onto every ordinary stage; a reflexive `(none)`
+             on thirty stages trains exactly the blindness this line exists to
+             prevent. Name a repository document only if it already exists.
 🔨 BUILD   — what gets constructed in this stage (small, single-purpose).
 🧪 TEST    — focused checks first, then the smallest relevant regression/static
              checks; state exact commands and expected outcomes.
@@ -100,9 +108,48 @@ dependencies, schemas, and tests in the codebase; the index routes analysis but
 does not replace impact analysis. Touching an undeclared path is a stop: expand
 scope only when it is a how-level correction, otherwise open a CHG.
 
-At PASS, append PRG evidence to the active cold log, update BUILD-CONTROL, and
-create the declared VCS checkpoint from managed paths only. Cold history is
-never loaded wholesale on the next stage.
+At PASS, reconcile current truth **before** the checkpoint: update the registered
+current-truth surfaces this stage made stale, retire the claims it displaced, set
+this stage's lifecycle in the Stage map (and the lifecycle of any stage it
+consumed), then run `doctor` and any declared stale-claim sweep. Only then append
+PRG evidence to the active cold log, update BUILD-CONTROL, and create the declared
+VCS checkpoint from managed paths only. Cold history is never loaded wholesale on
+the next stage.
+
+## Stage map lifecycle (required for coding)
+
+The Stage map is a canonical lifecycle table, not a static list of future work.
+Without it, a stage whose behavior already shipped stays visually identical to a
+stage nobody has started — the single most expensive form of plan drift, because
+it silently invites the build to redo finished work or skip unfinished work.
+
+```markdown
+## Stage map
+
+| Stage | Lifecycle | Outcome / relationship |
+|---|---|---|
+| `S01` | `PASS` | foundation established |
+| `S16` | `VERIFY` | built and deployed; awaiting owner validation |
+| `S17` | `RETIRED` | merged into S16 by CHG-086 — exam behavior delivered early |
+| `S18` | `PLANNED` | next independent stage |
+```
+
+Keep the header cells exactly `Stage` and `Lifecycle`; the helper keys on them so
+the surrounding heading may be written in any language. Lifecycle vocabulary:
+
+- `PLANNED` — specified, not started.
+- `ACTIVE` — currently being built.
+- `VERIFY` — built; awaiting the owner's judgment at its gate.
+- `PASS` — gate passed.
+- `DEFERRED` — deliberately postponed; still intended.
+- `RETIRED` — no longer actionable. Say why in the outcome column: merged into
+  another stage, superseded by a CHG, or dropped from the current plan.
+
+Rules: ids already shown to the user are never deleted or renumbered — a consumed
+stage stays as lineage but must not look actionable. Exactly one stage is
+`ACTIVE`/`VERIFY` unless the plan declares `Parallel stages: allowed` for
+genuinely independent tracks. BUILD-CONTROL `Current stage` must agree with this
+table; `doctor` blocks when it does not.
 
 The 👁️ YOU SEE part is the soul of this artifact. The user verifies *outcomes against ground truth they already hold* ("are these really the teachers who teach 4.7? yes/no") rather than reading implementation. Always prefer examples from the user's own real data over synthetic ones.
 
@@ -130,7 +177,8 @@ e.g. (1) source data is sacred, never mutated; (2) zero errors at every gate;
 (5) stages small enough that a bug's origin is obvious.
 
 ## Stage map
-The whole journey at a glance, grouped into phases. A common, generalizable phasing:
+The canonical `| Stage | Lifecycle | Outcome |` table (see above), grouped into
+phases. A common, generalizable phasing:
   PHASE 1 FOUNDATION   — trustworthy inputs (import, integrity, normalization, config)
   PHASE 2 ENGINE       — correct logic with no UI yet; each calculation testable alone
   PHASE 3 INTERFACE    — the visible parts, reading from the proven engine
