@@ -86,6 +86,21 @@ a second source: edit this table first, then bring the mirror into agreement.
 `build_context.py validate` compares the two on scope and contract ids and fails
 when they disagree, so the copies cannot drift apart unnoticed.
 
+## Glossary
+Every term this project uses in a sense a newcomer could get wrong — one short
+definition each, plus what it is **not**. Only vocabulary: no backlog, no status,
+no implementation paths, no requirements. Words earn a row when two of them could
+be confused for each other, or when the same idea is written in two languages.
+
+| Term | Means here | Not |
+|---|---|---|
+| Score | numeric result of one attempt after penalties/multipliers | not XP, not mastery |
+| Mastery | long-run evidence used for progression | not one attempt's score |
+
+Without this, a build accumulates several words for one concept (and one word
+for several), impact searches miss the synonym actually used in the code, and
+two documents can disagree while both look correct.
+
 ## 2..N. Domain sections
 One section per major area: inputs/data (with exact schema + value vocab),
 rules, scoring/logic, outputs, UI/structure, edge cases & validation, etc.
@@ -114,7 +129,7 @@ model) consults it before reopening anything.
 The migrated ASSUMPTIONS bucket: everything the design believes but has not
 verified, each with its status (verified during the grill — say how — or
 UNVERIFIED) and, for unverified ones, the CONSTRUCTION_PLAN stage that will
-verify it. Schema decisions locked without a real sample (iron rule 7) live
+verify it. Schema decisions locked without a real sample (iron rule 8) live
 here with their UNVERIFIED tag. This section is what lets a reviewer — or
 plan-scrutinize — see the design's load-bearing beliefs at a glance.
 ```

@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.05.2 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.06.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -387,39 +387,17 @@ Stable project-wide purpose, architecture boundaries, source-of-truth pointers,
 invariants, and common verification commands may remain in unowned AGENTS.md.
 The managed build block only points this active slug to BUILD-CONTROL.
 
-## Final completion
+## Ending a build, and adopting an old one
 
-After the final addressed pass:
-
-1. Verify every canonical Task Contract acceptance criterion with proportionate
-   focused, regression, static/build and recovery checks.
-2. Inspect the managed-path diff; disclose skipped checks, assumptions, and risk.
-3. Update current product/architecture/runbook docs where behavior changed.
-4. Append final PRG evidence, close HISTORY INDEX, and set STATE to `COMPLETE`
-   with no active gate.
-5. Remove the active AGENTS block and archive the intact bundle from active to
-   completed according to repository convention.
-6. For Mode L, obtain fresh-context or independent final verification when practical.
-
-Report `Outcome`, `Changed`, `Verified`, `Remaining risk`, and `Human action`.
-
-## Legacy migration
-
-When only old `BUILD-CHANGELOG-*` files exist, read bounded STATE/OPEN headers,
-not log bodies. Identify the canonical state through exact slug/plan/branch
-pointers or ask the user if candidates disagree. Move old log bodies verbatim to
-the chosen control home's `history/BUILD-LOG-*` files without injecting them into model
-context, create the canonical Task Contract and one BUILD-CONTROL, and update
-AGENTS/contract pointers. Never
-merge competing states by filename recency alone.
-
-If the current Blueprint has no stable DEC ids, set Current stage to
-`MIGRATING — DEC inventory incomplete` and use `PENDING-INVENTORY` only for the
-affected Active Contract Index rows. `validate` may warn while this explicit
-migration state is active, but `context` and product editing remain blocked.
-Inventory current decisions from the Blueprint and enforcing tests—not from
-bulk log rereads—replace every pending row with DEC/CHG ids, then leave
-`MIGRATING` before resuming a construction stage.
+Two protocols apply only at a build's edges, so they live in the reference
+rather than in every build turn: **final completion** (verify the Task Contract,
+inspect the managed diff, close history/STATE, remove the AGENTS block, archive
+the bundle, report `Outcome`/`Changed`/`Verified`/`Remaining risk`/`Human action`)
+and **legacy migration** (adopting a project whose only records are old
+`BUILD-CHANGELOG-*` files, including the `MIGRATING` / `PENDING-INVENTORY`
+build-blocking state). Read `references/build-control-format.md` §8a and §8b when
+you are actually finishing a build or adopting an unmigrated one; do not carry
+either into ordinary stage work.
 
 ## Lighter non-coding adaptation
 

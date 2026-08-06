@@ -18,8 +18,9 @@ that contract instead of copying its fields.
 2. Addressed gate and design bounce-back protocols
 3. Six-part coding stage format
 4. Stage map lifecycle
-5. Recommended skeleton and stage principles
-6. Lighter non-coding adaptation
+5. Plan only as far as you can see (the fog rule)
+6. Recommended skeleton and stage principles
+7. Lighter non-coding adaptation
 
 ## The governing method: create → test → pass
 
@@ -161,6 +162,68 @@ table; `doctor` blocks when it does not.
 
 The 👁️ YOU SEE part is the soul of this artifact. The user verifies *outcomes against ground truth they already hold* ("are these really the teachers who teach 4.7? yes/no") rather than reading implementation. Always prefer examples from the user's own real data over synthetic ones.
 
+## Plan only as far as you can see (the fog rule)
+
+A plan that spells out `SCOPE`/`CONTRACT`/`BUILD`/`TEST` for every stage to the
+end of the project is not thoroughness — it is **detail written about boundaries
+nobody knows yet**, and it is the root cause of the most expensive drift this
+skill has seen. A future stage written in full looks settled, so later work
+either duplicates it, silently absorbs it, or leaves it standing as a claim that
+stopped being true. Retiring that claim afterwards costs far more than never
+making it.
+
+So the plan carries **five zones**, and only the near ones carry detail:
+
+```markdown
+## Destination
+The end state in 1–3 sentences, in the owner's language. Stable across the build.
+
+## Stable decisions
+The locked choices every stage must respect. Points at BLUEPRINT §Decision Log;
+does not restate it.
+
+## Active frontier
+The canonical `| Stage | Lifecycle | Outcome |` table. Full six-part detail
+exists ONLY for stages listed here.
+
+## Not yet specified
+Real work, deliberately unplanned — one line each, phrased as the question that
+must be answered before it can become a stage. No stage id yet.
+
+## Out of scope
+Explicitly excluded, so nobody re-proposes it. One line each.
+```
+
+### Detail budget
+
+Write full six-part stage detail only for:
+
+- the current stage;
+- the next stage, when its boundary is genuinely known;
+- a blocked stage whose open question is already sharp.
+
+Everything else is a one-line entry under `Not yet specified`. A stage id is a
+promise that the boundary is known — do not spend ids on fog.
+
+### Graduation
+
+```text
+fog item
+→ the open question and its acceptance criteria become clear
+→ assign the next stage id, write its six parts, add it to Active frontier
+→ delete or rewrite the fog line it came from
+```
+
+The last step is not optional: a fog line that survives after its stage exists
+is the same stale-authority failure in a new place.
+
+### Non-coding and small builds
+
+The five zones apply to any medium — a curriculum, a migration, a document set.
+For a short build where the whole path really is visible, `Not yet specified`
+may legitimately be empty; write it anyway rather than deleting the heading, so
+that later discoveries have an obvious home that is not a new stage.
+
 ## Recommended skeleton
 
 Open with a "how to read this" note for non-developers, then the four golden rules, then a stage map, then the stages.
@@ -184,9 +247,10 @@ e.g. (1) source data is sacred, never mutated; (2) zero errors at every gate;
 (3) verify with the user's own real examples; (4) engine before interface;
 (5) stages small enough that a bug's origin is obvious.
 
-## Stage map
-The canonical `| Stage | Lifecycle | Outcome |` table (see above), grouped into
-phases. A common, generalizable phasing:
+## Destination / Stable decisions / Active frontier / Not yet specified / Out of scope
+The five planning zones (see the fog rule above). The Active frontier holds the
+canonical `| Stage | Lifecycle | Outcome |` table, grouped into phases. A common,
+generalizable phasing:
   PHASE 1 FOUNDATION   — trustworthy inputs (import, integrity, normalization, config)
   PHASE 2 ENGINE       — correct logic with no UI yet; each calculation testable alone
   PHASE 3 INTERFACE    — the visible parts, reading from the proven engine
@@ -225,7 +289,7 @@ receive a fresh-context or independent final verification when practical.
 - **Hand-verify the hardest stage fully.** For the single most important/error-prone stage, derive the expected answer by hand from real data and compare exactly. Flag it in advance as a slow-down point.
 - **Gate on real-world plausibility, not just internal consistency.** The user's "these names make sense / these don't" is a check the agent cannot perform alone; design gates to invite it.
 - **Name risk up front.** List the format quirks and double-meaning rules you'll watch (the things that bite during builds), so neither party is surprised.
-- **Verify `UNVERIFIED` items first.** Any decision the ledger tagged `UNVERIFIED` — typically a schema locked without a real sample (iron rule 7) — gets a verification stage before anything is built on top of it. Building on an unverified schema is how one wrong column name becomes a five-stage rework.
+- **Verify `UNVERIFIED` items first.** Any decision the ledger tagged `UNVERIFIED` — typically a schema locked without a real sample (iron rule 8) — gets a verification stage before anything is built on top of it. Building on an unverified schema is how one wrong column name becomes a five-stage rework.
 - **The final gate is the definition of done.** The whole-project acceptance check agreed during the grill's coverage sweep becomes the last stage's PASS GATE. The build is finished when that check passes — not when the stages happen to run out.
 - **Make decisions executable where possible.** Bind API behavior to contract tests, calculations to unit tests, schemas to validation/migrations, dependency rules to architecture/lint checks, and interfaces to type checking. Leave only genuinely non-mechanical constraints as review-only evidence.
 

@@ -14,6 +14,8 @@ the files deterministically.
 6. Size and rotation rules
 7. Completion checklist
 8. Legacy migration checklist
+   8a. Final completion protocol
+   8b. Legacy migration protocol
 9. Current-truth maintenance checklist
 
 ## 1. Canonical BUILD-CONTROL template
@@ -163,6 +165,20 @@ build-time change is itself the current source.
 `Enforcement` names an exact test/glob/command or `review-only`. Group rows by
 meaningful code scope; do not add one row per trivial decision.
 
+**Make `Scope` answer "open this when…", not only "these files".** A path-keyed
+row routes an agent that already knows which file to touch; it does nothing for
+one that only knows the intent ("add perfect-score recognition"), which is the
+common case and the one where missing a contract is expensive. Write the intent
+triggers beside the paths:
+
+```markdown
+| `src/Score.gs`, `src/js-score.html` — score formula, penalties, multipliers, bonus recognition | `DEC-010` | `BLUEPRINT-<slug>.md §5. Scoring` | `tests/score` |
+```
+
+The trigger words are also the seed vocabulary for a stale-claim sweep, so keep
+them in the words the project actually uses — including both languages when the
+codebase and the contract are written in different ones.
+
 The copy in `BLUEPRINT-<slug>.md §Active Contract Index` is canonical; the control
 section is a mirror that keeps resume bounded. Edit the Blueprint first, then
 bring the mirror into agreement. `validate` compares the two on scope and on
@@ -301,6 +317,40 @@ Never leave command placeholders in the installed AGENTS.md block.
       competing hot state.
 - [ ] Add the `### Current truth surfaces` registry from artifacts the repository
       already has, and a `| Stage | Lifecycle |` map reflecting what is really built.
+
+## 8a. Final completion protocol
+
+After the final addressed pass:
+
+1. Verify every canonical Task Contract acceptance criterion with proportionate
+   focused, regression, static/build and recovery checks.
+2. Inspect the managed-path diff; disclose skipped checks, assumptions, and risk.
+3. Update current product/architecture/runbook docs where behavior changed.
+4. Append final PRG evidence, close HISTORY INDEX, and set STATE to `COMPLETE`
+   with no active gate.
+5. Remove the active AGENTS block and archive the intact bundle from active to
+   completed according to repository convention.
+6. For Mode L, obtain fresh-context or independent final verification when practical.
+
+Report `Outcome`, `Changed`, `Verified`, `Remaining risk`, and `Human action`.
+
+## 8b. Legacy migration protocol
+
+When only old `BUILD-CHANGELOG-*` files exist, read bounded STATE/OPEN headers,
+not log bodies. Identify the canonical state through exact slug/plan/branch
+pointers or ask the user if candidates disagree. Move old log bodies verbatim to
+the chosen control home's `history/BUILD-LOG-*` files without injecting them into model
+context, create the canonical Task Contract and one BUILD-CONTROL, and update
+AGENTS/contract pointers. Never
+merge competing states by filename recency alone.
+
+If the current Blueprint has no stable DEC ids, set Current stage to
+`MIGRATING — DEC inventory incomplete` and use `PENDING-INVENTORY` only for the
+affected Active Contract Index rows. `validate` may warn while this explicit
+migration state is active, but `context` and product editing remain blocked.
+Inventory current decisions from the Blueprint and enforcing tests—not from
+bulk log rereads—replace every pending row with DEC/CHG ids, then leave
+`MIGRATING` before resuming a construction stage.
 
 ## 9. Current-truth maintenance checklist
 
