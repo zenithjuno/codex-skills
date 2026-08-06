@@ -687,6 +687,10 @@ class PlanAndBlueprintDocumentationTests(unittest.TestCase):
 
     def setUp(self) -> None:
         grill = SKILL_ROOT.parent / "grill-to-build" / "references"
+        if not grill.is_dir():
+            # build-changelog can be installed on its own; only assert on the
+            # companion skill's source when it is actually a sibling.
+            raise unittest.SkipTest("grill-to-build is not installed alongside this skill")
 
         def flowed(name: str) -> str:
             # Prose wraps at 80 columns; assert on content, not line breaks.
