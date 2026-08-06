@@ -205,6 +205,20 @@ Write full six-part stage detail only for:
 Everything else is a one-line entry under `Not yet specified`. A stage id is a
 promise that the boundary is known — do not spend ids on fog.
 
+### Retrofitting a plan that already over-planned
+
+An existing plan usually has ids already spent on fog. Those ids were shown to
+the owner, so the never-delete-an-id rule wins: **keep them in the Active
+frontier as `DEFERRED`, and move only their detail out.** `Not yet specified` is
+for work that never received an id — do not demote a numbered stage into an
+anonymous fog line, and do not renumber what remains.
+
+The detail itself is not deleted either. It is planning that really happened, so
+it moves into the cold log as an attachment on the maintenance entry that
+performed the retrofit; the plan then holds one line per deferred stage. A stage
+that later graduates rewrites its own detail from current knowledge rather than
+restoring the old text, which was written before the boundary was known.
+
 ### Graduation
 
 ```text
