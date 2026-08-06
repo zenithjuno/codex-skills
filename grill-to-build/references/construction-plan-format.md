@@ -145,8 +145,13 @@ plan. Lifecycle vocabulary:
 - `VERIFY` — built; awaiting the owner's judgment at its gate.
 - `PASS` — gate passed.
 - `DEFERRED` — deliberately postponed; still intended.
-- `RETIRED` — no longer actionable. Say why in the outcome column: merged into
-  another stage, superseded by a CHG, or dropped from the current plan.
+- `RETIRED` — no longer actionable **as its own gated stage**. Say why in the
+  outcome column: merged into another stage, superseded by a CHG, or dropped
+  from the current plan. It does *not* mean the work was abandoned — a stage
+  whose behavior shipped early inside another stage is `RETIRED`, and its
+  outcome text should say so plainly. Do not reach for `PASS` in that case:
+  `PASS` asserts that this stage's own gate was passed, so a `PASS` with no
+  matching PRG entry is itself a false current claim.
 
 Rules: ids already shown to the user are never deleted or renumbered — a consumed
 stage stays as lineage but must not look actionable. Exactly one stage is

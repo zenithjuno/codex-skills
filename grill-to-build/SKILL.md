@@ -2,7 +2,7 @@
 name: grill-to-build
 description: 'A rigorous, coding-first design-before-build process for Mode L substantial, high-risk, ambiguous, multi-system, or multi-session work. The agent grills the user with recommendation-backed questions, locks decisions in a live ledger, produces a BLUEPRINT (what) and CONSTRUCTION_PLAN (how and tests), and refuses to build before explicit approval. For coding it establishes bounded-context BUILD-CONTROL, exact path scopes, current contract indexes, AGENTS.md routing, checkpoints, and cold audit logs. Use when task-scoping routes work to L, when costly product decisions remain, or when the user explicitly asks "grill me", "plan this first", "spec this", "grill-to-build", or "deep-grill-to-build". Do not impose the full artifact set on clear one-session S/M coding tasks.'
 ---
-<!-- SKILL-VERSION: 2026.08.05.2 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.05.3 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
 
 # Grill to Build
 
