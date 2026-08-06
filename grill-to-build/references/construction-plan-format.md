@@ -134,8 +134,11 @@ it silently invites the build to redo finished work or skip unfinished work.
 | `S18` | `PLANNED` | next independent stage |
 ```
 
-Keep the header cells exactly `Stage` and `Lifecycle`; the helper keys on them so
-the surrounding heading may be written in any language. Lifecycle vocabulary:
+`Stage` and `Lifecycle` are reserved machine-readable header cells (matched
+case-insensitively) — the helper keys on that literal English pair to find the
+table regardless of what language the surrounding heading and Outcome column
+use, so keep those two header words in English even in an otherwise localized
+plan. Lifecycle vocabulary:
 
 - `PLANNED` — specified, not started.
 - `ACTIVE` — currently being built.

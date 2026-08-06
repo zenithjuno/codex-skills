@@ -61,7 +61,7 @@ the files deterministically.
 | product-contract | `BLUEPRINT-<slug>.md` | approved behavior/architecture change | semantic |
 | execution-plan | `CONSTRUCTION_PLAN-<slug>.md` | stage pass, scope/order/lifecycle change | semantic |
 | operational-state | `BUILD-CONTROL-<slug>.md §STATE` | every state transition | structural |
-| code-routing | `CODEMAP.md` | file ownership/topology change | `exact-files: src/*.py` |
+| code-routing (optional — only if `CODEMAP.md` already exists) | `CODEMAP.md` | file ownership/topology change | `exact-files: src/*.py` |
 
 ## STATE
 - Current stage: `NOT STARTED`
@@ -117,9 +117,12 @@ handle an approved-build relocation as a CHG and update all pointers atomically.
 
 The first three roles above are always present. Add another role **only when the
 repository already owns such an artifact** — never scaffold a `CODEMAP.md`,
-`docs/ARCHITECTURE.md`, or `docs/RUNBOOK.md` just to fill a row. One role may
-name several bounded sources when their domains do not overlap; two sources
-claiming the same role is a stop, not a merge.
+`docs/ARCHITECTURE.md`, or `docs/RUNBOOK.md` just to fill a row. Role names must
+be unique in the registry — `doctor` blocks two rows that claim the same role,
+even when their sources look domain-separated in prose. A project with two
+non-overlapping specs registers two roles, one per domain, not one role with
+two sources: `interaction-spec` and `teaching-spec` rather than a shared
+`spec` role naming both files.
 
 `Coverage` declares what the helper may check mechanically:
 

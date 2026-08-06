@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.05.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.05.2 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -370,9 +370,18 @@ lookup, and table parsing (a missing registered surface, two sources claiming on
 role, a mirror that disagrees with the canonical index, a current stage whose
 lifecycle contradicts STATE), and warns on everything requiring inference —
 checkpoint distance from HEAD, completed residue in OPEN CHANGES, known-drift
-markers, inventory coverage. Language-dependent heuristics stay warnings.
-`grep-current` proves an old claim has left the current surfaces without reading
-history: exit `0` when clean, `4` while hits remain.
+markers, inventory coverage. Language-dependent heuristics stay warnings. The
+known-drift and completed-residue marker phrases are presently a hardcoded
+list in the helper script (Thai and English only); move them behind a config
+file once a third project language is onboarded rather than growing the
+hardcoded list indefinitely.
+`grep-current` checks that the exact declared stale terms no longer occur in the
+registered current surfaces, without reading history: exit `0` when clean, `4`
+while hits remain. This is a literal check, not semantic proof — it cannot
+know that "13 files" and "13 child files" are the same stale claim reworded.
+Capture stale terms verbatim from the pre-edit claim before editing, not
+reconstructed from memory afterward, and let the structural checks (mirror,
+lifecycle, exact-files) carry the drift `grep-current` cannot see on its own.
 
 Stable project-wide purpose, architecture boundaries, source-of-truth pointers,
 invariants, and common verification commands may remain in unowned AGENTS.md.
