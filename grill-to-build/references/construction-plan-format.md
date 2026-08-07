@@ -196,11 +196,26 @@ Explicitly excluded, so nobody re-proposes it. One line each.
 
 ### Detail budget
 
-Write full six-part stage detail only for:
+Detail belongs to a stage's lifecycle, not to its importance:
 
-- the current stage;
-- the next stage, when its boundary is genuinely known;
-- a blocked stage whose open question is already sharp.
+| Lifecycle | Detail the plan keeps |
+|---|---|
+| `ACTIVE` | full six parts — this is what is being built right now |
+| `VERIFY` | **the PASS GATE only** — what the owner must see to say it passed |
+| `PASS` · `DEFERRED` · `RETIRED` | one line in the Stage map |
+| `PLANNED` | full six parts only when the boundary is genuinely known; otherwise it is a fog line with no id |
+
+The `VERIFY` row is the one people get wrong. Once a stage is built, its BUILD /
+TEST / YOU SEE text stops describing a plan and starts describing behavior —
+and behavior is the BLUEPRINT's to own. Leaving it in the plan creates a second
+description of current behavior that no one updates, so it goes stale on the
+next change and then reads as authoritative. Keep the gate, which is genuinely
+still forward-looking; move the rest to the cold log.
+
+Also keep operational facts out of the `Outcome` column. Deploy versions, CHG
+ranges, and dates belong to `BUILD-CONTROL §STATE` and the cold log; a plan that
+copies them goes stale on every deploy. Say the relationship — "core loop built,
+awaiting owner validation" — not the version it happened to ship as.
 
 Everything else is a one-line entry under `Not yet specified`. A stage id is a
 promise that the boundary is known — do not spend ids on fog.
