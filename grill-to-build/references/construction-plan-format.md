@@ -212,6 +212,29 @@ description of current behavior that no one updates, so it goes stale on the
 next change and then reads as authoritative. Keep the gate, which is genuinely
 still forward-looking; move the rest to the cold log.
 
+### This budget governs what you write next, not what already exists
+
+A protocol change applies to transitions from now on. It does not, by itself,
+make existing artifacts wrong, and **an existing plan is not migrated to match a
+newer budget.** Retrofit exactly where the old form now claims something that
+stopped being true — nowhere else. Rewriting accurate old records so they look
+like new records is churn that costs review attention and risks losing detail
+that was correct.
+
+Field evidence for the distinction: in one long build, the blocks for stages
+that were built once and never revisited still matched the code exactly, down to
+individual constants, while the block for the one stage that stayed open across
+eighteen approved changes had drifted badly. Staleness tracked *how often the
+behavior was changed afterwards*, not the stage's lifecycle. So a passed stage
+whose block is still true may keep it; trim it opportunistically if you are
+editing that area anyway.
+
+What a passed stage's block *is* should be stated once, at the top of the stage
+list, so nobody has to guess: it records what that stage set out to build and
+was true at its gate. **Current behavior lives in the BLUEPRINT.** One sentence
+converts a whole section of ambiguous claims into clearly-scoped records, which
+is almost always cheaper and safer than rewriting them.
+
 Also keep operational facts out of the `Outcome` column. Deploy versions, CHG
 ranges, and dates belong to `BUILD-CONTROL §STATE` and the cold log; a plan that
 copies them goes stale on every deploy. Say the relationship — "core loop built,
