@@ -1238,6 +1238,66 @@ class GrepCurrentTests(unittest.TestCase):
             self.assertNotIn("BUILD-LOG", out)
 
 
+class WorktreeStateTests(unittest.TestCase):
+    """A declared Working-tree state is a claim about the repo — check it."""
+
+    def build(self, directory: str, declared: str, *, dirty: bool, untracked: bool = False):
+        import subprocess
+
+        root = Path(directory)
+        (root / "tracked.txt").write_text("one\n", encoding="utf-8")
+        for args in (["init", "-q"], ["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t",
+                                                     "commit", "-qm", "base"]):
+            subprocess.run(["git", *args], cwd=root, check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if dirty:
+            (root / "tracked.txt").write_text("two\n", encoding="utf-8")
+        if untracked:
+            (root / "stray.log").write_text("noise\n", encoding="utf-8")
+        control = root / "BUILD-CONTROL-widget.md"
+        control.write_text("\n".join([
+            "## ENTRYPOINT", "- Project root: `.`", "",
+            "## VERSION CONTROL",
+            "- Mode: `git`",
+            "- Repository root: `.`",
+            f"- Working-tree state: `{declared}`",
+        ]), encoding="utf-8")
+        sections = BUILD_CONTEXT.h2_sections(control.read_text(encoding="utf-8"))
+        return BUILD_CONTEXT.worktree_state_warnings(control, sections)
+
+    def test_dirty_claim_after_the_commit_landed_warns(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            w = self.build(d, "DIRTY \u2014 S16B waiting for the owner", dirty=False)
+            self.assertEqual(len(w), 1)
+            self.assertIn("part of the", w[0])
+
+    def test_clean_claim_with_modified_tracked_files_warns(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            w = self.build(d, "CLEAN", dirty=True)
+            self.assertEqual(len(w), 1)
+            self.assertIn("1 tracked file(s) are modified", w[0])
+
+    def test_matching_claims_are_silent(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(self.build(d, "CLEAN", dirty=False), [])
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(self.build(d, "DIRTY \u2014 mid-stage", dirty=True), [])
+
+    def test_untracked_files_do_not_falsify_a_clean_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(self.build(d, "CLEAN", dirty=False, untracked=True), [])
+
+    def test_absent_field_is_backward_compatible(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            control = root / "BUILD-CONTROL-widget.md"
+            control.write_text("## ENTRYPOINT\n- Project root: `.`\n\n"
+                               "## VERSION CONTROL\n- Mode: `git`\n- Repository root: `.`\n",
+                               encoding="utf-8")
+            sections = BUILD_CONTEXT.h2_sections(control.read_text(encoding="utf-8"))
+            self.assertEqual(BUILD_CONTEXT.worktree_state_warnings(control, sections), [])
+
+
 class ProtocolDocumentationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -1295,6 +1355,13 @@ class ProtocolDocumentationTests(unittest.TestCase):
         self.assertRegex(self.skill, r"PRG work, not a CHG")
         self.assertIn("rather than inventing another", self.skill)
         self.assertIn("Current-truth maintenance checklist", self.reference)
+
+    def test_checkpoint_advance_belongs_to_the_authorized_commit(self) -> None:
+        self.assertIn("Working-tree state", self.skill)
+        self.assertIn("Working-tree state: `CLEAN`", self.reference)
+        self.assertRegex(self.skill, r"part of the authorized commit, not a chore")
+        # The owner is often non-technical; the request must describe the effect.
+        self.assertRegex(self.skill, r"save point they can return to")
 
     def test_doctor_and_grep_current_are_bootstrap_commands(self) -> None:
         self.assertIn("Doctor:", self.reference)

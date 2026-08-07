@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.06.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.06.2 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -340,6 +340,26 @@ files committed by that same commit. If managed paths overlap pre-existing user
 work, stop and ask.
 
 The changelog is not version control: logs explain; checkpoints recover.
+
+Record `Working-tree state` beside the checkpoint (`CLEAN`, or `DIRTY — <what is
+pending>`). Together they answer the only question a recovery asks: *what is the
+newest state I can get back to, and is anything not in it yet.*
+
+**Advancing the checkpoint is part of the authorized commit, not a chore that
+follows it.** When the owner authorizes a commit, the same action sets `Current
+checkpoint` to the new ref and `Working-tree state` back to `CLEAN`. Miss that
+and the control file keeps claiming work is pending after it landed — a stale
+claim about the one fact recovery depends on, and one nobody owns because the
+agent that wrote `DIRTY` was forbidden to commit. `doctor` warns when the
+declared state disagrees with the repository.
+
+When the owner is not a developer, ask for that authorization in terms of what
+it does, not what it is: a checkpoint is a save point they can return to, and
+the request should say what would be saved and what is still unsaved. "Commit
+the managed paths?" asks them to trust a word; "save the current state — the six
+document changes from S16B, nothing in the game itself — so we can always come
+back here?" asks them to judge something they can actually see. Never let an
+owner approve a version-control action they cannot picture the effect of.
 
 ## Loop tripwires
 

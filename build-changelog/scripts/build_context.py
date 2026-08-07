@@ -1159,6 +1159,7 @@ def command_doctor(control: Path) -> int:
                 )
 
     warnings.extend(checkpoint_drift_warnings(control, sections))
+    warnings.extend(worktree_state_warnings(control, sections))
     warnings.extend(last_transition_warnings(control, sections))
 
     for warning in warnings:
@@ -1171,18 +1172,63 @@ def command_doctor(control: Path) -> int:
     return 0
 
 
-def checkpoint_drift_warnings(control: Path, sections: dict[str, str]) -> list[str]:
+def declared_repo(control: Path, sections: dict[str, str]) -> Optional[Path]:
     version = sections.get("VERSION CONTROL", "")
     if (field_value(version, "Mode") or "").casefold() != "git":
-        return []
-    checkpoint = field_value(version, "Current checkpoint")
-    if not checkpoint or checkpoint.casefold() in {"none", "not established", "pending"}:
-        return []
+        return None
     entrypoint = sections.get("ENTRYPOINT", "")
     project_root = resolve_pointer(control, field_value(entrypoint, "Project root") or ".")
     repo_raw = field_value(version, "Repository root") or "."
     repo_path = Path(repo_raw).expanduser()
-    repo = repo_path.resolve() if repo_path.is_absolute() else (project_root / repo_path).resolve()
+    return repo_path.resolve() if repo_path.is_absolute() else (project_root / repo_path).resolve()
+
+
+def worktree_state_warnings(control: Path, sections: dict[str, str]) -> list[str]:
+    """`Working-tree state` is a claim about the repository; check it.
+
+    Nobody owns the moment an owner-authorized commit lands, so a control file
+    that said DIRTY while waiting for permission keeps saying it forever. That
+    is a stale current claim about the one fact a recovery depends on.
+    """
+    version = sections.get("VERSION CONTROL", "")
+    declared = field_value(version, "Working-tree state")
+    if not declared:
+        return []
+    repo = declared_repo(control, sections)
+    if repo is None:
+        return []
+    # Untracked files are not pending work in a declared managed scope, so they
+    # must not make an honest CLEAN claim look false.
+    code, output = git_output(repo, "status", "--porcelain", "--untracked-files=no")
+    if code != 0:
+        return []
+    dirty = bool(output.strip())
+    claims_dirty = bool(re.match(r"\s*DIRTY\b", declared, re.IGNORECASE))
+    claims_clean = bool(re.match(r"\s*CLEAN\b", declared, re.IGNORECASE))
+    if claims_dirty and not dirty:
+        return [
+            f"VERSION CONTROL says `Working-tree state: {declared[:60]}` but the repository has no "
+            "uncommitted tracked changes. If the authorized commit already landed, advance "
+            "`Current checkpoint` to it and set this to `CLEAN` — that bookkeeping is part of the "
+            "commit, not a later chore."
+        ]
+    if claims_clean and dirty:
+        changed = len(output.strip().splitlines())
+        return [
+            f"VERSION CONTROL says `Working-tree state: CLEAN` but {changed} tracked file(s) are "
+            "modified; record what is pending or checkpoint it."
+        ]
+    return []
+
+
+def checkpoint_drift_warnings(control: Path, sections: dict[str, str]) -> list[str]:
+    version = sections.get("VERSION CONTROL", "")
+    checkpoint = field_value(version, "Current checkpoint")
+    if not checkpoint or checkpoint.casefold() in {"none", "not established", "pending"}:
+        return []
+    repo = declared_repo(control, sections)
+    if repo is None:
+        return []
     code, _ = git_output(repo, "rev-parse", "--verify", f"{checkpoint}^{{commit}}")
     if code != 0:
         return []

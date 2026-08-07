@@ -79,6 +79,7 @@ the files deterministically.
 - Branch: `<branch>`
 - Approved-plan baseline: `UNSET — establish after approval`
 - Current checkpoint: `none`
+- Working-tree state: `CLEAN`
 - Checkpoint rule: `one managed-path commit + stable build/<slug>/SNN ref per passed stage`
 
 ## ACTIVE CONTRACT INDEX
@@ -114,6 +115,13 @@ If a BUILD-CONTROL already validates in another repository convention, that
 location remains canonical. Never relocate it merely to match this default;
 handle an approved-build relocation as a CHG and update all pointers atomically.
 `Control schema` records the control-file protocol, not the skill release date.
+
+`Current checkpoint` and `Working-tree state` are one pair: the newest state
+recovery can return to, plus whether anything is not in it yet. Write the second
+as `CLEAN` or `DIRTY — <what is pending>`. When an owner authorizes a commit,
+advancing the checkpoint and clearing this field belong to that same action —
+otherwise a `DIRTY` written while waiting for permission outlives the commit it
+was waiting for. `doctor` compares both against the repository.
 
 ## 1a. Current truth surfaces registry
 
