@@ -76,11 +76,17 @@
 for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"; done
 ```
 
-บันทึกการเปลี่ยนแปลง:
+ปล่อยการเปลี่ยนแปลงด้วย [protocol กลาง](docs/SKILL_RELEASE_PROTOCOL.md) เท่านั้น:
 
 ```bash
-cd ~/.codex/skills && git add -A && git commit -m "..." && git push
+cd ~/.codex/skills
+python3 tools/skill_release.py preflight --skill <skill-name>
+# แก้และทดสอบเฉพาะ skill นั้น
+python3 tools/skill_release.py release --skill <skill-name> --message "..."
 ```
+
+คำสั่งนี้จะยืนยันว่า local และ GitHub เป็น mirror เดียวกันก่อนและหลัง release
+จึงห้ามใช้ `git add -A && git commit && git push` แบบกว้าง ๆ เป็นทางลัด
 
 ---
 
