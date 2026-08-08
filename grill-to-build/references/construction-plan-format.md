@@ -127,12 +127,12 @@ it silently invites the build to redo finished work or skip unfinished work.
 ```markdown
 ## Stage map
 
-| Stage | Name | Lifecycle | What you get |
+| Stage | Name | Lifecycle | Outcome |
 |---|---|---|---|
-| `S01` | sheet + tabs | `PASS` | the data the whole build reads from exists and is correct |
-| `S16` | practice mode | `VERIFY` | built and live; awaiting the owner's final look |
-| `S17` | promotion exam | `RETIRED` | delivered inside S16 by CHG-086 — not a separate gate |
-| `S20` | teacher dashboard | `DEFERRED` | one page showing where each student is and who is stuck |
+| `S01` | sheet + tabs | `PASS` | |
+| `S16` | practice mode | `VERIFY` | |
+| `S17` | promotion exam | `RETIRED` | delivered inside S16 by CHG-086 — no separate gate |
+| `S20` | teacher dashboard | `DEFERRED` | |
 ```
 
 **Give every stage a short name column.** Without one the table is a wall of
@@ -141,6 +141,21 @@ about. A name is a heading, and headings are what make a list skimmable — the
 owner scans thirty names in seconds and sees the shape of the whole project,
 which is most of what a plan is for. Names also never go stale: "teacher
 dashboard" stays "teacher dashboard" however it ends up being built.
+
+**The map is an index, not a store.** Each fact appears exactly once: the table
+says which stages exist and where each one stands; a stage that still has a
+block keeps its content in that block; a stage reduced to a single line keeps it
+in the table, because the row *is* its home. So the `Outcome` column is blank
+for every stage that has a block, and carries one sentence only for the stages
+that do not — a `RETIRED` row explaining where the work went, or a `DEFERRED`
+row you have deliberately not written a block for.
+
+The failure this prevents is easy to walk into: restating a stage's "what you
+get" in both the table and its block leaves two editable copies of one claim,
+which is the same defect as a duplicated contract index and goes stale the same
+way. It is just as easy to walk into from the other side — a `PASS` row reading
+`FOUNDATION — Sheet+tabs ✓` repeats the phase heading above it, the name column
+beside it, and the lifecycle cell, while adding nothing.
 
 Cutting premature **detail** and cutting **structure** are different acts. Only
 the first prevents drift; doing the second by accident costs the owner their

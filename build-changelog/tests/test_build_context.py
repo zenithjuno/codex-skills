@@ -1427,6 +1427,11 @@ class PlanAndBlueprintDocumentationTests(unittest.TestCase):
         self.assertRegex(self.plan_format, r"required, deliberately coarse")
         self.assertRegex(self.plan_format, r"no file paths, no ids, no exact commands")
         self.assertRegex(self.plan_format, r"lifecycle column and `doctor`, not the absence of prose")
+
+    def test_stage_table_is_an_index_not_a_second_copy(self) -> None:
+        self.assertRegex(self.plan_format, r"\*\*The map is an index, not a store\.\*\*")
+        self.assertRegex(self.plan_format, r"Each fact appears exactly once")
+        self.assertRegex(self.plan_format, r"blank for every stage that has a block")
         self.assertRegex(self.plan_format, r"never deleted or renumbered")
 
     def test_stage_contract_names_truth_surfaces_and_retirements(self) -> None:
