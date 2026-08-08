@@ -47,6 +47,8 @@ class MaterialPreflightTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(skill.split())
         self.assertIn("TEACHING-CONVENTIONS.md", normalized)
+        self.assertIn("DOCX-PREFERENCES.md", normalized)
+        self.assertIn("will not touch DOCX", normalized)
         self.assertIn("topic's approved", normalized)
         self.assertIn("Resolve authority by dimension", normalized)
         self.assertIn("historical files are evidence", normalized)

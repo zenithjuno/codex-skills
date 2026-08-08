@@ -33,7 +33,9 @@ because a conversation is long.
 Use when the teacher starts/continues a project, names a folder/current file,
 revises an existing artifact, changes durable scope, or needs unknown convention.
 Read only the project `TEACHING-CONVENTIONS.md` when present, then the active
-topic's approved `MATERIAL-DESIGN-*.md`.
+topic's approved `MATERIAL-DESIGN-*.md`. When DOCX production is planned or the
+active topic calls for DOCX, also read the project's `DOCX-PREFERENCES.md` when
+present. Do not load DOCX preferences for a discussion that will not touch DOCX.
 
 Run [project preflight](references/project-preflight.md) only when root, scope,
 authority, or routes are unclear, or when work has a long signal: multiple
@@ -50,7 +52,8 @@ evidence; skill defaults are last. Surface a real conflict.
 ## Mode C — approved production
 
 Use only when the teacher both approves content and explicitly asks for an
-artifact. First recover relevant Mode B state, unless this is direct Thai DOCX
+artifact. First recover relevant Mode B state, including `DOCX-PREFERENCES.md`
+for a project DOCX, unless this is direct Thai DOCX
 repair or formatting with no material-design discussion; route that case directly
 to `thai-math-docx`.
 

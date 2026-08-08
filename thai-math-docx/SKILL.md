@@ -24,15 +24,20 @@ Treat Microsoft Word on the user's machine as the visual truth.
 
 Do not use LibreOffice/Codex rendering to judge wrapping, spacing, page composition, or visual quality. For autonomous QA, inspect DOCX data only: section geometry, fixed table grid/widths, cell margins, paragraph spacing, font routing, and OMML/XML invariants. Use a render only when the user specifically asks for a diagnostic render; never treat it as visual evidence. Microsoft Word inspection by the user remains the final visual gate.
 
-## User Preference Evidence
+## User Preference Routing
 
-Before working on a Thai mathematics DOCX, read the **Confirmed summary** in
-`references/preference-ledger.md`, then read the entries relevant to the task.
-Treat confirmed entries as binding. Preserve the distinction between a confirmed
-preference and a pattern merely observed in one artifact; do not promote an
-observed pattern without user confirmation. When the user confirms a new
-preference, update the summary and append an evidence entry using that file's
-template.
+Before working on a Thai mathematics DOCX, read
+`references/preference-ledger.md` as the routing index, then open only the active
+preference cards relevant to the task. Do not load the full evidence history for
+routine work. If the named project folder contains `DOCX-PREFERENCES.md`, read it
+first: current teacher instruction wins, then an explicit topic requirement, then
+that project profile, then the relevant global card. Historical DOCX files are
+evidence only, never a compatibility target.
+
+Treat active-card rules as binding. Read `references/preference-evidence.md` only
+when a rule is disputed, needs rationale, or is being changed. When the teacher
+confirms a new preference, update the matching active card and append an evidence
+entry using that file's template; do not edit old evidence.
 
 ## Required Reference
 
