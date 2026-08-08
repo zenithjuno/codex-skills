@@ -208,14 +208,37 @@ Explicitly excluded, so nobody re-proposes it. One line each.
 
 ### Detail budget
 
-Detail belongs to a stage's lifecycle, not to its importance:
+"Detail" is two different dials, and only one of them causes drift:
 
-| Lifecycle | Detail the plan keeps |
-|---|---|
-| `ACTIVE` | full six parts — this is what is being built right now |
-| `VERIFY` | **the PASS GATE only** — what the owner must see to say it passed |
-| `PASS` · `DEFERRED` · `RETIRED` | one line in the Stage map — but see below on what that line must say |
-| `PLANNED` | full six parts only when the boundary is genuinely known; otherwise it is a fog line with no id |
+- **Boundary** — `📁 SCOPE` and `🔗 CONTRACT`: which files, which decision ids,
+  which enforcing tests. Unknowable before the work starts, and an agent reads
+  them as commitments about *how*, so writing them early is what produces stale
+  plans.
+- **Intent** — `🔨 BUILD`, `🧪 TEST`, `👁️ YOU SEE`, `✅ PASS GATE`: what gets
+  made, roughly how it gets checked, what the owner looks at, what counts as
+  done. Knowable from the start and almost unchanging. In the case that
+  originally motivated this rule, the retired stage's BUILD and YOU SEE lines
+  had stayed **accurate** from planning to delivery; only its SCOPE, CONTRACT
+  and its missing lifecycle marker went wrong.
+
+So the budget cuts boundary early and keeps intent:
+
+| Lifecycle | `SCOPE` + `CONTRACT` | `BUILD` / `TEST` / `YOU SEE` / `PASS GATE` |
+|---|---|---|
+| `ACTIVE` | exact — required before editing | exact |
+| `VERIFY` | drop; the work is done | `PASS GATE` only |
+| `PLANNED` · `DEFERRED` | **omit** | **required, deliberately coarse** |
+| `PASS` | keep as the record of what it built | keep as that record |
+| `RETIRED` | one line in the Stage map | one line in the Stage map |
+
+Coarse means a sentence each, no file paths, no ids, no exact commands — enough
+that the owner can see what is coming and reorder or question it, and not enough
+for anyone to mistake it for a decision about implementation. Write the boundary
+rows when the stage becomes `ACTIVE`, from what is true then.
+
+What actually stops a delivered stage from looking like future work is the
+lifecycle column and `doctor`, not the absence of prose. Deleting intent to
+solve that problem removes the owner's map and leaves the real cause in place.
 
 The `VERIFY` row is the one people get wrong. Once a stage is built, its BUILD /
 TEST / YOU SEE text stops describing a plan and starts describing behavior —

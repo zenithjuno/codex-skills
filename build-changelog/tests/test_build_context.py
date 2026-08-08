@@ -1419,6 +1419,14 @@ class PlanAndBlueprintDocumentationTests(unittest.TestCase):
         # Structure is not detail: the owner needs a skimmable name per stage.
         self.assertRegex(self.plan_format, r"Give every stage a short name column")
         self.assertRegex(self.plan_format, r"Cutting premature \*\*detail\*\* and cutting \*\*structure\*\*")
+
+    def test_boundary_is_deferred_but_intent_is_kept(self) -> None:
+        # SCOPE/CONTRACT are unknowable early and read as commitments; BUILD /
+        # TEST / YOU SEE / PASS GATE are the owner's forward view and stay true.
+        self.assertRegex(self.plan_format, r'"Detail" is two different dials')
+        self.assertRegex(self.plan_format, r"required, deliberately coarse")
+        self.assertRegex(self.plan_format, r"no file paths, no ids, no exact commands")
+        self.assertRegex(self.plan_format, r"lifecycle column and `doctor`, not the absence of prose")
         self.assertRegex(self.plan_format, r"never deleted or renumbered")
 
     def test_stage_contract_names_truth_surfaces_and_retirements(self) -> None:
