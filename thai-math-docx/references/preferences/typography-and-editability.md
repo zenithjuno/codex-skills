@@ -8,4 +8,5 @@ Use for every Thai mathematics DOCX.
 - Keep student-facing text, labels, answer lines, and tables editable in Word.
 - Real mathematical notation is editable Word Equation/OMML, not an image.
 
-For XML/run-level details, follow `../thai-math-docx-text.md` and the parent skill.
+For unfamiliar XML/run-level behavior or debugging, read
+`../thai-math-docx-text.md`; it is not a routine production read.

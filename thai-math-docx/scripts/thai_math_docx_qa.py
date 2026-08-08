@@ -6,6 +6,8 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from pathlib import PurePosixPath
+import posixpath
 import shutil
 from typing import Any, Mapping
 import zipfile
@@ -145,22 +147,23 @@ def _has_thai(text: str) -> bool:
     return any("\u0e00" <= character <= "\u0e7f" for character in text)
 
 
-def _parse_package(path: Path) -> tuple[dict[str, ET.Element], list[str], list[str]]:
+def _parse_package(path: Path) -> tuple[dict[str, ET.Element], list[str], list[str], set[str]]:
     roots: dict[str, ET.Element] = {}
     failures: list[str] = []
     media: list[str] = []
+    package_parts: set[str] = set()
     if not zipfile.is_zipfile(path):
-        return roots, ["not a valid ZIP/DOCX package"], media
+        return roots, ["not a valid ZIP/DOCX package"], media, package_parts
     try:
         with zipfile.ZipFile(path) as archive:
             bad_member = archive.testzip()
             if bad_member:
                 failures.append(f"ZIP CRC failure in {bad_member}")
-            names = set(archive.namelist())
-            for missing in sorted(REQUIRED_PACKAGE_PARTS - names):
+            package_parts = set(archive.namelist())
+            for missing in sorted(REQUIRED_PACKAGE_PARTS - package_parts):
                 failures.append(f"required package part missing: {missing}")
-            media = sorted(name for name in names if name.startswith("word/media/") and not name.endswith("/"))
-            for name in sorted(names):
+            media = sorted(name for name in package_parts if name.startswith("word/media/") and not name.endswith("/"))
+            for name in sorted(package_parts):
                 if not (name.endswith(".xml") or name.endswith(".rels")):
                     continue
                 try:
@@ -169,7 +172,7 @@ def _parse_package(path: Path) -> tuple[dict[str, ET.Element], list[str], list[s
                     failures.append(f"invalid XML in {name}: {exc}")
     except (OSError, zipfile.BadZipFile) as exc:
         failures.append(f"cannot read DOCX package: {exc}")
-    return roots, failures, media
+    return roots, failures, media, package_parts
 
 
 def _audit_fonts(
@@ -313,10 +316,24 @@ def _audit_geometry_and_tables(
     return failures, reviews, {"sections": section_metrics, "tables": table_metrics}
 
 
+def _source_part_for_relationships_part(relationships_part: str) -> str | None:
+    path = PurePosixPath(relationships_part)
+    if path.parent.name != "_rels" or not path.name.endswith(".rels"):
+        return None
+    return str(path.parent.parent / path.name.removesuffix(".rels"))
+
+
+def _resolve_relationship_target(source_part: str, target: str) -> str:
+    if target.startswith("/"):
+        return target.lstrip("/")
+    return posixpath.normpath(posixpath.join(str(PurePosixPath(source_part).parent), target))
+
+
 def _audit_media(
     media_paths: list[str],
     media_contract: Mapping[str, Any],
     roots: Mapping[str, ET.Element],
+    package_parts: set[str],
 ) -> tuple[list[str], list[str], dict[str, Any]]:
     failures: list[str] = []
     reviews: list[str] = []
@@ -333,12 +350,35 @@ def _audit_media(
     editability = str(media_contract.get("editability", defaults["editability"]))
     embedding_policy = str(media_contract.get("embedding_policy", defaults["embedding_policy"]))
     external_image_links = []
+    internal_image_relationships = []
+    broken_image_relationships = []
     for name, root in roots.items():
         if not name.endswith(".rels"):
             continue
+        source_part = _source_part_for_relationships_part(name)
         for relationship in root.findall(f".//{REL}Relationship"):
-            if relationship.get("Type", "").endswith("/image") and relationship.get("TargetMode") == "External":
-                external_image_links.append(relationship.get("Target", ""))
+            if not relationship.get("Type", "").endswith("/image"):
+                continue
+            target = relationship.get("Target", "")
+            if relationship.get("TargetMode") == "External":
+                external_image_links.append(target)
+                continue
+            if source_part is None:
+                failures.append(f"cannot resolve internal image relationship from {name}: {relationship.get('Id', '')}")
+                continue
+            resolved = _resolve_relationship_target(source_part, target)
+            item = {
+                "source_part": source_part,
+                "relationship_id": relationship.get("Id", ""),
+                "target": target,
+                "resolved_target": resolved,
+            }
+            internal_image_relationships.append(item)
+            if resolved not in package_parts:
+                broken_image_relationships.append(item)
+                failures.append(
+                    f"broken internal image relationship: {source_part}:{item['relationship_id']} -> {resolved} is missing from package",
+                )
     if mode == "none" and media_paths:
         failures.append(f"media contract is none but package contains {len(media_paths)} media parts")
     elif mode == "svg-editable":
@@ -383,6 +423,8 @@ def _audit_media(
         "editability": editability,
         "embedding_policy": embedding_policy,
         "external_image_links": external_image_links,
+        "internal_image_relationship_count": len(internal_image_relationships),
+        "broken_internal_image_relationships": broken_image_relationships,
     }
 
 
@@ -422,7 +464,7 @@ def audit_docx(
     if not path.is_file():
         return blocked_result(path, mode, f"file not found: {path}", contract)
     artifact_sha_before = sha256_file(path)
-    roots, package_failures, media_paths = _parse_package(path)
+    roots, package_failures, media_paths, package_parts = _parse_package(path)
     failures = list(package_failures)
     reviews: list[str] = []
     checks: list[dict[str, Any]] = []
@@ -452,7 +494,7 @@ def audit_docx(
         metrics["layout"] = layout_metrics
         _check(checks, "geometry-table-shape", "FAIL" if layout_failures else ("REVIEW" if layout_reviews else "PASS"), "Page geometry, native columns and table grid/content shape", issue_count=len(layout_failures), review_count=len(layout_reviews))
 
-        media_failures, media_reviews, media_metrics = _audit_media(media_paths, contract["media"], roots)
+        media_failures, media_reviews, media_metrics = _audit_media(media_paths, contract["media"], roots, package_parts)
         failures.extend(media_failures)
         reviews.extend(media_reviews)
         metrics["media"] = media_metrics

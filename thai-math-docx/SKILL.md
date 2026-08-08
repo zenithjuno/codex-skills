@@ -39,9 +39,15 @@ when a rule is disputed, needs rationale, or is being changed. When the teacher
 confirms a new preference, update the matching active card and append an evidence
 entry using that file's template; do not edit old evidence.
 
-## Required Reference
+## Deep Reference — load on demand
 
-Before generating, repairing, or auditing a Thai math `.docx`, read `references/thai-math-docx-text.md` for the detailed OOXML rules, examples, transcript schema, and failure modes.
+Do not read `references/thai-math-docx-text.md` by default. Ordinary production
+uses this skill, the relevant preference card(s), and the directly relevant
+script/module. Read the deep reference only for unfamiliar OOXML behavior, OMML
+edge cases not covered here, font-routing/debugging, fragile transcript or
+copy/paste behavior, repair failures, low-level package/XML investigation,
+generator-internal changes, new DOCX capability work, or a conflict with
+historical design rationale.
 
 When creating or revising an editable SVG set/mathematics diagram that will be
 placed in Word, also read `references/svg-diagram-layering.md` for the confirmed
@@ -204,7 +210,8 @@ A generated or repaired Thai math `.docx` is acceptable only when:
 - Ordinary Thai body runs pass the insertion-safety audit.
 - Real math is editable OMML, not images.
 - Accidental Thai inside generic OMML math items is rejected or repaired.
-- Equation image count is zero.
+- Required mathematics is editable OMML; generic document images are governed
+  by the media contract.
 - Paragraph spacing is single (`1.0`) unless project context says otherwise.
 - `thai-font-normalize` passes.
 - DOCX structure matches the requested page, table, paragraph, font, and OMML requirements.

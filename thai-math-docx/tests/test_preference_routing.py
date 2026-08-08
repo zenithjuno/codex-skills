@@ -33,6 +33,13 @@ class PreferenceRoutingTests(unittest.TestCase):
         self.assertIn("Historical DOCX files are\nevidence only", skill)
         self.assertIn("preference-evidence.md", skill)
 
+    def test_deep_docx_reference_is_on_demand(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Deep Reference — load on demand", skill)
+        self.assertIn("Do not read `references/thai-math-docx-text.md` by default", skill)
+        self.assertIn("unfamiliar OOXML behavior", skill)
+        self.assertIn("generator-internal changes", skill)
+
     def test_evidence_history_retains_all_confirmed_entries(self) -> None:
         evidence = (REFERENCES / "preference-evidence.md").read_text(encoding="utf-8")
         self.assertIn("PREF-20260712-001", evidence)

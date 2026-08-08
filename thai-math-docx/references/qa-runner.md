@@ -63,7 +63,7 @@ diagram semantics and pedagogy remain outside this generic runner.
 
 The runner checks ZIP/XML integrity; required package parts; Thai
 docDefaults/Normal/theme; insertion safety; editable OMML; Thai leaking into
-generic math; media inventory and contract; A4/native-column/custom geometry;
+generic math; media inventory, image-relationship targets and contract; A4/native-column/custom geometry;
 fixed table grid/cell/content shape; and source/artifact mutation provenance.
 
 The individual audit scripts remain available for focused diagnosis, but do not

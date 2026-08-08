@@ -25,6 +25,7 @@ import thai_math_docx_qa as qa
 
 
 CLI = SCRIPTS / "verify_thai_math_docx.py"
+OMML_AUDIT = SCRIPTS / "audit_docx_omml.py"
 PNG_1X1 = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZSpMAAAAASUVORK5CYII="
 )
@@ -66,6 +67,21 @@ def replace_zip_member(source: Path, output: Path, member: str, replacement: byt
             data = replacement if info.filename == member else archive_in.read(info.filename)
             archive_out.writestr(info, data)
     return output
+
+
+def remove_zip_member(source: Path, output: Path, member: str) -> Path:
+    with zipfile.ZipFile(source) as archive_in, zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive_out:
+        for info in archive_in.infolist():
+            if info.filename != member:
+                archive_out.writestr(info, archive_in.read(info.filename))
+    return output
+
+
+def build_math_with_png(path: Path, png: Path) -> Path:
+    document = builder.new_document()
+    builder.add_paragraph(document, [{"type": "math", "expr": ["x", "=", "1"]}])
+    document.add_picture(str(png))
+    return builder.save_docx(document, path)
 
 
 class UnifiedQaCoreTests(unittest.TestCase):
@@ -262,6 +278,52 @@ class UnifiedQaCoreTests(unittest.TestCase):
         self.assertEqual(1, result["metrics"]["media"]["count"])
         self.assertEqual("editable-source-required", result["metrics"]["media"]["editability"])
         self.assertEqual("embedded", result["metrics"]["media"]["embedding_policy"])
+
+    def test_allowed_image_does_not_fail_omml_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            png = root / "diagram.png"
+            png.write_bytes(PNG_1X1)
+            path = build_math_with_png(root / "math-with-image.docx", png)
+            completed = subprocess.run(
+                [sys.executable, str(OMML_AUDIT), str(path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
+        self.assertIn("image_count: 1", completed.stdout)
+        self.assertIn("image validity is handled by the media QA contract", completed.stdout)
+
+    def test_valid_internal_image_relationship_passes_media_qa(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            png = root / "diagram.png"
+            png.write_bytes(PNG_1X1)
+            path = build_math_with_png(root / "math-with-image.docx", png)
+            result = qa.audit_docx(
+                path,
+                qa.load_contract(write_contract(root / "contract.json", contract(media="mixed", math_required=True))),
+            )
+        self.assertEqual("PASS", result["verdict"])
+        self.assertEqual(1, result["metrics"]["media"]["internal_image_relationship_count"])
+        self.assertEqual([], result["metrics"]["media"]["broken_internal_image_relationships"])
+
+    def test_broken_internal_image_relationship_fails_media_qa(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            png = root / "diagram.png"
+            png.write_bytes(PNG_1X1)
+            source = build_math_with_png(root / "source.docx", png)
+            with zipfile.ZipFile(source) as archive:
+                image_part = next(name for name in archive.namelist() if name.startswith("word/media/"))
+            broken = remove_zip_member(source, root / "broken.docx", image_part)
+            result = qa.audit_docx(
+                broken,
+                qa.load_contract(write_contract(root / "contract.json", contract(media="mixed", math_required=True))),
+            )
+        self.assertEqual("FAIL", result["verdict"])
+        self.assertTrue(any("broken internal image relationship" in item for item in result["failures"]))
 
     def test_custom_or_imported_source_sets_independent_review_flag(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -475,7 +475,9 @@ Recommended pattern for `log_2 x`:
 
 Equation images are forbidden for normal math text. If OMML cannot represent the notation, stop and report the limitation instead of silently inserting an image.
 
-An audit should fail if `word/document.xml` contains equation-related drawing/pict elements instead of OMML.
+Generic document images are not evidence of rasterized equations. The OMML audit
+checks native math; the media contract checks whether images are allowed and
+valid. Do not fail the OMML audit merely because a drawing or picture exists.
 
 ### 6.6 Vector Arrows and Accents
 
@@ -902,7 +904,8 @@ A generated Thai math `.docx` is acceptable only if:
 - Footer is `TH Sarabun New 12pt` throughout.
 - `docDefaults` and `Normal` pass the font-default audit.
 - All real math is OMML.
-- Equation image count is zero.
+- Required mathematics is native OMML; generic document images follow the media
+  contract.
 - Paragraph spacing is single (`1.0`).
 - `thai-font-normalize` passes.
 - Render sanity check does not show broken layout.
@@ -1014,7 +1017,8 @@ Keep these as mandatory gates for generated or repaired exam DOCX:
 
 - `thai-font-normalize --check`: catches missing Thai CS routing and theme/default problems.
 - Font-default audit: specifically checks `docDefaults` and `Normal`, catching Clear Formatting failures.
-- OMML audit: counts `m:oMath`, structure types, equation images, and Thai math runs.
+- OMML audit: counts `m:oMath`, structure types, image elements for information,
+  and Thai math runs. Image policy belongs to media QA.
 - Thai-in-math audit: fail generic/unformatted Thai text inside `m:oMath`, but allow explicitly formatted `thai_text`.
 - Latin insertion-safety audit: flag ordinary Thai body runs where direct `w:sz` is `32`; they should normally be `w:sz=24` and `w:szCs=32` so manually typed Latin after Thai inherits Cambria 12pt behavior.
 - Render QA: catches layout collapse, page-count surprises, table wrapping, and LibreOffice-specific placeholder issues.

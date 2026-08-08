@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Audit OMML usage in a Thai math DOCX.
 
-Counts editable Word equation structures, flags equation-like images, and
-checks Thai text that intentionally appears inside OMML. Thai inside OMML is
+Counts editable Word equation structures, reports image elements for
+information, and checks Thai text that intentionally appears inside OMML. Thai inside OMML is
 allowed only when the math run carries explicit Thai Word run properties.
 """
 
@@ -155,11 +155,12 @@ def main() -> int:
     print(f"- image_count: {image_count}")
 
     failures = []
+    notes = []
     if counts["oMath"] == 0 and not allow_no_math:
         failures.append("expected at least one editable OMML equation, found 0")
     if image_count:
-        failures.append(
-            "drawing/pict/image elements are present; verify equations were not inserted as images",
+        notes.append(
+            f"found {image_count} drawing/pict/image element(s); image validity is handled by the media QA contract",
         )
     for name, text in unformatted_thai_math:
         snippet = text if len(text) <= 40 else text[:37] + "..."
@@ -172,6 +173,9 @@ def main() -> int:
         for failure in failures:
             print(f"- {failure}")
         return 1
+
+    for note in notes:
+        print(f"NOTE: {note}")
 
     print("PASS: OMML audit passed")
     return 0
