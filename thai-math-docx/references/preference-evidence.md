@@ -60,7 +60,7 @@ matching active card, then append evidence using the template at the end.
 
 - Status: confirmed
 - Tags: diagrams, svg, png, Word, answer-visuals, editability
-- Source: teacher approval of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_เฉลยออยเลอร์และเวนน์_PNGความละเอียดสูง.docx`, 2026-07-14
+- Source: teacher approval of `/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_เฉลยออยเลอร์และเวนน์_PNGความละเอียดสูง.docx`, 2026-07-14
 - Evidence: native SVG diagram text had previously drifted in Word when diagrams became text-heavy. The spike used two 3900 × 1450 px, 600 dpi PNG diagrams inserted inline; the teacher judged the output “คุณภาพดีมากๆ”.
 - Decision: retain SVG as the canonical editable/customizable diagram asset. For finalized answer diagrams where position fidelity matters more than in-Word editability, render the diagram to high-resolution PNG first, use inline DOCX placement, and preserve the SVG/source alongside it. Keep real equations and math notation outside the image as editable OMML.
 - Non-inference: this does not authorize rasterizing equations, ordinary math text, or student-facing diagrams that the teacher needs to alter in Word; nor does it make PNG the universal replacement for SVG.
@@ -69,7 +69,7 @@ matching active card, then append evidence using the template at the end.
 
 - Status: confirmed
 - Tags: diagrams, svg, Word, convert-to-shape, text-editing, golden-test
-- Source: teacher Word test of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_PNGเทียบ_SVGtext_16ptObject.docx`, 2026-07-14
+- Source: teacher Word test of `/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/venn-euler-drawing-choice-spike/SPIKE_ข้อ01_PNGเทียบ_SVGtext_16ptObject.docx`, 2026-07-14
 - Evidence: SVG built on a `475.2 pt × 176.4 pt` canvas with direct `16pt` text displayed oversized before conversion, but after Word Convert to Shape/Object the teacher judged the main visual quality acceptable and substantially better when compared against the PNG golden reference.
 - Decision: for SVGs intended for conversion and later text editing, use the intended physical dimensions and explicit point-size text, then judge the converted Word object against a same-geometry PNG golden reference. Do not treat the unconverted SVG appearance as the final gate.
 - Decision: symbols that the teacher must edit after conversion, including `∅`, must be real SVG text rather than geometry/path artwork.
@@ -95,7 +95,7 @@ matching active card, then append evidence using the template at the end.
 
 - Status: confirmed
 - Tags: diagrams, svg, Venn, shading, Word, layers, editability
-- Source: teacher approval of `/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`, 2026-07-15
+- Source: teacher approval of `/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/venn-shading-spike/venn-union-shading-text-12pt.svg`, 2026-07-15
 - Evidence: the teacher explicitly approved the result “เป๊ะๆ” and identified
   the essential construction: shading belongs in a lower layer, outlines stay
   on top, and the shaded curves must match the circles exactly.

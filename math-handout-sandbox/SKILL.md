@@ -32,12 +32,20 @@ because a conversation is long.
 
 Use when the teacher starts/continues a project, names a folder/current file,
 revises an existing artifact, changes durable scope, or needs unknown convention.
+
+When the project has an `AGENTS.md`, that is the entrypoint: take the project
+map, read boundaries, authority order and topic index from it, and never
+enumerate or glob the folder to orient yourself. Read only the index rows for the
+active topic; a finished topic is opened only when the teacher names it.
+
 Read only the project `TEACHING-CONVENTIONS.md` when present, then the active
 topic's approved `MATERIAL-DESIGN-*.md`. When DOCX production is planned or the
 active topic calls for DOCX, also read the project's `DOCX-PREFERENCES.md` when
 present. Do not load DOCX preferences for a discussion that will not touch DOCX.
 
-Run [project preflight](references/project-preflight.md) only when root, scope,
+A current `AGENTS.md` or topic index already answers root, scope and routes, so
+preflight does not run for that project. Otherwise run
+[project preflight](references/project-preflight.md) only when root, scope,
 authority, or routes are unclear, or when work has a long signal: multiple
 deliverables/sessions/child skills, a build-assets pipeline, more than one
 approval gate, a current master, or handoff conflict. Use its embedded Project

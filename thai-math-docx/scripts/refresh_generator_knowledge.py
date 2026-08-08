@@ -19,6 +19,9 @@ from typing import Any
 
 
 GENERATOR_GLOB = "**/build_*.py"
+# Top-level project folders holding the real-number handout generators. The Thai
+# name is the pre-2026-08-09 spelling, kept so historical records still resolve.
+REAL_NUMBER_HANDOUT_DIRS = ("real-numbers", "ชีทจำนวนจริง")
 SAFETY_FEATURES = {
     "local-font-defaults",
     "local-run-font",
@@ -51,7 +54,9 @@ def family_id(relative_path: str) -> str:
     parts = Path(relative_path).parts
     if len(parts) >= 3 and parts[0] == "thai-math-doc" and parts[1] == "projects":
         slug = parts[2]
-    elif parts and parts[0] == "ชีทจำนวนจริง":
+    # The folder "ชีทจำนวนจริง" was renamed to "real-numbers"; accept both so
+    # historical knowledge entries keep resolving to the same family.
+    elif parts and parts[0] in REAL_NUMBER_HANDOUT_DIRS:
         slug = "real-number-handouts"
     elif len(parts) >= 2 and parts[0] == "outputs":
         slug = f"outputs-{parts[1]}"
@@ -157,6 +162,11 @@ def scan_generator(path: Path, source_root: Path) -> dict[str, Any]:
 
 
 def parts_contains_thai_handout(relative_path: str) -> bool:
+    # The real-number handout folder used to carry "ชีท" in its own name, which
+    # is what marked its generators as a handout family. Renaming it to ASCII
+    # removed that signal, so match the folder itself as well.
+    if Path(relative_path).parts[:1] and Path(relative_path).parts[0] in REAL_NUMBER_HANDOUT_DIRS:
+        return True
     return any(token in relative_path for token in ("ชีท", "ใบงาน", "แบบฝึก"))
 
 

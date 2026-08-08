@@ -14,6 +14,8 @@ from typing import Any, Mapping, Sequence
 
 SCHEMA_VERSION = "1.0.0"
 MAX_DISCOVERED_FILES = 5000
+# How many example paths a route line shows before collapsing to a count.
+ROUTE_SAMPLE_LIMIT = 4
 BOUNDARY_EXACT = {
     ".git",
     "pyproject.toml",
@@ -480,16 +482,42 @@ def _slug(value: str) -> str:
     return normalized or "thai-math-material"
 
 
-def _line_list(values: Sequence[Any], empty: str = "none declared") -> str:
-    return ", ".join(str(item) for item in values) if values else empty
+def _relative(value: Any, root: str | None) -> str:
+    """Drop the project-root prefix so a map does not repeat it on every path."""
+    text = str(value)
+    if not root:
+        return text
+    prefix = root.rstrip("/") + "/"
+    return text[len(prefix):] if text.startswith(prefix) else text
 
 
-def _route_summary(report: Mapping[str, Any]) -> str:
+def _line_list(
+    values: Sequence[Any],
+    empty: str = "none declared",
+    root: str | None = None,
+) -> str:
+    if not values:
+        return empty
+    return ", ".join(_relative(item, root) for item in values)
+
+
+def _route_summary(report: Mapping[str, Any], limit: int = ROUTE_SAMPLE_LIMIT) -> str:
+    """Summarise each route as a count plus a few examples.
+
+    A project map exists to say *where* a route lives, not to enumerate it. Full
+    enumeration made this line larger than the rest of the map combined, and the
+    caller can always list a directory when it genuinely needs every name.
+    """
+    root = str(report["project_root"])
     routed = []
     for key in ("design", "build", "assets", "deliverables", "archive", "qa"):
         values = report["route_candidates"][key]
-        if values:
-            routed.append(f"{key}={_line_list(values)}")
+        if not values:
+            continue
+        shown = [_relative(item, root) for item in values[:limit]]
+        remaining = len(values) - len(shown)
+        listed = ", ".join(shown) + (f", +{remaining} more" if remaining > 0 else "")
+        routed.append(f"{key}[{len(values)}]={listed}")
     return "; ".join(routed) if routed else "none declared"
 
 
@@ -501,7 +529,8 @@ def render_short_project_map(report: Mapping[str, Any]) -> str:
             "",
             f"- Original Problem: {report['original_problem']}",
             f"- Root / scope: {report['project_root']} (external: {_line_list(report['path_scope']['explicit_external_inputs'])})",
-            f"- Policy / convention: {_line_list(report['policy_convention_candidates'])}",
+            "- Paths below are relative to Root.",
+            f"- Policy / convention: {_line_list(report['policy_convention_candidates'], root=str(report['project_root']))}",
             "- Authority: current user instruction owns current intent; artifact authority requires explicit designation.",
             f"- Routes: {_route_summary(report)}",
             f"- Current stage: {report['current_stage']}",
@@ -525,7 +554,8 @@ def render_material_control(report: Mapping[str, Any]) -> str:
         ],
         "PROJECT MAP": [
             f"- Path scope: {_line_list(report['path_scope']['allowed'])}",
-            f"- Policy / convention: {_line_list(report['policy_convention_candidates'])}",
+            "- Routes and policy paths below are relative to Declared root.",
+            f"- Policy / convention: {_line_list(report['policy_convention_candidates'], root=str(report['project_root']))}",
             f"- Routes: {_route_summary(report)}",
             f"- Required child skills: {_line_list(report['required_child_skills'])}",
             f"- Routing rationale: {_line_list(report['routing_announcements'])}",
@@ -569,7 +599,16 @@ def render_material_control(report: Mapping[str, Any]) -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("request", type=Path, help="JSON request containing explicit user/project facts")
-    parser.add_argument("--format", choices=("json", "short-map", "control"), default="json")
+    parser.add_argument(
+        "--format",
+        choices=("json", "short-map", "control"),
+        default="short-map",
+        help=(
+            "short-map (default) is the compact Project Map block; control is the "
+            "long-project skeleton; json is the full fact dump and is large — use "
+            "it only when a specific field is needed"
+        ),
+    )
     return parser
 
 

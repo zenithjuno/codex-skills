@@ -10,7 +10,7 @@ description: >
   on the finished file as a mandatory final pass. Default Thai font: TH Sarabun New,
   Complex Script size 16pt.
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: thai-font-normalize | canonical: ~/.codex/skills/thai-font-normalize | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.09 | name: thai-font-normalize | canonical: ~/.codex/skills/thai-font-normalize | bump this date on every edit -->
 
 # Thai Font Normalization
 
@@ -70,7 +70,9 @@ After the .docx is written to disk, run the bundled script on it. This runs enti
 bash scripts/fix-thai-font -i /path/to/generated.docx
 ```
 
-- `-i` overwrites the file in place (a `.bak` backup is made alongside it).
+- `-i` overwrites the file in place. A `.bak` copy is written only when the file
+  sits outside a git working tree; inside a repository the history is the
+  backup, so no clutter is created. Override with `--backup` / `--no-backup`.
 - Omit `-i` to instead produce `generated_fixed.docx` next to the original.
 - Use `--check` to audit without writing a repaired file.
 

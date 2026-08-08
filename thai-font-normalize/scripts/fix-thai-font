@@ -24,6 +24,7 @@ IN_PLACE=false
 RECURSIVE=false
 VERBOSE=true
 CHECK_ONLY=false
+BACKUP_MODE=auto   # auto | always | never
 
 if [ -t 1 ]; then
   RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'
@@ -40,7 +41,9 @@ USAGE
   fix-thai-font [options] <file-or-folder> [more files...]
 
 OPTIONS
-  -i, --in-place       Overwrite the original file (backup saved as .bak)
+  -i, --in-place       Overwrite the original file (see BACKUP POLICY below)
+      --backup         Force a .bak copy even inside a git repository
+      --no-backup      Never write a .bak copy
   -r, --recursive      When given a folder, process subfolders too
   -f, --font NAME      Target Thai font name (default: "TH Sarabun New")
   -c, --check          Audit only; do not write a fixed file
@@ -56,8 +59,14 @@ WHAT IT FIXES
   5. Ensures Thai runs have w:rFonts w:cs="TARGET" and w:lang w:bidi="th-TH".
   6. Verifies after repair and exits nonzero if required invariants still fail.
 
+BACKUP POLICY (applies to -i only)
+  Default is "auto": no .bak is written when the file sits inside a git working
+  tree, because the repository already holds recoverable history and stray .bak
+  files accumulate as clutter. Outside a git working tree a .bak is written as
+  before. Use --backup or --no-backup to override.
+
 REQUIREMENTS
-  bash, unzip, zip, and python3
+  bash, unzip, zip, and python3 (git optional; only used to detect a repository)
 EOF
   exit 0
 }
@@ -67,6 +76,8 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) show_help ;;
     -i|--in-place) IN_PLACE=true; shift ;;
+    --backup) BACKUP_MODE=always; shift ;;
+    --no-backup) BACKUP_MODE=never; shift ;;
     -r|--recursive) RECURSIVE=true; shift ;;
     -q|--quiet) VERBOSE=false; shift ;;
     -c|--check) CHECK_ONLY=true; shift ;;
@@ -500,15 +511,34 @@ if __name__ == "__main__":
     main()
 PYEOF
 
+# Decide whether an in-place edit needs a .bak copy.
+# A file inside a git working tree is already recoverable, so a .bak there is
+# pure clutter; outside git it remains the only safety net.
+needs_backup() {
+  local f="$1"
+  case "$BACKUP_MODE" in
+    always) return 0 ;;
+    never)  return 1 ;;
+  esac
+  if git -C "$(dirname "$f")" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
+}
+
 process_docx() {
   local input="$1"
   local output=""
   local tmpdir=""
   local outzip=""
+  local made_backup=false
 
   if [ "$CHECK_ONLY" = false ]; then
     if [ "$IN_PLACE" = true ]; then
-      cp -p "$input" "${input}.bak"
+      if needs_backup "$input"; then
+        cp -p "$input" "${input}.bak"
+        made_backup=true
+      fi
       output="$input"
     else
       local dir base
@@ -592,7 +622,11 @@ process_docx() {
 
   if [ "$VERBOSE" = true ]; then
     if [ "$IN_PLACE" = true ]; then
-      echo "  ${GREEN}OK${RESET} ${input} ${BLUE}(backup: ${input}.bak)${RESET}"
+      if [ "$made_backup" = true ]; then
+        echo "  ${GREEN}OK${RESET} ${input} ${BLUE}(backup: ${input}.bak)${RESET}"
+      else
+        echo "  ${GREEN}OK${RESET} ${input} ${BLUE}(in place; git holds history)${RESET}"
+      fi
     else
       echo "  ${GREEN}OK${RESET} ${input}"
       echo "      -> ${output}"

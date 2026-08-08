@@ -48,11 +48,18 @@ Unknown work kinds block for adjudication; never guess a production owner.
 Run:
 
 ```bash
-python scripts/preflight_material_project.py <request.json> --format json
+python scripts/preflight_material_project.py <request.json>
 ```
 
-Use `--format short-map` for a compact block to embed in the design note, or
-`--format control` for the eight-section long-project control skeleton. The
+The default `--format short-map` prints the compact Project Map block to embed
+in the design note. Route lines show a count plus a few example paths, relative
+to the declared root; list a directory yourself if you genuinely need every name.
+
+Use `--format control` for the eight-section long-project control skeleton.
+
+`--format json` dumps every collected fact, including one record per discovered
+file. On a real project that is tens of thousands of tokens, so reach for it only
+when a specific field is missing from the map — never as the routine call. The
 script prints to stdout and does not alter the project.
 
 ## Root and scope

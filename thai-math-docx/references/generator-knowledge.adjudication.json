@@ -4,7 +4,7 @@
     {
       "evidence_id": "EVD-9001",
       "source_kind": "preference-ledger",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
       "source_sha256": "15f87808cf6d0312d55bd0dbaf57982850b71bc0f783c4b721ef8dfc2f918363",
       "locator": "Confirmed summary and append-only evidence entries",
       "family_id": "FAM-cross-project-preferences",
@@ -17,7 +17,7 @@
     {
       "evidence_id": "EVD-9002",
       "source_kind": "build-log",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
       "source_sha256": "b0b362a6bd2dd4f61b18905b407c915ed5ce13909fd7ff0344edc7a7956e5947",
       "locator": "CHG-004, CHG-005 and PRG-014",
       "family_id": "FAM-set-union-handout",
@@ -30,7 +30,7 @@
     {
       "evidence_id": "EVD-9003",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
       "source_sha256": "7431f61eabe431a9bdcaa96c6c5b69f31d936d063077cb1239853a33b9c39651",
       "locator": "Status, Page System, Reusable Layout Profiles and Last-Mile Fit Adjustment",
       "family_id": "FAM-logic-exam",
@@ -43,7 +43,7 @@
     {
       "evidence_id": "EVD-9004",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/MATERIAL-DESIGN-polynomial-perfect-cube.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/MATERIAL-DESIGN-polynomial-perfect-cube.md",
       "source_sha256": "eff095512fd2dab2785fec5f2b5c55a1421c178b5199f17f94f72817667b6e88",
       "locator": "Locked, Approved for build, Artifact plan and Approval gate",
       "family_id": "FAM-real-number-handouts",
@@ -56,7 +56,7 @@
     {
       "evidence_id": "EVD-9005",
       "source_kind": "handoff",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
       "source_sha256": "b42f155f9fd65050bc859bd6e33de518a8b1e40aabb404c09836f0caf58576ab",
       "locator": "Start Here, Decisions Already Made and Next Steps",
       "family_id": "FAM-logic-handout-sandbox",
@@ -232,7 +232,7 @@
         ],
         "path_globs": [
           "outputs/set_intro/**",
-          "ชีทจำนวนจริง/**"
+          "real-numbers/**"
         ]
       },
       "explicit_evidence_ids": [

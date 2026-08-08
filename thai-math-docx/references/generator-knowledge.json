@@ -3,7 +3,7 @@
   "document_type": "generator-knowledge",
   "knowledge_base_id": "thai-math-docx",
   "source_snapshot": {
-    "source_root": "/Users/chutpong/Documents/ปรับชีท",
+    "source_root": "/Users/chutpong/Documents/chatgpt-math-doc-generator",
     "generator_glob": "**/build_*.py",
     "generator_count": 88,
     "manifest_sha256": "dadd23835c6db933967f6245290550040a4ca94dc8937dc8a18348b115dfb560"
@@ -12,7 +12,7 @@
     {
       "evidence_id": "EVD-0001",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/family_tree_real_numbers/build_family_tree.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/family_tree_real_numbers/build_family_tree.py",
       "source_sha256": "6c76ede19db192aeef65acc9931ecc927565349275e91468750d57b025dff23e",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-family-tree-real-numbers",
@@ -26,7 +26,7 @@
     {
       "evidence_id": "EVD-0002",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_check24_finite_infinite_subsets.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_check24_finite_infinite_subsets.py",
       "source_sha256": "b0a219bb98a489d08bd5ac48e6e288e15a018792ba798c5c63ef5d4591061533",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -39,7 +39,7 @@
     {
       "evidence_id": "EVD-0003",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_equal_sets_matching.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_equal_sets_matching.py",
       "source_sha256": "e7dc85755bce40ff3d42e750e1cf7fbdaea1d1f0137e9f7e2d2236a64a757265",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -52,7 +52,7 @@
     {
       "evidence_id": "EVD-0004",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_finite_infinite_sets.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_finite_infinite_sets.py",
       "source_sha256": "e4da4e7183e690767510f8e079d45a12b95d60ff727f0d0243c1a886704cbe9b",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -65,7 +65,7 @@
     {
       "evidence_id": "EVD-0005",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_membership_subset_power_set_check.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_membership_subset_power_set_check.py",
       "source_sha256": "080c9e88f4fcad5eb1fb73ba2d1c3fa5f5a2bbaf7972bc417a41754127daa5be",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -78,7 +78,7 @@
     {
       "evidence_id": "EVD-0006",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_membership_vs_subset_16.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_membership_vs_subset_16.py",
       "source_sha256": "e59930bc65f4a1ca88478d2c0c19cc1885a1985062e8c4bc2f90a9bd8d82b5db",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -91,7 +91,7 @@
     {
       "evidence_id": "EVD-0007",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_power_set_cardinality.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_power_set_cardinality.py",
       "source_sha256": "f4c3eb38a04fbd4961937ad6ff4e4769ca8402c784e086b5048397e15cc01948",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -104,7 +104,7 @@
     {
       "evidence_id": "EVD-0008",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_power_set_relations.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_power_set_relations.py",
       "source_sha256": "b6b2736c490ba2eb2dabe7b37b92812217e5e62ed44768b2298549aa71e73eef",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -117,7 +117,7 @@
     {
       "evidence_id": "EVD-0009",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_roster_worksheet.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_roster_worksheet.py",
       "source_sha256": "5f641dd5eceecd1deee9f57f095043752199a1d5f8fa72275f77c39ecd566761",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -131,7 +131,7 @@
     {
       "evidence_id": "EVD-0010",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_builder_worksheet.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_builder_worksheet.py",
       "source_sha256": "ffaff751c9c820d05a4f858d4661777ca40be1e3cae83744e92111125cb6bf54",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -145,7 +145,7 @@
     {
       "evidence_id": "EVD-0011",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_cardinality_10.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_cardinality_10.py",
       "source_sha256": "111dcd7bddeb2f0e8bcf4e4cb6473fe48995199a49883e903540b5b60eb6c2cc",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -158,7 +158,7 @@
     {
       "evidence_id": "EVD-0012",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_complement_answer_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_complement_answer_preview.py",
       "source_sha256": "5bd2cf8b7fe59de221778a00e9b8ca6fbc4b850a1cedeb391979707fe89eb414",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -172,7 +172,7 @@
     {
       "evidence_id": "EVD-0013",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_complement_blocks34_two_column.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_complement_blocks34_two_column.py",
       "source_sha256": "6a0647e964183d2b4a7bd08bb730272a6fbfdd2df1d1e79525f5ddf01387f439",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -186,7 +186,7 @@
     {
       "evidence_id": "EVD-0014",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_complement_full_handout_v1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_complement_full_handout_v1.py",
       "source_sha256": "187b9fbb9183bdee98cd0974538071950283efe167f18a2c1fdbd167ce6cfc4b",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -200,7 +200,7 @@
     {
       "evidence_id": "EVD-0015",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_diagram_compact_profile_spike_v1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_diagram_compact_profile_spike_v1.py",
       "source_sha256": "537e6ec946720046d659e4b9bd45b3b163789af43e1aaf272035117fbcc112c3",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -214,7 +214,7 @@
     {
       "evidence_id": "EVD-0016",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_diagram_prototypes_v5_png.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_diagram_prototypes_v5_png.py",
       "source_sha256": "6060aecfca983e70278c8b17b12cc05956403bfcaa991ff23bd12c9d1bdf05f4",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -228,7 +228,7 @@
     {
       "evidence_id": "EVD-0017",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_difference_answer_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_difference_answer_preview.py",
       "source_sha256": "82c15e4d5fbb7c40c53a8188757080a480a06498875a12793e0e45819098a5fb",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -242,7 +242,7 @@
     {
       "evidence_id": "EVD-0018",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_difference_blocks34_two_column.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_difference_blocks34_two_column.py",
       "source_sha256": "99649a652da69049f02536a47b9b1913d79d75574c88799e09d0f04005c82e2c",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -256,7 +256,7 @@
     {
       "evidence_id": "EVD-0019",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_difference_full_handout_v1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_difference_full_handout_v1.py",
       "source_sha256": "d4e905afbaeed5d6f6920dc44b2a6816b0616b3c8209d6fb81c4003c76bcc087",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -270,7 +270,7 @@
     {
       "evidence_id": "EVD-0020",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_block3_answer_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_block3_answer_preview.py",
       "source_sha256": "5b7eddc6b3b53bc9cb3508746bcd9e1ef0d6b13e356ed9148d2a1c3f9c5eee83",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -284,7 +284,7 @@
     {
       "evidence_id": "EVD-0021",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_block4_answer_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_block4_answer_preview.py",
       "source_sha256": "0f321a90124abd79c59a029edee194500a7643b403a523e93130b4878bc1f3f6",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -298,7 +298,7 @@
     {
       "evidence_id": "EVD-0022",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_block4_euler_svg.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_block4_euler_svg.py",
       "source_sha256": "4a6b4c66ed411450566805c022c3b2124c9e4f8cffdd2eb219d43094a64bf045",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -312,7 +312,7 @@
     {
       "evidence_id": "EVD-0023",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_blocks34_two_column.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_blocks34_two_column.py",
       "source_sha256": "f564c6506ccb635d255b66af9a737f6eef474c41089f794ffa9400f0b77adfd5",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -326,7 +326,7 @@
     {
       "evidence_id": "EVD-0024",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_full_handout_v1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_full_handout_v1.py",
       "source_sha256": "1b11627175d3a099f136350b3506e7529a256b81f71d280bb1a497e473e586b1",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -340,7 +340,7 @@
     {
       "evidence_id": "EVD-0025",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_intersection_region_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_intersection_region_spike.py",
       "source_sha256": "eb67c4700db994b7a443a52d8d842e917965c7f6de6ee3fb1c8a158c48c240c0",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -354,7 +354,7 @@
     {
       "evidence_id": "EVD-0026",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_membership_20.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_membership_20.py",
       "source_sha256": "3d0c6e77f19e91c0dcfa92e964989c2e730708a1b8063f97154a1fa29ed81902",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -367,7 +367,7 @@
     {
       "evidence_id": "EVD-0027",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_operation_mixed_shading_png.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_operation_mixed_shading_png.py",
       "source_sha256": "f2e12d0d96ac5ff8a97eeec5569bccdc70937ed7f6d12fb1865e589025429386",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -381,7 +381,7 @@
     {
       "evidence_id": "EVD-0028",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_operation_mixed_shading_two_column.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_operation_mixed_shading_two_column.py",
       "source_sha256": "ef73b5d5fa80c148ba0f56a57b1430c77f44efd426d1af7c1c1de85540e376c7",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -395,7 +395,7 @@
     {
       "evidence_id": "EVD-0029",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_operation_order_question_iteration1b.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_operation_order_question_iteration1b.py",
       "source_sha256": "7235d989a273e32fa19e4d39b3b081d56eb6eabcc2b5e45cd68f2cba70984ee6",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -407,7 +407,7 @@
     {
       "evidence_id": "EVD-0030",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_operation_order_question_iteration1b2.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_operation_order_question_iteration1b2.py",
       "source_sha256": "8ac3f6c09d703906a6e0adaccb033b3fe82f7813c611543af0827e2e13e2ef62",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -419,7 +419,7 @@
     {
       "evidence_id": "EVD-0031",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_operation_order_question_v1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_operation_order_question_v1.py",
       "source_sha256": "11b717b047be28da2604e4ea8b46fc882eb37916f14f23a4edfd32a88c35840c",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -432,7 +432,7 @@
     {
       "evidence_id": "EVD-0032",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_b38_b48_answer_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_b38_b48_answer_spike.py",
       "source_sha256": "d7ab04db1037a8ab4be9a46ab784d848e2e9a8773241006bbfd0f433f8daf1ad",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -446,7 +446,7 @@
     {
       "evidence_id": "EVD-0033",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_block3_answer_preview_v4.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_block3_answer_preview_v4.py",
       "source_sha256": "aa1a6c671d0868229e6256efc0e50c73a84f2e329375478b201ea0e13349f96a",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -460,7 +460,7 @@
     {
       "evidence_id": "EVD-0034",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_block3_answer_preview_v4_1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_block3_answer_preview_v4_1.py",
       "source_sha256": "a321e8b50a6cd98c32bea81423c479ff3c5a5f2af62bfbcd117ad9dd5cdb154d",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -473,7 +473,7 @@
     {
       "evidence_id": "EVD-0035",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_block3a_two_column_svg_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_block3a_two_column_svg_spike.py",
       "source_sha256": "c5a34b32063a3eb3a9d095413f606e9e469ae4b2ba97d82b4fa8e9cb9ca6d18f",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -487,7 +487,7 @@
     {
       "evidence_id": "EVD-0036",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_block4_answer_preview_v4_1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_block4_answer_preview_v4_1.py",
       "source_sha256": "6719eb61c19807b54426cbf6dc3aa685af24f46902d9e53337e45b4d0526bf3b",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -501,7 +501,7 @@
     {
       "evidence_id": "EVD-0037",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_blocks34_two_column.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_blocks34_two_column.py",
       "source_sha256": "89faf865b253283fe168ef6c7eb60448c8974492b8ff62a2db885d7625900e82",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -515,7 +515,7 @@
     {
       "evidence_id": "EVD-0038",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_blocks34_two_column_v2.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_blocks34_two_column_v2.py",
       "source_sha256": "f25809b790135abb444a0dd00820877e7b565db2751d89909b5819ca6ab43296",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -529,7 +529,7 @@
     {
       "evidence_id": "EVD-0039",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_blocks34_two_column_v3.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_blocks34_two_column_v3.py",
       "source_sha256": "3b7a7f16c467848daa4a262472d236cccd77842a5a2df1f861e0ebee11066c58",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -543,7 +543,7 @@
     {
       "evidence_id": "EVD-0040",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_blocks34_two_column_v4_1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_blocks34_two_column_v4_1.py",
       "source_sha256": "5ccca0ceb050168980067b6035b25704a2b708999a7c0b5e270aaaa30890e487",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -557,7 +557,7 @@
     {
       "evidence_id": "EVD-0041",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_full_handout_v4_1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_full_handout_v4_1.py",
       "source_sha256": "9e33757a7289aae9b646795c73db25d692b682bfbe00a5f489b3befb28a947e5",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -571,7 +571,7 @@
     {
       "evidence_id": "EVD-0042",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_intro.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_intro.py",
       "source_sha256": "6e79a0b0e41a15b98d8ccc7a0f92541ad549267acecf0f3d3ae7da7b95797fc8",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -584,7 +584,7 @@
     {
       "evidence_id": "EVD-0043",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_v1_svg_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_v1_svg_spike.py",
       "source_sha256": "6c9bbc0bf8d5e775964e645aef9ac0e96c8d4b21ef22e16b06c259b8adfda7b0",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -598,7 +598,7 @@
     {
       "evidence_id": "EVD-0044",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_set_union_visual_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_set_union_visual_preview.py",
       "source_sha256": "765dd1102120c0cc80e29d6a926c3f39854f27da4c4e94b9e9e8a4a8a037cabc",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -612,7 +612,7 @@
     {
       "evidence_id": "EVD-0045",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_subsets_16.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_subsets_16.py",
       "source_sha256": "30bf130a4e467c564cf14c7b7616d374fdbb3cfce82d7a0ff807070e224d37ca",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -625,7 +625,7 @@
     {
       "evidence_id": "EVD-0046",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_universal_set_followups.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_universal_set_followups.py",
       "source_sha256": "9eb0c147a933d21573d5acbb5afd2ca4d7cabd447b66769b5e9cd42046249610",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -638,7 +638,7 @@
     {
       "evidence_id": "EVD-0047",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_companion_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_companion_docx.py",
       "source_sha256": "19c8ddac0b6685752ecd7784b06d80f46ab8faa8646affacab76c26cd8d61663",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -651,7 +651,7 @@
     {
       "evidence_id": "EVD-0048",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_drawing_choice_answers.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_drawing_choice_answers.py",
       "source_sha256": "b1566e47777caae899fc3f92766a2feb2cba90e89814ed5ca81e9ce13859afa5",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -665,7 +665,7 @@
     {
       "evidence_id": "EVD-0049",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_drawing_choice_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_drawing_choice_spike.py",
       "source_sha256": "bf460e8412315f1a05125ad1125c9fbfafca9f4a02d54d57e99851fb3e113e64",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -678,7 +678,7 @@
     {
       "evidence_id": "EVD-0050",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_fill_in_v2.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_fill_in_v2.py",
       "source_sha256": "00a0f3c9bfd23e27486f7fe63f860e6a45515fd126cabd29aa33e4893e917fad",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -692,7 +692,7 @@
     {
       "evidence_id": "EVD-0051",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_set_data.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_set_data.py",
       "source_sha256": "4421bcf9e9b4b7444e352e4fb5307548a83596ce8a711186a41df2988bed4ec6",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -705,7 +705,7 @@
     {
       "evidence_id": "EVD-0052",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_euler_svg_outline_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_euler_svg_outline_spike.py",
       "source_sha256": "d735579bda188aa7dea5657ee3187c1e86ca70549e41da83a3b388f1fb03e701",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -718,7 +718,7 @@
     {
       "evidence_id": "EVD-0053",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/build_venn_shading_spike.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/build_venn_shading_spike.py",
       "source_sha256": "386b6dc9d9528dc9c17e5d9b030c438f95cf4be764cc4ee9eaecee011b884620",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-outputs-set-intro",
@@ -732,7 +732,7 @@
     {
       "evidence_id": "EVD-0054",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/68-1-set-midterm-science/build/build_detailed_answer_key_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_detailed_answer_key_docx.py",
       "source_sha256": "42d1514b36b2d8b51d11f12ccda94f020dbe361e2c862881f9c99087045bc924",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-68-1-set-midterm-science",
@@ -745,7 +745,7 @@
     {
       "evidence_id": "EVD-0055",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/68-1-set-midterm-science/build/build_final_exam_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_final_exam_docx.py",
       "source_sha256": "6cedc342f78e8f655963e1d37a626717f1ad1e729adb536051f030d3d7632a77",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-68-1-set-midterm-science",
@@ -759,7 +759,7 @@
     {
       "evidence_id": "EVD-0056",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/68-1-set-midterm-science/build/build_venn_assets.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_venn_assets.py",
       "source_sha256": "ddc17a9eaad09ab84fc666e9f3280abdebe8e223f7083224f76fd2b5b4bdeae1",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-68-1-set-midterm-science",
@@ -772,7 +772,7 @@
     {
       "evidence_id": "EVD-0057",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/build/build_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx.py",
       "source_sha256": "b836d23b03b942bdcb6ca192e1cfaf52d87d2801412a82ef083959c05eb099fe",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-69-1-logic-exam",
@@ -786,7 +786,7 @@
     {
       "evidence_id": "EVD-0058",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate.py",
       "source_sha256": "10698d34c472cab82dab6af0452a12a24468e5222a40378f30139c529a9fd7e8",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-69-1-logic-exam",
@@ -800,7 +800,7 @@
     {
       "evidence_id": "EVD-0059",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate_layout_preview.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate_layout_preview.py",
       "source_sha256": "9c71873c3071b70e58839a82261618a6cd143fd21f94ddae1cfdeaec7cabe40f",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-69-1-logic-exam",
@@ -814,7 +814,7 @@
     {
       "evidence_id": "EVD-0060",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-set-exam-20q/build/build_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_docx.py",
       "source_sha256": "1983662bff8b8993995151e8076d2c2d99ef7e5a94895fa15c06aa74cee4b399",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-69-1-set-exam-20q",
@@ -828,7 +828,7 @@
     {
       "evidence_id": "EVD-0061",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-set-exam-20q/build/build_mockup_a_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_mockup_a_docx.py",
       "source_sha256": "a2eb9e5dec3dd3f104298b2f7b3a916d70357588776a028dab1efad78f35bdea",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-69-1-set-exam-20q",
@@ -842,7 +842,7 @@
     {
       "evidence_id": "EVD-0062",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/logic-handout-sandbox/build/build_logic_sandbox.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/build/build_logic_sandbox.py",
       "source_sha256": "58438df9f346d45adc7c3c9913f49921b562595217720c0e3d99d0ffcd1e998e",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-logic-handout-sandbox",
@@ -856,7 +856,7 @@
     {
       "evidence_id": "EVD-0063",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/single-set-writing-question/build/build_detailed_solutions_2q_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_detailed_solutions_2q_docx.py",
       "source_sha256": "3db05f317fa8a14ce1cc276cec8a221cbb8d5162cec452637225fbb2f9a5165f",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-single-set-writing-question",
@@ -870,7 +870,7 @@
     {
       "evidence_id": "EVD-0064",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_docx.py",
       "source_sha256": "348c3d244208dfd960bebcb7567ba472e97adcce64beb748686b0d94aa69c2ab",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-single-set-writing-question",
@@ -884,7 +884,7 @@
     {
       "evidence_id": "EVD-0065",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_with_outside_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_with_outside_docx.py",
       "source_sha256": "ba82c33ad600db5b74413a0a0c6fb5ec2115da9b69cfc6e9a0c35e28bfa2f45b",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-single-set-writing-question",
@@ -898,7 +898,7 @@
     {
       "evidence_id": "EVD-0066",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/tgat2-dump/build/build_tgat2_docx.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/tgat2-dump/build/build_tgat2_docx.py",
       "source_sha256": "1478ef29970b0b4f30cbf53a122778668c7ab230be9c6fa9090eb386c1a4a221",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-tgat2-dump",
@@ -911,7 +911,7 @@
     {
       "evidence_id": "EVD-0067",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_ax2_bx_c.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_ax2_bx_c.py",
       "source_sha256": "265d1320ea61cc8318390f455d68a266298d2e73c7fe70e239ca63236fff6fab",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -925,7 +925,7 @@
     {
       "evidence_id": "EVD-0068",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_common_and_grouping_factorization.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_common_and_grouping_factorization.py",
       "source_sha256": "50e8b8329eae56f25d04d8f76375bc139515d85f4f5044510243fd3812490ec9",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -939,7 +939,7 @@
     {
       "evidence_id": "EVD-0069",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_difference_of_squares.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_difference_of_squares.py",
       "source_sha256": "e4f698f5f580e9b0617bee43b7f2f389caaf2428225de3ac926b4320cac758ca",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -953,7 +953,7 @@
     {
       "evidence_id": "EVD-0070",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_division_equation.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_division_equation.py",
       "source_sha256": "6098cfa949c63396726dff39a0232a86a83d66542f81420b973dc7304a45b204",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -967,7 +967,7 @@
     {
       "evidence_id": "EVD-0071",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_equation_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_equation_exercise.py",
       "source_sha256": "2163b1af520d0fa89067a85b4c38229b9e03bb528e78993fd3c9ce29c1ae2af0",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -981,7 +981,7 @@
     {
       "evidence_id": "EVD-0072",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_grouping_factorization.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_grouping_factorization.py",
       "source_sha256": "3d3b2a9cfda4005bb1d57aaaf10c778dc8151d7bc2f2bf976cae13f564e2cdf7",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -995,7 +995,7 @@
     {
       "evidence_id": "EVD-0073",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_integer_root_factorization_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_integer_root_factorization_exercise.py",
       "source_sha256": "f1511233b5fa8517e1ef2d9c58d5e57c1a716276da750ba0afdf4898c7817507",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1009,7 +1009,7 @@
     {
       "evidence_id": "EVD-0074",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_long_division_examples.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_examples.py",
       "source_sha256": "36b4496ffdca8a8f5dfd745a83df1a3ab00ee82ce6a62892d75532ce693d9cce",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1023,7 +1023,7 @@
     {
       "evidence_id": "EVD-0075",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_long_division_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_exercise.py",
       "source_sha256": "c7cfabf6b07614ef4b9a81df88b10ef7ad5c6222b0b60130b75c158423ce479a",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1037,7 +1037,7 @@
     {
       "evidence_id": "EVD-0076",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_other_factorizations.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_other_factorizations.py",
       "source_sha256": "8a6b6a3c46c0b85182bdd1448d15f89facefd8ba7f903902e8209a40b68b7f6b",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1051,7 +1051,7 @@
     {
       "evidence_id": "EVD-0077",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_perfect_cube.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_cube.py",
       "source_sha256": "36e96a435729db8cd2c92f8275f7753b77a1eebefa814c3df9c58fcf91ef2e1f",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1065,7 +1065,7 @@
     {
       "evidence_id": "EVD-0078",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_perfect_square_trinomial.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_square_trinomial.py",
       "source_sha256": "8cc90278c8d566279892f22eefbadfe04d9dca61d72a1019063fbb4af71955b0",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1079,7 +1079,7 @@
     {
       "evidence_id": "EVD-0079",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_rational_expression_addition_subtraction.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_rational_expression_addition_subtraction.py",
       "source_sha256": "bb167d89036f374e45484690abfd78780b8edab63f392fa23fda64581dc059a3",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1093,7 +1093,7 @@
     {
       "evidence_id": "EVD-0080",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_remainder_theorem_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_remainder_theorem_exercise.py",
       "source_sha256": "a5b2520e1e8f2e4e4dc9aab19f0e5f6a22670cf4c8a2d5e5f84dbc15c2c10ffc",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1107,7 +1107,7 @@
     {
       "evidence_id": "EVD-0081",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_sum_difference_cubes.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_sum_difference_cubes.py",
       "source_sha256": "296cd0d8df62166ca745eb168ab2a02a3c3c279df9aade66a24dd5f47758edbe",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1121,7 +1121,7 @@
     {
       "evidence_id": "EVD-0082",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_synthetic_division_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_synthetic_division_exercise.py",
       "source_sha256": "3ad5f5e68dd45eb7e4f37106e2275f3536c6a500c5990ac6b40162d1c37da10a",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1135,7 +1135,7 @@
     {
       "evidence_id": "EVD-0083",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_polynomial_x2_bx_c.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_x2_bx_c.py",
       "source_sha256": "e2081d5698332d6e3f5861efb6eab6e3d993f03f23eb12a609d7ce3f2a0ec45f",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1149,7 +1149,7 @@
     {
       "evidence_id": "EVD-0084",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_real_number_equality_properties_examples.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_equality_properties_examples.py",
       "source_sha256": "67d4e359d434d17783d2e8499c7477396b1090a69cd2197b7137b46d9c6e2acd",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1163,7 +1163,7 @@
     {
       "evidence_id": "EVD-0085",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_real_number_inverses_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_inverses_exercise.py",
       "source_sha256": "89cf94744d82e4f5251d989c091b3730a3ed68ea027316e435aab1d74cdce9ca",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1177,7 +1177,7 @@
     {
       "evidence_id": "EVD-0086",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_real_number_key_theorems_exercise.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_key_theorems_exercise.py",
       "source_sha256": "d9907147b829523ff9f5237abcb39577f7194cfebd39865f7a06d4490146be97",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1191,7 +1191,7 @@
     {
       "evidence_id": "EVD-0087",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_real_number_key_theorems_exercise_v2.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_key_theorems_exercise_v2.py",
       "source_sha256": "9335255a6839e229fe58b96413c0349eff63fcd837ad7c422382fa32a96a2108",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1205,7 +1205,7 @@
     {
       "evidence_id": "EVD-0088",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/build_real_number_subsets_part1.py",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_subsets_part1.py",
       "source_sha256": "e72aef2677429fac1e1a0826acc374289008ac31867e1ccb745f89af6040a9ad",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
@@ -1219,7 +1219,7 @@
     {
       "evidence_id": "EVD-9001",
       "source_kind": "preference-ledger",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
       "source_sha256": "15f87808cf6d0312d55bd0dbaf57982850b71bc0f783c4b721ef8dfc2f918363",
       "locator": "Confirmed summary and append-only evidence entries",
       "family_id": "FAM-cross-project-preferences",
@@ -1232,7 +1232,7 @@
     {
       "evidence_id": "EVD-9002",
       "source_kind": "build-log",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
       "source_sha256": "b0b362a6bd2dd4f61b18905b407c915ed5ce13909fd7ff0344edc7a7956e5947",
       "locator": "CHG-004, CHG-005 and PRG-014",
       "family_id": "FAM-set-union-handout",
@@ -1245,7 +1245,7 @@
     {
       "evidence_id": "EVD-9003",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
       "source_sha256": "7431f61eabe431a9bdcaa96c6c5b69f31d936d063077cb1239853a33b9c39651",
       "locator": "Status, Page System, Reusable Layout Profiles and Last-Mile Fit Adjustment",
       "family_id": "FAM-logic-exam",
@@ -1258,7 +1258,7 @@
     {
       "evidence_id": "EVD-9004",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/MATERIAL-DESIGN-polynomial-perfect-cube.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/MATERIAL-DESIGN-polynomial-perfect-cube.md",
       "source_sha256": "eff095512fd2dab2785fec5f2b5c55a1421c178b5199f17f94f72817667b6e88",
       "locator": "Locked, Approved for build, Artifact plan and Approval gate",
       "family_id": "FAM-real-number-handouts",
@@ -1271,7 +1271,7 @@
     {
       "evidence_id": "EVD-9005",
       "source_kind": "handoff",
-      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
       "source_sha256": "b42f155f9fd65050bc859bd6e33de518a8b1e40aabb404c09836f0caf58576ab",
       "locator": "Start Here, Decisions Already Made and Next Steps",
       "family_id": "FAM-logic-handout-sandbox",
