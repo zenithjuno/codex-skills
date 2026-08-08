@@ -1424,6 +1424,11 @@ class ProtocolDocumentationTests(unittest.TestCase):
         # The owner is often non-technical; the request must describe the effect.
         self.assertRegex(self.skill, r"save point they can return to")
 
+    def test_every_close_surfaces_the_whole_waiting_list(self) -> None:
+        self.assertIn("report the waiting list, not just the work", self.skill)
+        self.assertRegex(self.skill, r"\*the whole\* current OPEN CHANGES")
+        self.assertRegex(self.skill, r"never a promise to remember")
+
     def test_doctor_and_grep_current_are_bootstrap_commands(self) -> None:
         self.assertIn("Doctor:", self.reference)
         self.assertIn("Stale-claim sweep:", self.reference)

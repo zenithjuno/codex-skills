@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.06.6 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.06.7 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -212,6 +212,31 @@ existing contract remains PRG evidence.
 On failure, keep the stage open, fix or investigate within scope, re-test, and
 present the same addressed gate. A bug fix that fulfills the existing stage
 contract is PRG evidence, not a CHG.
+
+## Closing anything: report the waiting list, not just the work
+
+Every stage pass, every approved change, and every side task the owner spawned
+ends with four things, in the owner's language:
+
+1. **What changed** — one or two lines.
+2. **What is now waiting** — *the whole* current OPEN CHANGES plus any undecided
+   question, one line each, whether or not this task touched them.
+3. **One recommended next action**, with the reason.
+4. **The exact reply** that authorizes it.
+
+Item 2 is the load-bearing one. A backlog that is only written is a backlog that
+is never read: the owner's attention is on the project at a close and almost
+nowhere else, so a close is the only reliable moment to put waiting work in
+front of them. "Noted, we'll come back to it" without a resurfacing point is the
+same failure as a stale claim — the record exists and nothing ever acts on it.
+
+When the owner says "note this for later", that is an OPEN CHANGES entry with a
+stated trigger, never a promise to remember. When they raise an idea mid-stage,
+capture it there and keep building; do not silently widen the current stage.
+
+Keep the list honest and short. If it grows past what an owner can read at a
+glance, that is the signal to ask them to drop or schedule items, not to
+summarize it away.
 
 ## Feedback write-back without another log
 
