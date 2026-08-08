@@ -1176,6 +1176,44 @@ class LastTransitionTests(unittest.TestCase):
             self.assertEqual(BUILD_CONTEXT.last_transition_warnings(control, sections), [])
 
 
+class CheckpointRefTests(unittest.TestCase):
+    """A raw hash can never name the commit it is about to join."""
+
+    def build(self, directory: str, checkpoint: str):
+        import subprocess
+
+        root = Path(directory)
+        (root / "f.txt").write_text("one\n", encoding="utf-8")
+        if not (root / ".git").exists():
+            for args in (["init", "-q"], ["add", "-A"],
+                         ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base"]):
+                subprocess.run(["git", *args], cwd=root, check=True,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "tag", "-f", "build/widget/S01"], cwd=root, check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        control = root / "BUILD-CONTROL-widget.md"
+        control.write_text("\n".join([
+            "## ENTRYPOINT", "- Project root: `.`", "",
+            "## VERSION CONTROL", "- Mode: `git`", "- Repository root: `.`",
+            f"- Current checkpoint: `{checkpoint}`",
+        ]), encoding="utf-8")
+        sections = BUILD_CONTEXT.h2_sections(control.read_text(encoding="utf-8"))
+        return BUILD_CONTEXT.checkpoint_drift_warnings(control, sections)
+
+    def test_raw_hash_checkpoint_warns(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            import subprocess
+            self.build(d, "placeholder")
+            head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=d,
+                                  capture_output=True, text=True).stdout.strip()
+            w = self.build(d, head)
+            self.assertTrue(any("raw commit hash" in item for item in w))
+
+    def test_named_ref_at_head_is_silent(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(self.build(d, "build/widget/S01"), [])
+
+
 class GrepCurrentTests(unittest.TestCase):
     def build(self, directory: str) -> Path:
         control = DoctorTests().build(

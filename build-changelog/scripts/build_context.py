@@ -1239,15 +1239,26 @@ def checkpoint_drift_warnings(control: Path, sections: dict[str, str]) -> list[s
     code, _ = git_output(repo, "rev-parse", "--verify", f"{checkpoint}^{{commit}}")
     if code != 0:
         return []
+    warnings: list[str] = []
+    if re.fullmatch(r"[0-9a-f]{7,40}", checkpoint.strip(), re.IGNORECASE):
+        # A file cannot name the hash of the commit it is about to join, so a
+        # raw hash is always one commit stale and invites an endless trail of
+        # pointer-bump commits. A named ref is written once and never changes.
+        warnings.append(
+            f"Current checkpoint `{checkpoint}` is a raw commit hash. Point a stable ref "
+            "(for example `build/<slug>/SNN`) at the commit and record that name instead — "
+            "the name survives the commit that would otherwise make the hash stale."
+        )
     code, behind = git_output(repo, "rev-list", "--count", f"{checkpoint}..HEAD")
     if code != 0 or not behind.isdigit() or behind == "0":
-        return []
+        return warnings
     # A docs-only commit legitimately moves HEAD past the last stage checkpoint,
     # so this reports distance instead of blocking.
-    return [
+    warnings.append(
         f"declared Current checkpoint `{checkpoint}` is {behind} commits behind HEAD; "
         "confirm it still names recoverable current state."
-    ]
+    )
+    return warnings
 
 
 AUDIT_ID_RE = re.compile(
