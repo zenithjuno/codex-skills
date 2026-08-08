@@ -34,12 +34,42 @@ def inspect(request: dict) -> dict:
 
 
 class MaterialPreflightTests(unittest.TestCase):
-    def test_parent_skill_uses_material_control_not_legacy_hot_log(self) -> None:
+    def test_parent_skill_routes_by_mode_without_always_running_preflight(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("scripts/preflight_material_project.py", skill)
-        self.assertIn("MATERIAL-CONTROL-<slug>.md", skill)
-        self.assertIn("Do not create a competing hot control", skill)
-        self.assertNotIn("Create `BUILD-CHANGELOG-<slug>.md`", skill)
+        self.assertIn("Mode A — quick review", skill)
+        self.assertIn("Mode B — project-aware", skill)
+        self.assertIn("Mode C — approved production", skill)
+        self.assertIn("Do not run preflight", skill)
+        self.assertIn("references/project-preflight.md", skill)
+        self.assertNotIn("Before work, read", skill)
+
+    def test_parent_skill_preserves_project_state_and_dimension_authority(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(skill.split())
+        self.assertIn("TEACHING-CONVENTIONS.md", normalized)
+        self.assertIn("topic's approved", normalized)
+        self.assertIn("Resolve authority by dimension", normalized)
+        self.assertIn("historical files are evidence", normalized)
+
+    def test_parent_skill_preserves_approval_and_direct_docx_route(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        normalized = " ".join(skill.split())
+        self.assertIn("teacher both approves", normalized)
+        self.assertIn("Thai DOCX repair or formatting", normalized)
+        self.assertIn("route that case directly to `thai-math-docx`", normalized)
+        self.assertIn("Do not begin production merely because it is possible", normalized)
+
+    def test_preflight_reference_is_mode_b_conditional(self) -> None:
+        reference = (ROOT / "references/project-preflight.md").read_text(encoding="utf-8")
+        self.assertIn("Run preflight only from Mode B", reference)
+        self.assertIn("Do not run it for\nan isolated Mode A review", reference)
+        self.assertIn("MATERIAL-CONTROL-<slug>.md", reference)
+
+    def test_metadata_no_longer_prompts_preflight_for_every_material(self) -> None:
+        metadata = (ROOT / "agents/openai.yaml").read_text(encoding="utf-8")
+        self.assertIn('short_description: "Review and route Thai math materials"', metadata)
+        self.assertIn("review this Thai math example or resume", metadata)
+        self.assertNotIn("preflight and map", metadata)
 
     def test_short_disposable_sheet_uses_embedded_project_map(self) -> None:
         report = inspect(base_request())

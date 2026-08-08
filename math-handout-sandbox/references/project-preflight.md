@@ -1,8 +1,10 @@
 # Material Project Preflight and Project Map
 
-Run preflight before material discussion or production. Its collector is
-read-only: it reports filesystem facts and explicit user declarations, while the
-agent adjudicates roles and authority.
+Run preflight only from Mode B when project root, scope, authority, or routes are
+unclear, or when the work has a declared long-project signal. Do not run it for
+an isolated Mode A review. Its collector is read-only: it reports filesystem
+facts and explicit user declarations, while the agent adjudicates roles and
+authority.
 
 ## Collector request
 
