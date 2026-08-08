@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Release"
+  short_description: "Publish skills with local-mirror safeguards"
+  default_prompt: "Use $skill-release to publish this verified skill update."
