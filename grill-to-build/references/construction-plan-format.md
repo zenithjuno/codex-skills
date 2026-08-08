@@ -202,7 +202,7 @@ Detail belongs to a stage's lifecycle, not to its importance:
 |---|---|
 | `ACTIVE` | full six parts — this is what is being built right now |
 | `VERIFY` | **the PASS GATE only** — what the owner must see to say it passed |
-| `PASS` · `DEFERRED` · `RETIRED` | one line in the Stage map |
+| `PASS` · `DEFERRED` · `RETIRED` | one line in the Stage map — but see below on what that line must say |
 | `PLANNED` | full six parts only when the boundary is genuinely known; otherwise it is a fog line with no id |
 
 The `VERIFY` row is the one people get wrong. Once a stage is built, its BUILD /
@@ -234,6 +234,39 @@ list, so nobody has to guess: it records what that stage set out to build and
 was true at its gate. **Current behavior lives in the BLUEPRINT.** One sentence
 converts a whole section of ambiguous claims into clearly-scoped records, which
 is almost always cheaper and safer than rewriting them.
+
+### A `DEFERRED` line must still show the owner what they will get
+
+Cutting future detail is meant to remove *boundary* claims the build cannot yet
+support — scope, contract, tests, "how". It is **not** meant to take away the
+owner's view of where the project is heading. Those are different things, and
+conflating them costs the person you are building for their map.
+
+The old six-part format gave the owner one thing worth keeping for a stage that
+has not started: **👁️ YOU SEE** — what they will be looking at when it is done.
+That is a destination, not a boundary; it is knowable long before the "how" is,
+and it barely changes. So a deferred line reads:
+
+```markdown
+| `S20` | `DEFERRED` | ครูเปิดหน้าเดียวแล้วเห็นว่าเด็กแต่ละคนอยู่ระดับไหน ติดตรงไหน |
+```
+
+not:
+
+```markdown
+| `S20` | `DEFERRED` | dashboard ความก้าวหน้ารายคน — ตั้งใจทำต่อ รอคิวหลัง S16 ปิด |
+```
+
+The second is a topic label plus queue status. Ten of them in a row is not a
+plan an owner can read — and an owner who cannot see what is coming loses the
+ability to reorder it, question it, or notice something missing, which is most
+of what their judgment is for.
+
+Rules for the line: say the outcome in the owner's language, not the component
+name. Do not repeat sequencing that the table's order already shows ("waiting
+for S16") on every row — state a real dependency once, where it is real. If you
+cannot yet say what the owner will get, that is the signal the item is fog and
+does not deserve a stage id at all.
 
 Also keep operational facts out of the `Outcome` column. Deploy versions, CHG
 ranges, and dates belong to `BUILD-CONTROL §STATE` and the cold log; a plan that

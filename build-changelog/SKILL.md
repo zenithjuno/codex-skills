@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.06.2 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.06.3 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -123,8 +123,11 @@ Maintain these H2 sections in this order:
 6. `OPEN CHANGES`
 7. `HISTORY INDEX`
 
-Keep exact paths in backticks. Keep STATE small: current stage, compact completed
-summary, next action, active gate, active cold log, and last change. Completed-stage
+Keep exact paths in backticks. Keep STATE small: current stage, next action,
+active gate, active cold log, and last change. Once the plan's Stage map carries
+a lifecycle for every stage, STATE must not also list what is done — that is a
+second, drifting copy of the same fact, and the copy nobody re-reads is the one
+that goes stale. Point at the map instead. Completed-stage
 detail belongs in the plan's Stage map, historical detail in BUILD-LOG, and
 unresolved contract deviations only in OPEN CHANGES — STATE carries the present
 transition coordinates, not an accumulating summary of the build. OPEN CHANGES
