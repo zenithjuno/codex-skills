@@ -1,0 +1,10 @@
+{
+  "original_problem": "แก้ Word master ที่ผู้ใช้ระบุว่าเป็นฉบับปัจจุบัน",
+  "input_path": "../workspace/master.docx",
+  "current_editable_master": "../workspace/master.docx",
+  "work_kinds": ["docx-production"],
+  "qa_paths": ["../workspace/planned/master-qa"],
+  "approval_gate_count": 1,
+  "current_stage": "current-master-review",
+  "next_action": "confirm-authorized-mutation"
+}

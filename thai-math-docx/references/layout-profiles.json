@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "document_type": "thai-math-layout-profiles",
+  "profiles": [
+    {
+      "profile_id": "PRF-student-question-layout",
+      "use_case": "student-question-layout",
+      "name": "current-student-question-layout",
+      "status": "current",
+      "page": {
+        "width_cm": 21.0,
+        "height_cm": 29.7,
+        "margins_cm": {"top": 2.54, "right": 2.54, "bottom": 2.54, "left": 2.54}
+      },
+      "columns": {"count": 1, "gap_twips": 708, "separator": false},
+      "table_widths_cm": {
+        "one-column": [16.0],
+        "explicit-equal-two-column": [8.5, 8.5]
+      },
+      "response_line": {
+        "character": ".",
+        "font": "TH Sarabun New",
+        "size_pt": 16,
+        "line_spacing": 1.15,
+        "space_after_pt": 0
+      }
+    },
+    {
+      "profile_id": "PRF-logic-practice-exam-layout",
+      "use_case": "logic-practice-exam-layout",
+      "name": "current-logic-practice-exam-layout",
+      "status": "current",
+      "sections": {
+        "opening": {
+          "page": {"width_cm": 21.0, "height_cm": 29.7, "margins_cm": {"top": 1.27, "right": 1.27, "bottom": 1.27, "left": 1.27}},
+          "columns": {"count": 1, "gap_twips": 708, "separator": false}
+        },
+        "objective": {
+          "start": "continuous",
+          "page": {"width_cm": 21.0, "height_cm": 29.7, "margins_cm": {"top": 1.27, "right": 1.27, "bottom": 1.27, "left": 1.27}},
+          "columns": {"count": 2, "gap_twips": 566, "separator": false}
+        },
+        "written": {
+          "start": "continuous",
+          "page_break_before_content": true,
+          "page": {"width_cm": 21.0, "height_cm": 29.7, "margins_cm": {"top": 2.54, "right": 2.54, "bottom": 2.54, "left": 2.54}},
+          "columns": {"count": 1, "gap_twips": 708, "separator": false}
+        }
+      }
+    }
+  ]
+}

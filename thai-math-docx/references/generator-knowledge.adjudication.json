@@ -1,0 +1,653 @@
+{
+  "schema_version": "1.0.0",
+  "policy_evidence": [
+    {
+      "evidence_id": "EVD-9001",
+      "source_kind": "preference-ledger",
+      "source_path": "/Users/chutpong/Documents/ปรับชีท/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
+      "source_sha256": "15f87808cf6d0312d55bd0dbaf57982850b71bc0f783c4b721ef8dfc2f918363",
+      "locator": "Confirmed summary and append-only evidence entries",
+      "family_id": "FAM-cross-project-preferences",
+      "observed_behavior": "Explicit teacher approvals distinguish current preferences from observations and non-inferences.",
+      "basis": [
+        "explicit-user-approval",
+        "representative-source-evidence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-9002",
+      "source_kind": "build-log",
+      "source_path": "/Users/chutpong/Documents/ปรับชีท/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
+      "source_sha256": "b0b362a6bd2dd4f61b18905b407c915ed5ce13909fd7ff0344edc7a7956e5947",
+      "locator": "CHG-004, CHG-005 and PRG-014",
+      "family_id": "FAM-set-union-handout",
+      "observed_behavior": "Word-tested diagram size, dotted response typography and structural verification are recorded together.",
+      "basis": [
+        "explicit-user-approval",
+        "representative-source-evidence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-9003",
+      "source_kind": "design-note",
+      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
+      "source_sha256": "7431f61eabe431a9bdcaa96c6c5b69f31d936d063077cb1239853a33b9c39651",
+      "locator": "Status, Page System, Reusable Layout Profiles and Last-Mile Fit Adjustment",
+      "family_id": "FAM-logic-exam",
+      "observed_behavior": "Approved native-column exam profile and bounded per-item right-extension exception.",
+      "basis": [
+        "explicit-user-approval",
+        "representative-source-evidence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-9004",
+      "source_kind": "design-note",
+      "source_path": "/Users/chutpong/Documents/ปรับชีท/ชีทจำนวนจริง/MATERIAL-DESIGN-polynomial-perfect-cube.md",
+      "source_sha256": "eff095512fd2dab2785fec5f2b5c55a1421c178b5199f17f94f72817667b6e88",
+      "locator": "Locked, Approved for build, Artifact plan and Approval gate",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "Approved worked-example progression and acceptance checks include editable OMML and a 16 cm formula box.",
+      "basis": [
+        "explicit-user-approval",
+        "representative-source-evidence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-9005",
+      "source_kind": "handoff",
+      "source_path": "/Users/chutpong/Documents/ปรับชีท/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
+      "source_sha256": "b42f155f9fd65050bc859bd6e33de518a8b1e40aabb404c09836f0caf58576ab",
+      "locator": "Start Here, Decisions Already Made and Next Steps",
+      "family_id": "FAM-logic-handout-sandbox",
+      "observed_behavior": "Current batch state carries accepted, rejected and pending work without making all session state shared behavior.",
+      "basis": [
+        "representative-source-evidence"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "entry_id": "KNW-0001",
+      "title": "Thai font defaults and editable OMML routing",
+      "summary": "Use shared document defaults, Thai/Latin run routing and editable math insertion instead of generator-local OOXML copies.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "shared-builder-import",
+          "local-font-defaults",
+          "local-run-font",
+          "local-thai-run",
+          "omml-usage",
+          "theme-normalization"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1001",
+          "path": "tests/knowledge/test_generator_inventory.py",
+          "assertion": "Current shared font/OMML functions exist and every promoted entry has resolvable implementation and test ownership."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_builder.py#enforce_document_font_defaults",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_builder.py#set_thai_body_run",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_builder.py#append_math"
+      ]
+    },
+    {
+      "entry_id": "KNW-0002",
+      "title": "Fixed table grid and width emission",
+      "summary": "Emit deterministic fixed table grids and explicit cell widths through the shared builder.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "fixed-table-width"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1002",
+          "path": "tests/knowledge/test_generator_inventory.py",
+          "assertion": "The shared fixed-width implementation reference resolves and historical recurrence remains represented."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_builder.py#set_table_fixed_widths",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_builder.py#standard_activity_table_widths"
+      ]
+    },
+    {
+      "entry_id": "KNW-0003",
+      "title": "Cell margin primitive",
+      "summary": "Provide semantic cell-margin control instead of repeated direct tcMar construction.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "cell-margins"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1003",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Cell margins emit deterministic logical-side OOXML and remain idempotent."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#set_cell_margins"
+      ]
+    },
+    {
+      "entry_id": "KNW-0004",
+      "title": "Border and clear-border primitive",
+      "summary": "Provide one shared API for cell/table borders and explicit border clearing.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "border-control"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1004",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Border controls retain explicit nil and single distinctions without duplicate nodes."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#set_cell_borders",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#clear_cell_borders"
+      ]
+    },
+    {
+      "entry_id": "KNW-0005",
+      "title": "Cell and heading shading primitive",
+      "summary": "Centralize repeated OOXML shading while keeping color/profile selection outside the primitive.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "shading"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1005",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Shading emits one deterministic node while project colors remain caller-owned."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#set_cell_shading"
+      ]
+    },
+    {
+      "entry_id": "KNW-0006",
+      "title": "Thai-styled dotted response line",
+      "summary": "Render literal dots with TH Sarabun New 16 pt for approved student response lines.",
+      "capability_class": "profile-preference",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "dotted-response"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9001",
+        "EVD-9002"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1006",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Dotted response lines use literal periods and TH Sarabun New 16 pt in all font slots."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#add_dotted_response_lines",
+        "staging/skills/thai-math-docx/references/layout-profiles.json"
+      ]
+    },
+    {
+      "entry_id": "KNW-0007",
+      "title": "Current student-facing table width profile",
+      "summary": "Use 16 cm for one column and 8.5 cm per column only for an explicit equal two-column request.",
+      "capability_class": "profile-preference",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "all_features": [
+          "fixed-table-width"
+        ],
+        "path_globs": [
+          "outputs/set_intro/**",
+          "ชีทจำนวนจริง/**"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9001",
+        "EVD-9002",
+        "EVD-9004"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1007",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "One current profile emits 16 cm for one column and an unshrunk 8.5 cm by 2 explicit layout."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#apply_student_table_width_profile",
+        "staging/skills/thai-math-docx/references/layout-profiles.json"
+      ]
+    },
+    {
+      "entry_id": "KNW-0008",
+      "title": "Native-column practice exam profile",
+      "summary": "Use native Word columns for the approved objective-exam flow and return to one column for written work.",
+      "capability_class": "profile-preference",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "native-columns"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9003"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1008",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "The approved opening, two-native-column objective and written-section sequence emits exact column facts."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#set_section_columns",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#add_section_transition",
+        "staging/skills/thai-math-docx/references/layout-profiles.json"
+      ]
+    },
+    {
+      "entry_id": "KNW-0009",
+      "title": "Editable SVG diagram policy",
+      "summary": "Keep SVG as the editable source and apply approved physical-size/layering rules for Word workflows.",
+      "capability_class": "profile-preference",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "svg-media"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9001",
+        "EVD-9002"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1009",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "Editable SVG policy never rasterizes silently and requires a visibly reviewed extension until native insertion is shared."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#MediaBlock",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#add_media_block"
+      ]
+    },
+    {
+      "entry_id": "KNW-0010",
+      "title": "High-resolution PNG answer-visual policy",
+      "summary": "Use PNG only for approved position-stable answer visuals while retaining editable source and keeping equations out of images.",
+      "capability_class": "profile-preference",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "png-media"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9001"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1010",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "PNG answer visuals require an editable source, reject equations inside images and remain QA-marked."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#MediaBlock",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#add_media_block"
+      ]
+    },
+    {
+      "entry_id": "KNW-0011",
+      "title": "Repeat table header control",
+      "summary": "Provide deterministic table-header repetition as a shared layout primitive.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "repeat-table-header"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1011",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Repeat-header control updates one deterministic Word header node."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#set_repeat_table_header"
+      ]
+    },
+    {
+      "entry_id": "KNW-0012",
+      "title": "Fixed question-grid material pattern",
+      "summary": "Promote a semantic question-grid pattern above the fixed-width table primitive.",
+      "capability_class": "material-pattern",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "question-grid"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1012",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "Question grids preserve row-major order and use only current explicit width profiles."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#add_question_grid"
+      ]
+    },
+    {
+      "entry_id": "KNW-0013",
+      "title": "Worked-example material pattern",
+      "summary": "Provide a semantic worked-example pattern backed by recurrence and an approved teaching progression.",
+      "capability_class": "material-pattern",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "worked-example"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9004"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1013",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "Worked examples assemble semantic prompt and steps while math remains editable OMML."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_patterns.py#add_worked_example"
+      ]
+    },
+    {
+      "entry_id": "KNW-0014",
+      "title": "Thai mathematics handout recipe",
+      "summary": "Assemble explanations, worked examples, practice and response areas through thin family recipes.",
+      "capability_class": "family-recipe",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "handout-family"
+        ]
+      },
+      "explicit_evidence_ids": [
+        "EVD-9004"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1014",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "The thin handout recipe assembles shared introduction, worked-example and practice patterns."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_recipes.py#build_handout"
+      ]
+    },
+    {
+      "entry_id": "KNW-0015",
+      "title": "Exam-paper family recipe",
+      "summary": "Assemble objective/written sections, question blocks and media through a thin exam recipe owned by the future exam skill.",
+      "capability_class": "family-recipe",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "exam-family"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1015",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "The thin exam recipe keeps objective question-grid and written response-area patterns separate."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_recipes.py#build_exam_paper"
+      ]
+    },
+    {
+      "entry_id": "KNW-0016",
+      "title": "Detailed answer-key recipe",
+      "summary": "Provide a thin answer-key assembly recipe while the exam skill owns family variants.",
+      "capability_class": "family-recipe",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "answer-key-family"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1016",
+          "path": "staging/skills/thai-math-docx/tests/test_patterns_recipes.py",
+          "assertion": "The thin answer-key recipe preserves editable answer math and semantic explanation steps."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_recipes.py#build_answer_key"
+      ]
+    },
+    {
+      "entry_id": "KNW-0017",
+      "title": "DOCX structural self-audit rule",
+      "summary": "Move generator-local package assertions into the central QA runner while preserving deterministic safety checks.",
+      "capability_class": "qa-rule",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "self-audit"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1017",
+          "path": "staging/skills/thai-math-docx/tests/test_verify_qa.py",
+          "assertion": "The unified runner combines mandatory package/font/OMML/media/layout/mutation checks with exact verdicts and exit codes."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_qa.py#audit_docx",
+        "staging/skills/thai-math-docx/scripts/verify_thai_math_docx.py#main"
+      ]
+    },
+    {
+      "entry_id": "KNW-0018",
+      "title": "Per-item right-extension override",
+      "summary": "Keep the approved logic-exam right-extension as a candidate profile override until forward tests show broader need.",
+      "capability_class": "profile-preference",
+      "promotion_status": "candidate",
+      "lifecycle": "historical-evidence",
+      "selector": {
+        "match_none": true
+      },
+      "explicit_evidence_ids": [
+        "EVD-9003"
+      ],
+      "acceptance_tests": [],
+      "implementation_refs": []
+    },
+    {
+      "entry_id": "KNW-0021",
+      "title": "Section transition primitive",
+      "summary": "Provide explicit section creation and transition control as a shared layout primitive before native-column profiles assemble it.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "page-sections"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1021",
+          "path": "staging/skills/thai-math-docx/tests/test_layout_primitives.py",
+          "assertion": "Section transitions apply explicit profile geometry and continuous native-column OOXML."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#add_section_transition",
+        "staging/skills/thai-math-docx/scripts/thai_math_docx_layout.py#apply_section_profile"
+      ]
+    },
+    {
+      "entry_id": "KNW-0019",
+      "title": "Exact historical diagram geometry",
+      "summary": "Retain item-specific coordinates and label placement as one-off evidence, not a universal layout API.",
+      "capability_class": "material-pattern",
+      "promotion_status": "one-off",
+      "lifecycle": "historical-evidence",
+      "selector": {
+        "any_features": [
+          "item-specific-geometry"
+        ]
+      },
+      "acceptance_tests": [],
+      "implementation_refs": []
+    },
+    {
+      "entry_id": "KNW-0020",
+      "title": "Session-specific handoff state",
+      "summary": "Preserve accepted/rejected/pending batch state as one-off continuity evidence rather than shared generator behavior.",
+      "capability_class": "workflow-rule",
+      "promotion_status": "one-off",
+      "lifecycle": "historical-evidence",
+      "selector": {
+        "match_none": true
+      },
+      "explicit_evidence_ids": [
+        "EVD-9005"
+      ],
+      "acceptance_tests": [],
+      "implementation_refs": []
+    },
+    {
+      "entry_id": "KNW-0099",
+      "title": "Unmatched generator-specific behavior",
+      "summary": "Keep factual generator evidence that matches no promoted/candidate pattern as one-off history for later review.",
+      "capability_class": "material-pattern",
+      "promotion_status": "one-off",
+      "lifecycle": "historical-evidence",
+      "catch_all_unclassified": true,
+      "acceptance_tests": [],
+      "implementation_refs": []
+    }
+  ],
+  "profiles": [
+    {
+      "profile_id": "PRF-student-question-layout",
+      "use_case": "student-question-layout",
+      "name": "current-student-question-layout",
+      "status": "current",
+      "preference_entry_ids": [
+        "KNW-0006",
+        "KNW-0007"
+      ],
+      "evidence_ids": [
+        "EVD-9001",
+        "EVD-9002",
+        "EVD-9004"
+      ],
+      "regression_tests": [
+        {
+          "test_id": "TST-2001",
+          "path": "tests/knowledge/test_generator_inventory.py",
+          "assertion": "Exactly one current student-question-layout profile carries the approved response-line and width preferences."
+        }
+      ]
+    },
+    {
+      "profile_id": "PRF-logic-practice-exam-layout",
+      "use_case": "logic-practice-exam-layout",
+      "name": "current-logic-practice-exam-layout",
+      "status": "current",
+      "preference_entry_ids": [
+        "KNW-0008"
+      ],
+      "evidence_ids": [
+        "EVD-9003"
+      ],
+      "regression_tests": [
+        {
+          "test_id": "TST-2002",
+          "path": "tests/knowledge/test_generator_inventory.py",
+          "assertion": "The current logic exam profile remains linked to native-column approval evidence."
+        }
+      ]
+    },
+    {
+      "profile_id": "PRF-diagram-media-policy",
+      "use_case": "diagram-media-policy",
+      "name": "current-diagram-media-policy",
+      "status": "current",
+      "preference_entry_ids": [
+        "KNW-0009",
+        "KNW-0010"
+      ],
+      "evidence_ids": [
+        "EVD-9001",
+        "EVD-9002"
+      ],
+      "regression_tests": [
+        {
+          "test_id": "TST-2003",
+          "path": "tests/knowledge/test_generator_inventory.py",
+          "assertion": "The current media policy keeps SVG editability and PNG answer-visual exceptions distinct."
+        }
+      ]
+    }
+  ]
+}

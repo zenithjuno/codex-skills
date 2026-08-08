@@ -1,0 +1,11 @@
+{
+  "long_signal_cases": [
+    {"signal": "multiple-deliverables", "overrides": {"deliverable_paths": ["workspace/outputs/sheet-a.docx", "workspace/outputs/sheet-b.docx"]}},
+    {"signal": "multiple-sessions", "overrides": {"multi_session": true}},
+    {"signal": "current-editable-master", "overrides": {"current_editable_master": "workspace/master.docx"}},
+    {"signal": "multiple-child-skills", "overrides": {"work_kinds": ["docx-production", "answer-correctness"]}},
+    {"signal": "build-assets-pipeline", "overrides": {"build_assets_pipeline": true}},
+    {"signal": "multiple-approval-gates", "overrides": {"approval_gate_count": 2}},
+    {"signal": "existing-continuation-state", "overrides": {"continuation_state": true}}
+  ]
+}

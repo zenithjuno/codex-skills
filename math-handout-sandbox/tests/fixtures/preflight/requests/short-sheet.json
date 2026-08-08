@@ -1,0 +1,9 @@
+{
+  "original_problem": "ออกแบบใบงานเรื่องเซตหนึ่งไฟล์",
+  "input_path": "../workspace/nested/source.md",
+  "work_kinds": ["material-design"],
+  "deliverable_paths": ["../workspace/planned/short-sheet.docx"],
+  "approval_gate_count": 1,
+  "current_stage": "material-design",
+  "next_action": "discuss-example-sequence"
+}

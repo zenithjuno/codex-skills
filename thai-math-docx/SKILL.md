@@ -10,8 +10,6 @@ description: >
   mandatory font/OMML audits. Use for Thai math exams, handouts, answer keys,
   PDF/image-to-DOCX reconstruction, imported DOCX repair, and any task where
   Thai text plus mathematical notation must remain editable and Word-compatible.
-metadata:
-  short-description: Thai math DOCX generation and audit
 ---
 
 # Thai Math DOCX
@@ -46,15 +44,35 @@ physical-size, label, fill-layer, and Word-conversion rules.
 
 For new document generation or substantial regeneration, also use `references/shared-generator.md` and start from the bundled scripts unless the task has a strong reason not to. Keep the layers separate:
 
+Read `references/capability-catalog.md` when choosing reusable primitives,
+patterns, recipes or profiles. The canonical `generator-knowledge.json` is a
+maintenance data source, not a reason to load the bulky historical evidence in
+ordinary document production.
+
 - `scripts/thai_math_docx_builder.py`: the builder/insertion layer for Thai runs, Latin runs, labels, tables, and editable OMML.
+- `scripts/thai_math_docx_layout.py`: the shared layout layer for fixed widths, cell formatting, dotted response lines, native columns, section transitions, and current named profiles in `references/layout-profiles.json`.
+- `scripts/thai_math_docx_patterns.py`: reusable question-grid, worked-example, response-area and media-block patterns, including the visibly reviewed expert extension hook.
+- `scripts/thai_math_docx_recipes.py`: thin handout, exam-paper and answer-key family assembly flows.
 - `scripts/thai_math_source_adapter.py`: the optional source-normalization layer that converts JSON/OCR/database/direct Python source data into builder-ready parts and math expressions.
 - `thai-font-normalize` plus audits: the post-build repair and verification layer.
+
+Before QA, read `references/qa-runner.md`. Use the unified runner for the
+per-file gate; use individual audit scripts only to diagnose a focused failure.
+When producing multiple outputs in one request or material stage, also read
+`references/batch-lifecycle.md`: QA remains per file, while knowledge review runs
+once only when the whole batch closes. An unfinished handoff checkpoints pending
+facts without reviewing them.
 
 The builder is not tied to JSON. JSON, OCR, Markdown-ish text, spreadsheets, database rows, or direct Python sources should all normalize into the same small part schema before entering the builder.
 
 Use bundled scripts when applicable:
 
 - `scripts/thai_math_docx_builder.py` as the reusable generation/insertion seed
+- `scripts/thai_math_docx_layout.py` for layout primitives and current named profiles
+- `scripts/thai_math_docx_patterns.py` and `scripts/thai_math_docx_recipes.py` instead of copying pattern/family helpers into a generator
+- `scripts/audit_generator_shared_api.py --root <generator-root>` before accepting a new generator tree
+- `scripts/verify_thai_math_docx.py check|fix-and-check ...` as the unified per-file QA gate
+- `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for durable multi-file manifests, aggregate QA and one closing knowledge review
 - `scripts/thai_math_source_adapter.py` to normalize source parts before insertion
 - `scripts/audit_docx_font_defaults.py <file.docx>`
 - `scripts/audit_docx_insertion_safety.py <file.docx>`
@@ -91,15 +109,15 @@ restructure the layout, or continue content cleanly onto another page.
 
 ### Standard table width
 
-For student-facing tables, use a fixed total grid width of `16 cm` (`6.299 in`)
-unless the teacher explicitly requests a different table width. Divide this
-total equally when the table is a uniform question grid:
+Use the current named profile rather than inferring a width from the number of
+columns:
 
 - 1 column: `16 cm`
-- 2 columns: `8 cm` per column
+- explicitly requested equal 2-column layout: `8.5 cm` per column (`17 cm` total)
 
-Use explicit fixed grid and cell widths. For deliberately unequal data tables,
-the column widths may differ but must still total `16 cm` unless overridden.
+Keep the standard `2.54 cm` margins and do not silently shrink the explicit
+`8.5 cm × 2` layout to nominal text width. Use explicit fixed grid and cell
+widths. Deliberately unequal data tables require an explicit task contract.
 
 ## Insertion-Safe Thai Runs
 
@@ -159,12 +177,12 @@ For generated or substantially repaired files:
 7. Apply all-slot Thai label formatting for question/choice labels.
 8. Style footers and page fields as `TH Sarabun New` 12 pt.
 9. Use fixed table layout/explicit widths when compact exam tables would wrap badly.
-10. Run `thai-font-normalize` on Thai `.docx` output, or at minimum run its `-c/--check` gate. The shared builder writes Thai theme defaults, but the normalizer remains the final safety net.
-11. Run the font-default audit.
-12. Run the insertion-safety audit for generated or heavily repaired files.
-13. Run the OMML audit when the document contains math.
-14. Inspect DOCX structure for the requested layout rather than using LibreOffice/Codex rendering as visual QA.
-15. Report generated files, DOCX-data audit results, and any items requiring Microsoft Word visual approval.
+10. Assemble recurring material through shared patterns/recipes. If a capability is unsupported, fail visibly and record its candidate payload; do not approximate it.
+11. Run `thai-font-normalize` on Thai `.docx` output, or at minimum run its `-c/--check` gate. The shared builder writes Thai theme defaults, but the normalizer remains the final safety net.
+12. Run `verify_thai_math_docx.py`: use `check` for audit-only work or `fix-and-check` with a distinct output inside an authorized create/edit/build scope.
+13. Require QA PASS, then report the independent `needs_word_review` flag and its review items.
+14. For a batch, record each QA result immediately but run learning review only once at observable batch/stage close. If the work is handed off unfinished, persist pending deltas and do not review yet.
+15. Report generated files and DOCX-data evidence as handoff readiness; never claim publication perfection or final-product status.
 
 For imported/external DOCX repair, expose it as a first-class operation: normalize Thai fonts, repair defaults, run font-default audit, run OMML audit if math exists, then render only after structural XML gates pass.
 

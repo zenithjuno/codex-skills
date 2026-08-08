@@ -14,6 +14,18 @@ Use this template for `MATERIAL-DESIGN-<slug>.md`. Keep it brief but concrete.
 
 > **Original teaching problem:** <one sentence>
 
+## Project Map
+
+- Original Problem: <current user problem>
+- Root / scope: <declared root and named external inputs>
+- Policy / convention: <current candidates>
+- Authority: <dimension-specific authority; never infer from filename/mtime>
+- Routes: <design/build/assets/deliverables/archive/QA>
+- Current stage: <stage>
+- Next action: <one action>
+- Required child skills: <skills plus routing reason>
+- Unresolved conflicts: <CF ids or none>
+
 ## Status
 
 ### Locked
@@ -59,3 +71,6 @@ Build only after the teacher explicitly approves this proposal.
 - Put ordinary cases before edge cases; name the intended misconception of each edge case.
 - Keep an empty set distinct from a singleton containing zero or an empty set.
 - For diagrams, test semantic containment and disjointness before visual styling.
+- Keep this embedded Project Map only for a short job. If any long-project signal
+  in `project-preflight.md` exists, put current project state in a bounded
+  `MATERIAL-CONTROL-<slug>.md` instead.

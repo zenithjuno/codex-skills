@@ -22,6 +22,8 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
+from thai_math_docx_layout import get_current_layout_profile, set_table_fixed_widths_cm
+
 
 M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -479,7 +481,12 @@ def append_parts_or_tables(doc: Document, paragraph: Any, parts: list[dict[str, 
             if inline:
                 append_parts(paragraph, inline)
                 inline = []
-            add_table(doc, part["rows"], part.get("widths"))
+            add_table(
+                doc,
+                part["rows"],
+                part.get("widths"),
+                layout_profile=part.get("layout_profile"),
+            )
             paragraph = doc.add_paragraph()
             configure_paragraph(paragraph, space_after=space_after)
         else:
@@ -510,49 +517,44 @@ def add_question_block(doc: Document, number: int, prompt_parts: list[dict[str, 
 
 
 def set_table_fixed_widths(table: Any, widths: list[float]) -> None:
-    """Write fixed table/grid/cell widths in OOXML.
-
-    ``cell.width`` alone is not enough for reliable LibreOffice or Word
-    layout. A real table grid plus per-cell ``tcW`` keeps compact statistical
-    tables from reverting to equal-width columns.
-    """
-    tbl = table._tbl
-    tbl_pr = tbl.tblPr
-    layout = tbl_pr.find(qn("w:tblLayout"))
-    if layout is None:
-        layout = OxmlElement("w:tblLayout")
-        tbl_pr.append(layout)
-    layout.set(qn("w:type"), "fixed")
-
-    for old_grid in tbl.findall(qn("w:tblGrid")):
-        tbl.remove(old_grid)
-    grid = OxmlElement("w:tblGrid")
-    for width in widths:
-        grid_col = OxmlElement("w:gridCol")
-        grid_col.set(qn("w:w"), str(int(round(width * 1440))))
-        grid.append(grid_col)
-    tbl.insert(1, grid)
-
-    for row in table.rows:
-        for col_index, cell in enumerate(row.cells):
-            tc_pr = cell._tc.get_or_add_tcPr()
-            tc_w = tc_pr.find(qn("w:tcW"))
-            if tc_w is None:
-                tc_w = OxmlElement("w:tcW")
-                tc_pr.append(tc_w)
-            tc_w.set(qn("w:w"), str(int(round(widths[col_index] * 1440))))
-            tc_w.set(qn("w:type"), "dxa")
+    """Compatibility wrapper for callers whose explicit widths are in inches."""
+    set_table_fixed_widths_cm(table, [width * 2.54 for width in widths])
 
 
 def standard_activity_table_widths(column_count: int) -> list[float]:
-    """Return equal fixed widths for the teacher's 16-cm activity-table standard."""
-    if column_count < 1:
-        raise ValueError("column_count must be at least 1")
-    return [STANDARD_ACTIVITY_TABLE_WIDTH_IN / column_count] * column_count
+    """Return the current default, which is only the 16 cm one-column layout."""
+    if column_count != 1:
+        raise ValueError(
+            "multi-column student tables require an explicit layout profile or explicit widths"
+        )
+    return [STANDARD_ACTIVITY_TABLE_WIDTH_IN]
 
 
-def add_table(doc: Document, rows: list[list[list[dict[str, Any]]]], widths: list[float] | None = None) -> Any:
-    widths = widths or standard_activity_table_widths(len(rows[0]))
+def current_student_table_widths(layout: str) -> list[float]:
+    """Return current student-table profile widths in inches for ``add_table``."""
+    profile = get_current_layout_profile("student-question-layout")
+    try:
+        widths_cm = profile["table_widths_cm"][layout]
+    except KeyError as exc:
+        raise ValueError(f"unsupported student table layout: {layout!r}") from exc
+    return [width / 2.54 for width in widths_cm]
+
+
+def add_table(
+    doc: Document,
+    rows: list[list[list[dict[str, Any]]]],
+    widths: list[float] | None = None,
+    *,
+    layout_profile: str | None = None,
+) -> Any:
+    if widths is not None and layout_profile is not None:
+        raise ValueError("pass either widths or layout_profile, not both")
+    if layout_profile is not None:
+        widths = current_student_table_widths(layout_profile)
+    elif widths is None:
+        widths = standard_activity_table_widths(len(rows[0]))
+    if len(widths) != len(rows[0]):
+        raise ValueError("width count must match table column count")
     table = doc.add_table(rows=len(rows), cols=len(rows[0]))
     table.style = "Table Grid"
     table.alignment = WD_TABLE_ALIGNMENT.CENTER

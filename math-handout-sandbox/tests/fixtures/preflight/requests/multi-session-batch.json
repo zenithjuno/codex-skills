@@ -1,0 +1,16 @@
+{
+  "original_problem": "ออกแบบและผลิตใบงานหลายไฟล์ต่อเนื่องหลาย session",
+  "input_path": "../workspace/nested/source.md",
+  "work_kinds": ["material-design", "docx-production", "answer-correctness"],
+  "deliverable_paths": [
+    "../workspace/planned/batch-sheet-01.docx",
+    "../workspace/planned/batch-sheet-02.docx"
+  ],
+  "asset_paths": ["../workspace/planned/assets"],
+  "qa_paths": ["../workspace/planned/qa"],
+  "multi_session": true,
+  "build_assets_pipeline": true,
+  "approval_gate_count": 2,
+  "current_stage": "approved-material-build",
+  "next_action": "generate-and-qa-current-batch"
+}

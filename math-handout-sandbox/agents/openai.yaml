@@ -1,7 +1,7 @@
 interface:
   display_name: "Math Handout Sandbox"
-  short_description: "Discuss, approve, and build Thai math materials"
-  default_prompt: "Use $math-handout-sandbox to analyze this Thai math teaching material before building it."
+  short_description: "Map, discuss, and route Thai math materials"
+  default_prompt: "Use $math-handout-sandbox to preflight and map this Thai math material project, discuss the teaching design, then route approved production."
 
 policy:
   allow_implicit_invocation: true

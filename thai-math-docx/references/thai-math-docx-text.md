@@ -1232,10 +1232,10 @@ Useful layout controls from the real-world pass:
   the geometry used to calculate every fixed table width unless the teacher
   explicitly supplies another template.
 
-- Use a fixed total width of `16 cm` for every student-facing table unless the
-  teacher explicitly overrides it. A one-column table is `16 cm`; a uniform
-  two-column table is `8 cm` per column. For unequal data tables, allocate the
-  columns as needed while keeping their total at `16 cm`.
+- Use the current named student-table profile: `16 cm` for one column, or
+  `8.5 cm × 2` only when the teacher explicitly requests an equal two-column
+  layout. Keep `2.54 cm` margins and do not silently shrink that `17 cm` table.
+  Unequal or mixed-role tables require an explicit task contract.
 
 - Prefer transcript/table width controls over shrinking font size.
 - Use fixed table layout and explicit column widths for compact statistical tables.

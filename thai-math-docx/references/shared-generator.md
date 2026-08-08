@@ -4,10 +4,13 @@ Use `scripts/thai_math_docx_builder.py` as the recommended insertion layer for T
 
 This file is intentionally a builder library, not a JSON workflow. JSON, OCR, Markdown, spreadsheets, or direct Python code can all feed it. The standard is: whatever the source layer is, Thai text and math must enter Word through these helpers or equivalent code that preserves the same OOXML invariants.
 
-The current standard has three explicit layers:
+The current standard has six explicit layers:
 
 - **Source adapter / normalizer:** converts OCR JSON, database rows, Markdown-ish text, or direct Python source into builder-ready parts. Use `scripts/thai_math_source_adapter.py` when the source contains compact math-ish strings or legacy aliases.
 - **Builder / insertion layer:** inserts Thai text, Latin text, labels, tables, and OMML into Word. This is `scripts/thai_math_docx_builder.py`.
+- **Layout layer:** applies current named profiles and emits fixed widths, margins, borders, shading, repeat headers, dotted response lines, native columns, and section transitions. This is `scripts/thai_math_docx_layout.py` with `references/layout-profiles.json`.
+- **Material pattern layer:** assembles question grids, worked examples, response areas and reviewed media blocks. This is `scripts/thai_math_docx_patterns.py`.
+- **Thin family recipe layer:** assembles handouts, exam papers and answer keys without owning raw OOXML. This is `scripts/thai_math_docx_recipes.py`.
 - **Post-build normalizer and audits:** runs `thai-font-normalize`, font-default audit, insertion-safety audit, OMML audit, and render checks.
 
 ## Default Page Geometry
@@ -21,11 +24,13 @@ When a document uses a fixed-width table, compute its grid against the usable
 width inside these margins. Do not retain a table width designed for narrower
 margins, and do not reduce page margins simply to make the table fit.
 
-The teacher's standard fixed table grid is `16 cm` (`6.299 in`) total: one
-column is `16 cm`; two equal columns are `8 cm` each. The builder's `add_table`
-uses this total by default. Use `standard_activity_table_widths(column_count)`
-for an explicit equal-column grid. An unequal data table may use unequal
-columns, but they should still total `16 cm` unless the teacher overrides it.
+The current one-column student table is `16 cm`. Only when the teacher explicitly
+requests an equal two-column student layout, use `8.5 cm × 2` (`17 cm` total),
+keep the standard margins, and do not silently shrink it. Use
+`layout_profile="one-column"` or
+`layout_profile="explicit-equal-two-column"` with `add_table`; multi-column
+tables without an explicit profile or widths fail visibly. Unequal or mixed-role
+tables require an explicit task contract.
 
 ## When To Use
 
@@ -40,12 +45,22 @@ Use this shared builder when creating new `.docx` files or regenerating content 
 
 Do not hand-roll Thai run formatting or OMML fragments unless the builder lacks a needed primitive. If it lacks one, patch the builder/reference first, then generate the document.
 
+Do not copy layout or material helpers into a new generator. Run
+`scripts/audit_generator_shared_api.py --root <generator-root>`. An unsupported
+need must raise `UnsupportedCapabilityError`, retain its candidate payload and
+enter work-batch review. Raw OOXML is private to the shared core; the only
+exception is `ReviewedExpertExtension`, which requires a review reference and
+candidate id and always marks the result for QA review.
+
 ## Separation Of Concerns
 
 Keep these layers separate:
 
 - Source layer: JSON, database rows, OCR output, Markdown, direct Python data, or another source.
 - Builder layer: `thai_math_docx_builder.py`, which inserts Thai runs, Latin runs, labels, tables, and OMML.
+- Layout layer: `thai_math_docx_layout.py`, which owns reusable OOXML layout behavior and current profiles.
+- Pattern/recipe layers: `thai_math_docx_patterns.py` and `thai_math_docx_recipes.py`, which assemble semantic material without private OOXML.
+- QA layer: post-build normalization, structural audit and the Microsoft Word handoff gate.
 - Artifact layer: `.docx`, rendered PDF/PNG, QA logs.
 
 The builder layer should not care whether the source layer is JSON. JSON is useful for exam-bank persistence, but not required for all Thai math DOCX generation.
@@ -92,6 +107,7 @@ Use these part types when calling `append_parts` or `add_paragraph`:
 - `{"type": "math", "expr": ...}` for editable OMML.
 - `{"type": "line_break"}` only when a deliberate line break is needed.
 - `{"type": "table", "rows": ..., "widths": ...}` for block-level Word tables. Use `append_parts_or_tables(doc, paragraph, parts)` when parts may contain tables. Widths are in inches and are written as fixed table grid/cell widths (`w:tblGrid/w:gridCol` and `w:tcW`), not just best-effort `cell.width`.
+- `{"type": "table", "rows": ..., "layout_profile": "one-column"}` or `"explicit-equal-two-column"` for current student-facing table geometry. Do not pass both `widths` and `layout_profile`.
 
 Thai body text is insertion-safe: `w:sz=24`, `w:szCs=32`, Thai routes through Complex Script, and future manually typed Latin after the Thai run does not inherit 16 pt.
 
@@ -241,17 +257,31 @@ The adapter normalizes `";x<1"`-style condition cells to `"; x<1"` and the build
 
 ## Validation Standard
 
-After generation, always run:
+After generation, run the unified gate:
 
 ```bash
-~/.codex/skills/thai-font-normalize/scripts/fix-thai-font -i "<file.docx>"
-~/.codex/skills/thai-font-normalize/scripts/fix-thai-font -c "<file.docx>"
-~/.codex/skills/thai-math-docx/scripts/audit_docx_font_defaults.py "<file.docx>"
-~/.codex/skills/thai-math-docx/scripts/audit_docx_insertion_safety.py "<file.docx>"
-~/.codex/skills/thai-math-docx/scripts/audit_docx_omml.py "<file.docx>"
+python scripts/verify_thai_math_docx.py check "<file.docx>" --contract "<qa-contract.json>" --report-dir "<qa-dir>"
 ```
 
-The builder now normalizes Thai theme font mappings at save time, so freshly generated shared-builder DOCX should pass `fix-thai-font -c` even before the repair layer. Keep the normalizer in the workflow anyway; it remains the cross-template safety net. Render to PDF/PNG when layout matters. Microsoft Word on the user's machine remains the visual truth.
+Use `fix-and-check` only in an authorized create/edit/build scope and always
+write a distinct output. The runner combines package/XML, font/default/theme,
+insertion, OMML, media, geometry, table-shape and mutation checks. The older
+individual audit scripts remain focused diagnostics. See `qa-runner.md` for
+contract axes and verdict semantics. Representative Microsoft Word review judges
+handoff readiness, not publication perfection or the unseen final artifact.
+
+## Batch QA and Learning
+
+Every generated file must pass the unified QA runner. For requests that produce
+several files, use `thai_math_docx_batch.py` or
+`verify_thai_math_docx_batch.py` to maintain one project build manifest. Adding
+a file records its QA result and factual deltas; it never performs knowledge
+review. Close only after the declared batch passes, producing one aggregate
+report and one review regardless of whether the batch contains 1 or 20 files.
+
+An unfinished `handoff` is a checkpoint, not a closing event. Candidate
+fingerprints deduplicate regenerated revisions. See `batch-lifecycle.md` for the
+trigger and cost contract.
 
 ## Update Policy
 

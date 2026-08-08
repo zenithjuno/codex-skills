@@ -1,0 +1,13 @@
+{
+  "paper_role": "hard",
+  "part_count": 2,
+  "intended_behavior": "one valid argument and one invalid argument",
+  "solution_path": ["inspect conclusion", "test premises", "construct counterexample"],
+  "structural_budget": {
+    "max_connectives": 5,
+    "forbidden": ["ambiguous precedence"]
+  },
+  "nearby_reuse_limit": "do not reuse the neighboring implication skeleton",
+  "required_method": "counterexample plus direct validation",
+  "visual_clarity": "parenthesize every compound statement"
+}
