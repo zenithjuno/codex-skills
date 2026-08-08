@@ -598,6 +598,29 @@ class StageLifecycleTests(unittest.TestCase):
         text = self.plan(["| `S01` | `PASS` | foundation |", "| `S16` | `ACTIVE` | building |"])
         self.assertEqual(BUILD_CONTEXT.stage_lifecycle_duplicates(text), [])
 
+    def test_columns_are_found_by_header_name_at_any_position(self) -> None:
+        # A human-facing plan wants a name column; the parser adapts to the
+        # layout rather than forcing the layout to suit the parser.
+        plan = "\n".join([
+            "# P",
+            "| Stage | ชื่อ | Lifecycle | คุณจะได้เห็น |",
+            "|---|---|---|---|",
+            "| `S16` | โหมดซ้อม | `VERIFY` | เล่นซ้อมแล้วเห็นแต้มเพิ่ม |",
+            "| `S20` | หน้าครู | `DEFERRED` | ครูเห็นว่าเด็กคนไหนติด |",
+        ])
+        self.assertEqual(
+            BUILD_CONTEXT.stage_lifecycle_rows(plan), {"S16": "VERIFY", "S20": "DEFERRED"}
+        )
+
+    def test_lifecycle_before_stage_still_parses(self) -> None:
+        plan = "\n".join([
+            "# P",
+            "| Lifecycle | Stage | Note |",
+            "|---|---|---|",
+            "| `ACTIVE` | `S16` | building |",
+        ])
+        self.assertEqual(BUILD_CONTEXT.stage_lifecycle_rows(plan), {"S16": "ACTIVE"})
+
     def test_parallel_stages_must_be_declared_explicitly(self) -> None:
         self.assertFalse(BUILD_CONTEXT.parallel_stages_allowed(self.plan([])))
         self.assertTrue(
@@ -1393,6 +1416,9 @@ class PlanAndBlueprintDocumentationTests(unittest.TestCase):
         for status in BUILD_CONTEXT.LIFECYCLE_VOCABULARY:
             self.assertIn(f"`{status}`", self.plan_format)
         self.assertIn("Parallel stages: allowed", self.plan_format)
+        # Structure is not detail: the owner needs a skimmable name per stage.
+        self.assertRegex(self.plan_format, r"Give every stage a short name column")
+        self.assertRegex(self.plan_format, r"Cutting premature \*\*detail\*\* and cutting \*\*structure\*\*")
         self.assertRegex(self.plan_format, r"never deleted or renumbered")
 
     def test_stage_contract_names_truth_surfaces_and_retirements(self) -> None:

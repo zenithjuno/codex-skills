@@ -127,18 +127,30 @@ it silently invites the build to redo finished work or skip unfinished work.
 ```markdown
 ## Stage map
 
-| Stage | Lifecycle | Outcome / relationship |
-|---|---|---|
-| `S01` | `PASS` | foundation established |
-| `S16` | `VERIFY` | built and deployed; awaiting owner validation |
-| `S17` | `RETIRED` | merged into S16 by CHG-086 — exam behavior delivered early |
-| `S18` | `PLANNED` | next independent stage |
+| Stage | Name | Lifecycle | What you get |
+|---|---|---|---|
+| `S01` | sheet + tabs | `PASS` | the data the whole build reads from exists and is correct |
+| `S16` | practice mode | `VERIFY` | built and live; awaiting the owner's final look |
+| `S17` | promotion exam | `RETIRED` | delivered inside S16 by CHG-086 — not a separate gate |
+| `S20` | teacher dashboard | `DEFERRED` | one page showing where each student is and who is stuck |
 ```
 
+**Give every stage a short name column.** Without one the table is a wall of
+sentences: the reader must finish each row before learning what it is even
+about. A name is a heading, and headings are what make a list skimmable — the
+owner scans thirty names in seconds and sees the shape of the whole project,
+which is most of what a plan is for. Names also never go stale: "teacher
+dashboard" stays "teacher dashboard" however it ends up being built.
+
+Cutting premature **detail** and cutting **structure** are different acts. Only
+the first prevents drift; doing the second by accident costs the owner their
+map, and it is easy to do by accident because both live in the same block of
+text.
+
 `Stage` and `Lifecycle` are reserved machine-readable header cells (matched
-case-insensitively) — the helper keys on that literal English pair to find the
-table regardless of what language the surrounding heading and Outcome column
-use, so keep those two header words in English even in an otherwise localized
+case-insensitively) — the helper finds them **by name at whatever position they
+occupy**, so order the columns for your readers and add as many others as they
+need. Keep those two header words in English even in an otherwise localized
 plan. Lifecycle vocabulary:
 
 - `PLANNED` — specified, not started.

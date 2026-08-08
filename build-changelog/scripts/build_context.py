@@ -644,28 +644,35 @@ def validate_index_mirror(sections: dict[str, str], blueprint: Path) -> list[str
 def stage_lifecycle_entries(plan_text: str) -> list[tuple[str, str]]:
     """Read the `| Stage | Lifecycle | ... |` table wherever it appears in the plan.
 
-    Keyed on the header cells rather than a heading so the plan may name its
-    stage map in any language. Returns every row in document order, including
-    duplicate stage ids, so callers can decide how to treat repetition.
+    Locates the `Stage` and `Lifecycle` columns by header name at whatever
+    position they occupy, so a plan may order and add columns for its readers —
+    a stage-name column earns its place for a human owner — without the layout
+    having to suit the parser. The surrounding heading may be in any language.
+    Returns every row in document order, including duplicate stage ids, so
+    callers can decide how to treat repetition.
     """
     lines = plan_text.splitlines()
     entries: list[tuple[str, str]] = []
     for index, line in enumerate(lines):
-        cells = [cell.strip().casefold() for cell in line.strip().strip("|").split("|")]
-        if len(cells) < 2 or cells[0] != "stage" or cells[1] != "lifecycle":
+        if not line.lstrip().startswith("|"):
             continue
+        header = [cell.strip().casefold() for cell in line.strip().strip("|").split("|")]
+        if "stage" not in header or "lifecycle" not in header:
+            continue
+        stage_col = header.index("stage")
+        lifecycle_col = header.index("lifecycle")
         for row in lines[index + 1 :]:
             if not row.lstrip().startswith("|"):
                 break
             values = [cell.strip() for cell in row.strip().strip("|").split("|")]
             if all(re.fullmatch(r":?-{3,}:?", cell) for cell in values):
                 continue
-            if len(values) < 2:
+            if len(values) <= max(stage_col, lifecycle_col):
                 break
-            stage_match = re.search(r"\bS\d{2,}[A-Z]?\b", values[0], re.IGNORECASE)
+            stage_match = re.search(r"\bS\d{2,}[A-Z]?\b", values[stage_col], re.IGNORECASE)
             if not stage_match:
                 continue
-            status = values[1].replace("`", "").strip().upper()
+            status = values[lifecycle_col].replace("`", "").strip().upper()
             entries.append((stage_match.group(0).upper(), status))
     return entries
 
