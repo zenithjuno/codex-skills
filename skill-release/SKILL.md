@@ -50,3 +50,20 @@ For repository-level release tooling or documentation, enumerate every intended
 path explicitly with `--path`; never widen the commit to absorb unrelated work.
 Use `python3 tools/skill_release.py sync` only to fast-forward a clean source
 without publishing a change.
+
+## Work already committed locally
+
+`release` stages, commits and pushes in one step, and refuses to start unless the
+checkout still mirrors origin. So a skill edit that was already committed — for
+instance because a project's own commit protocol asked for a checkpoint first —
+cannot go out that way. Publish those commits instead of resetting them or
+pushing by hand:
+
+```bash
+python3 tools/skill_release.py publish
+```
+
+It requires a clean tree that is strictly ahead of `origin/main`, pushes, and
+then proves the same clean-mirror guarantee. `DEPLOYED` is still the only
+completion. Prefer the normal `release` flow: leave skill edits uncommitted and
+let the helper own the commit.

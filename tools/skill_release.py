@@ -275,6 +275,42 @@ def preflight(root: Path, branch: str, scope: list[str]) -> dict[str, object]:
     return {"status": "READY", "head": synced["head"], "origin_head": synced["origin_head"], "scope": scope}
 
 
+def publish(root: Path, branch: str) -> dict[str, object]:
+    """Push commits that already exist locally.
+
+    `release` owns the normal path: it stages a scope, commits and pushes in one
+    step, and refuses to run unless the checkout still mirrors origin. That
+    leaves no route for work an agent has already committed — for instance when
+    a project's own commit protocol asked for a checkpoint first. Rather than
+    reset those commits or push by hand outside the helper, publish them here so
+    the same mirror guarantee still applies afterwards.
+    """
+    current = status(root, branch)
+    if current["dirty_paths"]:
+        raise ReleaseError(
+            f"working tree is dirty: {', '.join(current['dirty_paths'])}; "
+            "commit or discard before publishing"
+        )
+    if current["status"] == "MIRRORED":
+        raise ReleaseError("nothing to publish; local checkout already equals origin")
+    if current["status"] != "AHEAD":
+        raise ReleaseError(
+            f"local checkout is {current['status']}; publish only fast-forwards "
+            "commits that sit directly on top of origin"
+        )
+
+    pending = git(root, "log", "--oneline", f"origin/{branch}..HEAD").strip().splitlines()
+    try:
+        git(root, "push", "origin", branch)
+    except ReleaseError as exc:
+        return {"status": "PUBLISH_PENDING", "head": current["head"], "message": str(exc)}
+
+    final = status(root, branch)
+    if final["status"] != "MIRRORED" or final["dirty_paths"]:
+        raise ReleaseError("push completed but local source is not a clean mirror afterwards")
+    return {"status": "DEPLOYED", "head": final["head"], "published_commits": pending}
+
+
 def release(args: argparse.Namespace) -> dict[str, object]:
     root = resolve_root(args.root)
     scope = release_scope(args.skill, args.path)
@@ -356,6 +392,8 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument("--skill", action="append", default=[])
             command.add_argument("--path", action="append", default=[])
 
+    commands.add_parser("publish", help="push commits that already exist locally")
+
     release_command = commands.add_parser("release")
     release_command.add_argument("--skill", action="append", default=[], help="top-level skill folder; repeatable")
     release_command.add_argument("--path", action="append", default=[], help="extra tracked path; repeatable")
@@ -374,6 +412,8 @@ def main() -> int:
             result = synchronize(root, args.branch)
         elif args.command == "preflight":
             result = preflight(root, args.branch, release_scope(args.skill, args.path))
+        elif args.command == "publish":
+            result = publish(root, args.branch)
         else:
             result = release(args)
     except ReleaseError as exc:
