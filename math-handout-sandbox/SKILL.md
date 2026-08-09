@@ -57,6 +57,24 @@ wins; approved topic design owns pedagogy/content; conventions own cross-topic
 defaults; an explicitly designated master owns only layout; historical files are
 evidence; skill defaults are last. Surface a real conflict.
 
+## Writing a design note
+
+Start a new note from
+[the template](assets/MATERIAL-DESIGN.template.md). Its `Contract` block is not
+decoration: `Deliverable` (`worksheet` | `answer-key` | `examples` |
+`design-only`) settles what reaches the DOCX before any content is drafted.
+Solutions always belong in the note; only `answer-key` prints them into the DOCX.
+
+**A design note states what is true now, not how the discussion got there.**
+Replace superseded wording, examples and decisions in place. When the reasoning
+behind a replaced choice is worth keeping, move it to `DESIGN-LOG-<slug>.md` and
+leave one pointer line. Never keep both versions in the current note.
+
+**Never append content defensively.** Do not widen a note because a DOCX might be
+wanted later — ask one short question instead and write only what the declared
+deliverable needs. Unasked hoarding is what grew a note in this project to
+48,000 characters, most of it superseded.
+
 ## Mode C — approved production
 
 Use only when the teacher both approves content and explicitly asks for an
