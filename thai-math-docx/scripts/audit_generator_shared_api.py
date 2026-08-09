@@ -22,6 +22,9 @@ PROTECTED_HELPERS = {
     "append_math",
     "clear_cell_borders",
     "enforce_document_font_defaults",
+    "expr",
+    "frac",
+    "paren",
     "set_cell_borders",
     "set_cell_margins",
     "set_cell_shading",
@@ -30,6 +33,7 @@ PROTECTED_HELPERS = {
     "set_table_fixed_widths",
     "set_table_fixed_widths_cm",
     "set_thai_body_run",
+    "sup",
 }
 PROTECTED_LAYOUT_TAGS = {
     "w:cols",
@@ -50,6 +54,7 @@ SHARED_OWNER_NAMES = {
     "thai_math_docx_layout.py",
     "thai_math_docx_patterns.py",
     "thai_math_docx_recipes.py",
+    "thai_math_expr.py",
 }
 SHARED_OWNER_DIR = Path(__file__).resolve().parent
 
@@ -84,6 +89,38 @@ def scan_file(path: Path, root: Path) -> tuple[list[Violation], str | None]:
         return [], str(exc)
     violations: list[Violation] = []
     relative = str(path.resolve().relative_to(root.resolve()))
+    # A differently-named local function whose body writes protected layout tags
+    # is a renamed copy of a shared helper — the name check alone misses it. Flag
+    # the whole function once, and suppress the per-line tag warnings it covers so
+    # the verdict reads as "reimplemented helper", not a scatter of tag hits.
+    covered_tag_nodes: set[int] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if node.name in PROTECTED_HELPERS:
+            continue
+        tag_nodes = [
+            child
+            for child in ast.walk(node)
+            if isinstance(child, ast.Constant)
+            and isinstance(child.value, str)
+            and child.value in PROTECTED_LAYOUT_TAGS
+        ]
+        if not tag_nodes:
+            continue
+        tags = ", ".join(sorted({child.value for child in tag_nodes}))
+        violations.append(
+            Violation(
+                relative,
+                node.lineno,
+                "reimplemented-helper",
+                node.name,
+                f"function {node.name!r} writes protected layout tags ({tags}); it "
+                f"reimplements shared layout behavior — import the shared API instead",
+            )
+        )
+        covered_tag_nodes.update(id(child) for child in tag_nodes)
+
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in PROTECTED_HELPERS:
             violations.append(
@@ -95,7 +132,12 @@ def scan_file(path: Path, root: Path) -> tuple[list[Violation], str | None]:
                     f"reimplements protected helper {node.name!r}; import the shared API instead",
                 )
             )
-        if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value in PROTECTED_LAYOUT_TAGS:
+        if (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and node.value in PROTECTED_LAYOUT_TAGS
+            and id(node) not in covered_tag_nodes
+        ):
             violations.append(
                 Violation(
                     relative,

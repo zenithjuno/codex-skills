@@ -121,6 +121,7 @@ def scan_generator(path: Path, source_root: Path) -> dict[str, Any]:
         "local-font-defaults": "enforce_document_font_defaults" in functions,
         "local-run-font": "set_run_font" in functions,
         "local-thai-run": bool({"set_thai_run", "set_thai_body_run", "set_thai_label_run"} & functions),
+        "local-expr-shorthand": bool({"expr", "paren", "frac", "sup"} & functions),
         "omml-usage": "m:oMath" in text or bool({"append_math", "add_math", "math_omml"} & (functions | calls)),
         "fixed-table-width": bool({"set_table_fixed_widths", "set_cell_width", "standard_activity_table_widths"} & (functions | calls)),
         "cell-margins": "set_cell_margins" in functions or "w:tcMar" in text,

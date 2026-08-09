@@ -575,6 +575,32 @@
       "implementation_refs": []
     },
     {
+      "entry_id": "KNW-0022",
+      "title": "Expression shorthand for math part-dicts",
+      "summary": "Use the shared expr/paren/frac/sup helpers from thai_math_expr instead of re-defining them per generator; input normalization is centralized and OMML output is unchanged.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "selector": {
+        "any_features": [
+          "local-expr-shorthand"
+        ]
+      },
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1022",
+          "path": "tests/test_expr_shorthand.py",
+          "assertion": "expr/paren/frac/sup normalize scalar/dict/list inputs and render OMML identical to the historical generator-local variants."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#expr",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#paren",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#frac",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#sup"
+      ]
+    },
+    {
       "entry_id": "KNW-0099",
       "title": "Unmatched generator-specific behavior",
       "summary": "Keep factual generator evidence that matches no promoted/candidate pattern as one-off history for later review.",

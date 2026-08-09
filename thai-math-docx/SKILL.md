@@ -12,6 +12,8 @@ description: >
   Thai text plus mathematical notation must remain editable and Word-compatible.
 ---
 
+<!-- SKILL-VERSION: 2026.08.09 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+
 # Thai Math DOCX
 
 Use this skill whenever the task is to create, edit, repair, reconstruct, or audit a Microsoft Word `.docx` containing Thai mathematics content.
@@ -53,19 +55,20 @@ When creating or revising an editable SVG set/mathematics diagram that will be
 placed in Word, also read `references/svg-diagram-layering.md` for the confirmed
 physical-size, label, fill-layer, and Word-conversion rules.
 
-For new document generation or substantial regeneration, also use `references/shared-generator.md` and start from the bundled scripts unless the task has a strong reason not to. Keep the layers separate:
+For any generator work — new or substantial regeneration — read
+`references/api-cheatsheet.md` first. It is the inventory of every shared
+function by layer (builder / layout / patterns / recipes / adapter) plus the
+part-type and expression-kind vocabularies. When you need a worked example or the
+notation rules (vector accent, piecewise/cases, native integral/limit), read
+`references/shared-generator.md`; open a script source only when both are
+insufficient. Start from the bundled scripts rather than re-implementing their
+helpers. `thai-font-normalize` plus the audits are the post-build repair and
+verification layer.
 
-Read `references/capability-catalog.md` when choosing reusable primitives,
+Read `references/capability-catalog.md` when choosing among promoted primitives,
 patterns, recipes or profiles. The canonical `generator-knowledge.json` is a
 maintenance data source, not a reason to load the bulky historical evidence in
 ordinary document production.
-
-- `scripts/thai_math_docx_builder.py`: the builder/insertion layer for Thai runs, Latin runs, labels, tables, and editable OMML.
-- `scripts/thai_math_docx_layout.py`: the shared layout layer for fixed widths, cell formatting, dotted response lines, native columns, section transitions, and current named profiles in `references/layout-profiles.json`.
-- `scripts/thai_math_docx_patterns.py`: reusable question-grid, worked-example, response-area and media-block patterns, including the visibly reviewed expert extension hook.
-- `scripts/thai_math_docx_recipes.py`: thin handout, exam-paper and answer-key family assembly flows.
-- `scripts/thai_math_source_adapter.py`: the optional source-normalization layer that converts JSON/OCR/database/direct Python source data into builder-ready parts and math expressions.
-- `thai-font-normalize` plus audits: the post-build repair and verification layer.
 
 Before QA, read `references/qa-runner.md`. Use the unified runner for the
 per-file gate; use individual audit scripts only to diagnose a focused failure.
@@ -76,11 +79,9 @@ facts without reviewing them.
 
 The builder is not tied to JSON. JSON, OCR, Markdown-ish text, spreadsheets, database rows, or direct Python sources should all normalize into the same small part schema before entering the builder.
 
-Use bundled scripts when applicable:
+Use bundled scripts when applicable (the shared generation layers are catalogued
+in `references/api-cheatsheet.md`):
 
-- `scripts/thai_math_docx_builder.py` as the reusable generation/insertion seed
-- `scripts/thai_math_docx_layout.py` for layout primitives and current named profiles
-- `scripts/thai_math_docx_patterns.py` and `scripts/thai_math_docx_recipes.py` instead of copying pattern/family helpers into a generator
 - `scripts/audit_generator_shared_api.py --root <generator-root>` before accepting a new generator tree
 - `scripts/verify_thai_math_docx.py check|fix-and-check ...` as the unified per-file QA gate
 - `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for durable multi-file manifests, aggregate QA and one closing knowledge review

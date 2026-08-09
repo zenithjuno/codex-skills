@@ -88,7 +88,9 @@ class SharedApiStaticGateTests(unittest.TestCase):
         self.assertEqual([], errors)
         self.assertEqual(1, len(violations))
         self.assertEqual("production/copied_layout.py", violations[0].path)
-        self.assertEqual("private-layout-ooxml", violations[0].kind)
+        # A differently-named copy that writes protected tags is escalated to a
+        # per-function "reimplemented-helper" verdict, not a bare tag warning.
+        self.assertEqual("reimplemented-helper", violations[0].kind)
 
     def test_cli_returns_zero_for_pass_and_one_for_failure(self) -> None:
         passed = subprocess.run(
