@@ -10,6 +10,8 @@ description: >
   direct Thai DOCX repair or one-off formatting.
 ---
 
+<!-- SKILL-VERSION: 2026.08.09 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+
 # Math Handout Sandbox
 
 Treat the teacher as curriculum authority. Use the lightest mode that preserves
@@ -38,24 +40,20 @@ map, read boundaries, authority order and topic index from it, and never
 enumerate or glob the folder to orient yourself. Read only the index rows for the
 active topic; a finished topic is opened only when the teacher names it.
 
-Read only the project `TEACHING-CONVENTIONS.md` when present, then the active
-topic's approved `MATERIAL-DESIGN-*.md`. When DOCX production is planned or the
-active topic calls for DOCX, also read the project's `DOCX-PREFERENCES.md` when
-present. Do not load DOCX preferences for a discussion that will not touch DOCX.
+Read the project `TEACHING-CONVENTIONS.md`, then the active topic's approved
+`MATERIAL-DESIGN-*.md`. Load `DOCX-PREFERENCES.md` only when the work will
+actually touch DOCX.
 
 A current `AGENTS.md` or topic index already answers root, scope and routes, so
-preflight does not run for that project. Otherwise run
-[project preflight](references/project-preflight.md) only when root, scope,
-authority, or routes are unclear, or when work has a long signal: multiple
-deliverables/sessions/child skills, a build-assets pipeline, more than one
-approval gate, a current master, or handoff conflict. Use its embedded Project
-Map for a short project and `MATERIAL-CONTROL` only for a long one. Record durable
-accepted decisions in the relevant design note.
+preflight does not run there. Otherwise run
+[project preflight](references/project-preflight.md) when root, scope, authority,
+or routes are unclear, or the work shows a long-project signal (that reference
+lists them). Record durable accepted decisions in the relevant design note.
 
-Resolve authority by dimension, never one file order: current teacher instruction
-wins; approved topic design owns pedagogy/content; conventions own cross-topic
-defaults; an explicitly designated master owns only layout; historical files are
-evidence; skill defaults are last. Surface a real conflict.
+When the project's `AGENTS.md` defines an authority order, follow it. Otherwise
+resolve by dimension, not file order: the teacher's current instruction, then the
+approved design (pedagogy/content), then conventions (cross-topic defaults), then
+skill defaults. Surface a real conflict.
 
 ## Writing a design note
 
@@ -71,9 +69,8 @@ behind a replaced choice is worth keeping, move it to `DESIGN-LOG-<slug>.md` and
 leave one pointer line. Never keep both versions in the current note.
 
 **Never append content defensively.** Do not widen a note because a DOCX might be
-wanted later — ask one short question instead and write only what the declared
-deliverable needs. Unasked hoarding is what grew a note in this project to
-48,000 characters, most of it superseded.
+wanted later — ask one short question and write only what the declared
+deliverable needs. Unasked hoarding is what bloats a note into a transcript.
 
 ## Mode C — approved production
 
