@@ -292,3 +292,15 @@ This builder is a living standard. When a new Thai math DOCX failure mode appear
 3. Update this reference or `thai-math-docx-text.md`.
 4. Rebuild affected documents from their source layer.
 5. Keep the old document only as a reference artifact.
+
+### Policy evidence
+
+Every `policy_evidence` entry in `generator-knowledge.adjudication.json` must
+reference a snapshot inside this skill repo (`references/evidence-snapshots/`),
+never a live file outside it. Pinning the hash of an external, live document
+turns evidence into a compatibility target and cannot resolve once the skill is
+mirrored elsewhere. To add or refresh policy evidence: snapshot the source file's
+current content into `references/evidence-snapshots/<evidence_id>.md`, point
+`source_path` at that snapshot and `source_sha256` at its hash, and record the
+original location in `origin_path` (informational only; the refresh does not
+verify it).

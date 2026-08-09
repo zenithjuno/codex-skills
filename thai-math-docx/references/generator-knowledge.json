@@ -5,8 +5,8 @@
   "source_snapshot": {
     "source_root": "/Users/chutpong/Documents/chatgpt-math-doc-generator",
     "generator_glob": "**/build_*.py",
-    "generator_count": 88,
-    "manifest_sha256": "dadd23835c6db933967f6245290550040a4ca94dc8937dc8a18348b115dfb560"
+    "generator_count": 90,
+    "manifest_sha256": "2e842ca480bd9ac193eee8324a80bcd055385027007d1c38e2e0757db103e590"
   },
   "evidence": [
     {
@@ -732,24 +732,25 @@
     {
       "evidence_id": "EVD-0054",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_detailed_answer_key_docx.py",
-      "source_sha256": "42d1514b36b2d8b51d11f12ccda94f020dbe361e2c862881f9c99087045bc924",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_ax2_bx_c.py",
+      "source_sha256": "940c5b3df6e3214233352b31b3d16bd2c73979f33d5c37080408b889365ec210",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-68-1-set-midterm-science",
-      "observed_behavior": "answer-key-family, png-media",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
-        "independent-family-recurrence"
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
       ]
     },
     {
       "evidence_id": "EVD-0055",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_final_exam_docx.py",
-      "source_sha256": "6cedc342f78e8f655963e1d37a626717f1ad1e729adb536051f030d3d7632a77",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_common_and_grouping_factorization.py",
+      "source_sha256": "344e4dd55a778f4db263ffa1d374a462ed82757bfcbe84b6023d3b99d8da66d9",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-68-1-set-midterm-science",
-      "observed_behavior": "border-control, exam-family, fixed-table-width, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, svg-media, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import, worked-example",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -759,24 +760,25 @@
     {
       "evidence_id": "EVD-0056",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_venn_assets.py",
-      "source_sha256": "ddc17a9eaad09ab84fc666e9f3280abdebe8e223f7083224f76fd2b5b4bdeae1",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_difference_of_squares.py",
+      "source_sha256": "f0c11ba0ecb5b501d6de20c2fd39b094d079c79271042325c75ac49109c17e42",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-68-1-set-midterm-science",
-      "observed_behavior": "png-media, svg-media",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
-        "independent-family-recurrence"
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
       ]
     },
     {
       "evidence_id": "EVD-0057",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx.py",
-      "source_sha256": "b836d23b03b942bdcb6ca192e1cfaf52d87d2801412a82ef083959c05eb099fe",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_division_equation.py",
+      "source_sha256": "97d7d5e57de346f6883cd3cc7f9b221ab42020995a9fe688a758434967786808",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-69-1-logic-exam",
-      "observed_behavior": "exam-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import, worked-example",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -786,11 +788,11 @@
     {
       "evidence_id": "EVD-0058",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate.py",
-      "source_sha256": "10698d34c472cab82dab6af0452a12a24468e5222a40378f30139c529a9fd7e8",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_equation_exercise.py",
+      "source_sha256": "145a7c1487d1a8d8ecba799ce7d95e1b00540cc17d17da0668dbfefe2339a40a",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-69-1-logic-exam",
-      "observed_behavior": "exam-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, question-grid, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -800,11 +802,11 @@
     {
       "evidence_id": "EVD-0059",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate_layout_preview.py",
-      "source_sha256": "9c71873c3071b70e58839a82261618a6cd143fd21f94ddae1cfdeaec7cabe40f",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_grouping_factorization.py",
+      "source_sha256": "6c2b7b0239c77bf201e7e582f53191911a8dc2328ad5490206e3bad55b366962",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-69-1-logic-exam",
-      "observed_behavior": "exam-family, native-columns, page-sections, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import, worked-example",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -814,11 +816,11 @@
     {
       "evidence_id": "EVD-0060",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_docx.py",
-      "source_sha256": "1983662bff8b8993995151e8076d2c2d99ef7e5a94895fa15c06aa74cee4b399",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_integer_root_factorization_exercise.py",
+      "source_sha256": "c8d4965834b294e3e93084dc2f1913d32fc46cc3e1ec2f386c0a4db9fee3f953",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-69-1-set-exam-20q",
-      "observed_behavior": "exam-family, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, shading, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -828,11 +830,11 @@
     {
       "evidence_id": "EVD-0061",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_mockup_a_docx.py",
-      "source_sha256": "a2eb9e5dec3dd3f104298b2f7b3a916d70357588776a028dab1efad78f35bdea",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_examples.py",
+      "source_sha256": "75189cb498795ea149ef1fe7ba2036c0b26a248bef5db7748511375e0c40d7c8",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-69-1-set-exam-20q",
-      "observed_behavior": "exam-family, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, shading, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "dotted-response, exam-family, handout-family, local-expr-shorthand, self-audit, shared-builder-import, worked-example",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -842,11 +844,11 @@
     {
       "evidence_id": "EVD-0062",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/build/build_logic_sandbox.py",
-      "source_sha256": "58438df9f346d45adc7c3c9913f49921b562595217720c0e3d99d0ffcd1e998e",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_exercise.py",
+      "source_sha256": "8c0c05e62f1932e6b18c3d760fd5bf83384bd12bbdf138458f7931eefda36246",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-logic-handout-sandbox",
-      "observed_behavior": "handout-family, local-run-font, page-sections, shading",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -856,11 +858,11 @@
     {
       "evidence_id": "EVD-0063",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_detailed_solutions_2q_docx.py",
-      "source_sha256": "3db05f317fa8a14ce1cc276cec8a221cbb8d5162cec452637225fbb2f9a5165f",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_other_factorizations.py",
+      "source_sha256": "2afc28436cc11508603b8428b3bce9e9463aa11f79ac4f96ed50a6d9d6494742",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-single-set-writing-question",
-      "observed_behavior": "answer-key-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -870,11 +872,11 @@
     {
       "evidence_id": "EVD-0064",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_docx.py",
-      "source_sha256": "348c3d244208dfd960bebcb7567ba472e97adcce64beb748686b0d94aa69c2ab",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_cube.py",
+      "source_sha256": "8abd70bc52ffc1856941a6b5a45774839d63d5e13f35a6cbea3c378ed5c53327",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-single-set-writing-question",
-      "observed_behavior": "local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -884,11 +886,11 @@
     {
       "evidence_id": "EVD-0065",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_with_outside_docx.py",
-      "source_sha256": "ba82c33ad600db5b74413a0a0c6fb5ec2115da9b69cfc6e9a0c35e28bfa2f45b",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_square_trinomial.py",
+      "source_sha256": "794c5d9ad9f2c2db0a6bdb8846f8508c8919a6e995c6dbf1b7d292b39be1ffec",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-single-set-writing-question",
-      "observed_behavior": "local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -898,24 +900,25 @@
     {
       "evidence_id": "EVD-0066",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/tgat2-dump/build/build_tgat2_docx.py",
-      "source_sha256": "1478ef29970b0b4f30cbf53a122778668c7ab230be9c6fa9090eb386c1a4a221",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_rational_expression_addition_subtraction.py",
+      "source_sha256": "3af5c61b4644115cb8bf454365e3373d1639fea95ee66bf2056244bc3bc5b255",
       "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-tgat2-dump",
-      "observed_behavior": "page-sections",
+      "family_id": "FAM-real-number-handouts",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
-        "independent-family-recurrence"
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
       ]
     },
     {
       "evidence_id": "EVD-0067",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_ax2_bx_c.py",
-      "source_sha256": "265d1320ea61cc8318390f455d68a266298d2e73c7fe70e239ca63236fff6fab",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_rational_expression_multiplication_division_exercise.py",
+      "source_sha256": "b03ba71ee47df008fb248df55573bac784e9c818bc480a7d0fd98734cf5fc0df",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
+      "observed_behavior": "handout-family, local-expr-shorthand, omml-usage, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -925,11 +928,11 @@
     {
       "evidence_id": "EVD-0068",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_common_and_grouping_factorization.py",
-      "source_sha256": "50e8b8329eae56f25d04d8f76375bc139515d85f4f5044510243fd3812490ec9",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_rational_expression_simplification_exercise.py",
+      "source_sha256": "d2522e4d8cc68d34d3eb27b48c33e953ce447ecb50f329e81ca43ae919905ae0",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import, worked-example",
+      "observed_behavior": "handout-family, local-expr-shorthand, omml-usage, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -939,11 +942,11 @@
     {
       "evidence_id": "EVD-0069",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_difference_of_squares.py",
-      "source_sha256": "e4f698f5f580e9b0617bee43b7f2f389caaf2428225de3ac926b4320cac758ca",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_remainder_theorem_exercise.py",
+      "source_sha256": "06063aaaa406a78486aca181eb7e652c547f679727be14216f713b0b9854d663",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
+      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -953,11 +956,11 @@
     {
       "evidence_id": "EVD-0070",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_division_equation.py",
-      "source_sha256": "6098cfa949c63396726dff39a0232a86a83d66542f81420b973dc7304a45b204",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_sum_difference_cubes.py",
+      "source_sha256": "b66da67dcfe1fadf30ec3075f6bfc3a58a1417a174cd67d8740e562474b0151e",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import, worked-example",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -967,11 +970,11 @@
     {
       "evidence_id": "EVD-0071",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_equation_exercise.py",
-      "source_sha256": "2163b1af520d0fa89067a85b4c38229b9e03bb528e78993fd3c9ce29c1ae2af0",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_synthetic_division_exercise.py",
+      "source_sha256": "2ca6ae823d03808ea5df0d3e8bfe313e4baafb8c80e42344105e91ba79c79414",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, question-grid, self-audit, shared-builder-import",
+      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -981,11 +984,11 @@
     {
       "evidence_id": "EVD-0072",
       "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_grouping_factorization.py",
-      "source_sha256": "3d3b2a9cfda4005bb1d57aaaf10c778dc8151d7bc2f2bf976cae13f564e2cdf7",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_x2_bx_c.py",
+      "source_sha256": "fc2a45dd14fba14dbda3966dee5d141972d38d3bd411c6a710126ac8c8d34444",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import, worked-example",
+      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, self-audit, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -994,160 +997,6 @@
     },
     {
       "evidence_id": "EVD-0073",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_integer_root_factorization_exercise.py",
-      "source_sha256": "f1511233b5fa8517e1ef2d9c58d5e57c1a716276da750ba0afdf4898c7817507",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0074",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_examples.py",
-      "source_sha256": "36b4496ffdca8a8f5dfd745a83df1a3ab00ee82ce6a62892d75532ce693d9cce",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "dotted-response, exam-family, handout-family, self-audit, shared-builder-import, worked-example",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0075",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_long_division_exercise.py",
-      "source_sha256": "c7cfabf6b07614ef4b9a81df88b10ef7ad5c6222b0b60130b75c158423ce479a",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0076",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_other_factorizations.py",
-      "source_sha256": "8a6b6a3c46c0b85182bdd1448d15f89facefd8ba7f903902e8209a40b68b7f6b",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0077",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_cube.py",
-      "source_sha256": "36e96a435729db8cd2c92f8275f7753b77a1eebefa814c3df9c58fcf91ef2e1f",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0078",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_perfect_square_trinomial.py",
-      "source_sha256": "8cc90278c8d566279892f22eefbadfe04d9dca61d72a1019063fbb4af71955b0",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0079",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_rational_expression_addition_subtraction.py",
-      "source_sha256": "bb167d89036f374e45484690abfd78780b8edab63f392fa23fda64581dc059a3",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0080",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_remainder_theorem_exercise.py",
-      "source_sha256": "a5b2520e1e8f2e4e4dc9aab19f0e5f6a22670cf4c8a2d5e5f84dbc15c2c10ffc",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0081",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_sum_difference_cubes.py",
-      "source_sha256": "296cd0d8df62166ca745eb168ab2a02a3c3c279df9aade66a24dd5f47758edbe",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0082",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_synthetic_division_exercise.py",
-      "source_sha256": "3ad5f5e68dd45eb7e4f37106e2275f3536c6a500c5990ac6b40162d1c37da10a",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0083",
-      "source_kind": "generator",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_polynomial_x2_bx_c.py",
-      "source_sha256": "e2081d5698332d6e3f5861efb6eab6e3d993f03f23eb12a609d7ce3f2a0ec45f",
-      "locator": "whole file; deterministic AST/text feature scan",
-      "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, fixed-table-width, handout-family, omml-usage, self-audit, shared-builder-import",
-      "basis": [
-        "representative-source-evidence",
-        "independent-family-recurrence",
-        "deterministic-correctness-safety"
-      ]
-    },
-    {
-      "evidence_id": "EVD-0084",
       "source_kind": "generator",
       "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_equality_properties_examples.py",
       "source_sha256": "67d4e359d434d17783d2e8499c7477396b1090a69cd2197b7137b46d9c6e2acd",
@@ -1161,7 +1010,7 @@
       ]
     },
     {
-      "evidence_id": "EVD-0085",
+      "evidence_id": "EVD-0074",
       "source_kind": "generator",
       "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_inverses_exercise.py",
       "source_sha256": "89cf94744d82e4f5251d989c091b3730a3ed68ea027316e435aab1d74cdce9ca",
@@ -1175,13 +1024,13 @@
       ]
     },
     {
-      "evidence_id": "EVD-0086",
+      "evidence_id": "EVD-0075",
       "source_kind": "generator",
       "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_key_theorems_exercise.py",
       "source_sha256": "d9907147b829523ff9f5237abcb39577f7194cfebd39865f7a06d4490146be97",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "cell-margins, fixed-table-width, handout-family, omml-usage, question-grid, shading, shared-builder-import",
+      "observed_behavior": "cell-margins, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, question-grid, shading, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -1189,13 +1038,13 @@
       ]
     },
     {
-      "evidence_id": "EVD-0087",
+      "evidence_id": "EVD-0076",
       "source_kind": "generator",
       "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_key_theorems_exercise_v2.py",
       "source_sha256": "9335255a6839e229fe58b96413c0349eff63fcd837ad7c422382fa32a96a2108",
       "locator": "whole file; deterministic AST/text feature scan",
       "family_id": "FAM-real-number-handouts",
-      "observed_behavior": "border-control, cell-margins, dotted-response, fixed-table-width, handout-family, omml-usage, shading, shared-builder-import",
+      "observed_behavior": "border-control, cell-margins, dotted-response, fixed-table-width, handout-family, local-expr-shorthand, omml-usage, shading, shared-builder-import",
       "basis": [
         "representative-source-evidence",
         "independent-family-recurrence",
@@ -1203,7 +1052,7 @@
       ]
     },
     {
-      "evidence_id": "EVD-0088",
+      "evidence_id": "EVD-0077",
       "source_kind": "generator",
       "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/build_real_number_subsets_part1.py",
       "source_sha256": "e72aef2677429fac1e1a0826acc374289008ac31867e1ccb745f89af6040a9ad",
@@ -1217,9 +1066,188 @@
       ]
     },
     {
+      "evidence_id": "EVD-0078",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_detailed_answer_key_docx.py",
+      "source_sha256": "42d1514b36b2d8b51d11f12ccda94f020dbe361e2c862881f9c99087045bc924",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-68-1-set-midterm-science",
+      "observed_behavior": "answer-key-family, png-media",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0079",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_final_exam_docx.py",
+      "source_sha256": "6cedc342f78e8f655963e1d37a626717f1ad1e729adb536051f030d3d7632a77",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-68-1-set-midterm-science",
+      "observed_behavior": "border-control, exam-family, fixed-table-width, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, svg-media, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0080",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/68-1-set-midterm-science/build/build_venn_assets.py",
+      "source_sha256": "ddc17a9eaad09ab84fc666e9f3280abdebe8e223f7083224f76fd2b5b4bdeae1",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-68-1-set-midterm-science",
+      "observed_behavior": "png-media, svg-media",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0081",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx.py",
+      "source_sha256": "b836d23b03b942bdcb6ca192e1cfaf52d87d2801412a82ef083959c05eb099fe",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-69-1-logic-exam",
+      "observed_behavior": "exam-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0082",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate.py",
+      "source_sha256": "10698d34c472cab82dab6af0452a12a24468e5222a40378f30139c529a9fd7e8",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-69-1-logic-exam",
+      "observed_behavior": "exam-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0083",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/build/build_docx_reiterate_layout_preview.py",
+      "source_sha256": "9c71873c3071b70e58839a82261618a6cd143fd21f94ddae1cfdeaec7cabe40f",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-69-1-logic-exam",
+      "observed_behavior": "exam-family, native-columns, page-sections, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0084",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_docx.py",
+      "source_sha256": "1983662bff8b8993995151e8076d2c2d99ef7e5a94895fa15c06aa74cee4b399",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-69-1-set-exam-20q",
+      "observed_behavior": "exam-family, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, shading, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0085",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-set-exam-20q/build/build_mockup_a_docx.py",
+      "source_sha256": "a2eb9e5dec3dd3f104298b2f7b3a916d70357588776a028dab1efad78f35bdea",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-69-1-set-exam-20q",
+      "observed_behavior": "exam-family, item-specific-geometry, local-font-defaults, local-run-font, local-thai-run, omml-usage, page-sections, png-media, question-grid, shading, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0086",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/build/build_logic_sandbox.py",
+      "source_sha256": "58438df9f346d45adc7c3c9913f49921b562595217720c0e3d99d0ffcd1e998e",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-logic-handout-sandbox",
+      "observed_behavior": "handout-family, local-run-font, page-sections, shading",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0087",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_detailed_solutions_2q_docx.py",
+      "source_sha256": "3db05f317fa8a14ce1cc276cec8a221cbb8d5162cec452637225fbb2f9a5165f",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-single-set-writing-question",
+      "observed_behavior": "answer-key-family, local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0088",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_docx.py",
+      "source_sha256": "348c3d244208dfd960bebcb7567ba472e97adcce64beb748686b0d94aa69c2ab",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-single-set-writing-question",
+      "observed_behavior": "local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0089",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/single-set-writing-question/build/build_three_set_question_with_outside_docx.py",
+      "source_sha256": "ba82c33ad600db5b74413a0a0c6fb5ec2115da9b69cfc6e9a0c35e28bfa2f45b",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-single-set-writing-question",
+      "observed_behavior": "local-font-defaults, local-run-font, local-thai-run, omml-usage, theme-normalization",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence",
+        "deterministic-correctness-safety"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0090",
+      "source_kind": "generator",
+      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/tgat2-dump/build/build_tgat2_docx.py",
+      "source_sha256": "1478ef29970b0b4f30cbf53a122778668c7ab230be9c6fa9090eb386c1a4a221",
+      "locator": "whole file; deterministic AST/text feature scan",
+      "family_id": "FAM-tgat2-dump",
+      "observed_behavior": "page-sections",
+      "basis": [
+        "representative-source-evidence",
+        "independent-family-recurrence"
+      ]
+    },
+    {
       "evidence_id": "EVD-9001",
       "source_kind": "preference-ledger",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md",
+      "source_path": "references/evidence-snapshots/EVD-9001.md",
       "source_sha256": "15f87808cf6d0312d55bd0dbaf57982850b71bc0f783c4b721ef8dfc2f918363",
       "locator": "Confirmed summary and append-only evidence entries",
       "family_id": "FAM-cross-project-preferences",
@@ -1227,12 +1255,13 @@
       "basis": [
         "explicit-user-approval",
         "representative-source-evidence"
-      ]
+      ],
+      "origin_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/work/thai-math-docx-preference-ledger/thai-math-docx/references/preference-ledger.md"
     },
     {
       "evidence_id": "EVD-9002",
       "source_kind": "build-log",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md",
+      "source_path": "references/evidence-snapshots/EVD-9002.md",
       "source_sha256": "b0b362a6bd2dd4f61b18905b407c915ed5ce13909fd7ff0344edc7a7956e5947",
       "locator": "CHG-004, CHG-005 and PRG-014",
       "family_id": "FAM-set-union-handout",
@@ -1240,12 +1269,13 @@
       "basis": [
         "explicit-user-approval",
         "representative-source-evidence"
-      ]
+      ],
+      "origin_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/outputs/set_intro/BUILD-CHANGELOG-set-union-intro.md"
     },
     {
       "evidence_id": "EVD-9003",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md",
+      "source_path": "references/evidence-snapshots/EVD-9003.md",
       "source_sha256": "7431f61eabe431a9bdcaa96c6c5b69f31d936d063077cb1239853a33b9c39651",
       "locator": "Status, Page System, Reusable Layout Profiles and Last-Mile Fit Adjustment",
       "family_id": "FAM-logic-exam",
@@ -1253,12 +1283,13 @@
       "basis": [
         "explicit-user-approval",
         "representative-source-evidence"
-      ]
+      ],
+      "origin_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/69-1-logic-exam/planning/LAYOUT_PREFERENCE_REF-69-1-logic-exam.md"
     },
     {
       "evidence_id": "EVD-9004",
       "source_kind": "design-note",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/MATERIAL-DESIGN-polynomial-perfect-cube.md",
+      "source_path": "references/evidence-snapshots/EVD-9004.md",
       "source_sha256": "eff095512fd2dab2785fec5f2b5c55a1421c178b5199f17f94f72817667b6e88",
       "locator": "Locked, Approved for build, Artifact plan and Approval gate",
       "family_id": "FAM-real-number-handouts",
@@ -1266,19 +1297,21 @@
       "basis": [
         "explicit-user-approval",
         "representative-source-evidence"
-      ]
+      ],
+      "origin_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/real-numbers/MATERIAL-DESIGN-polynomial-perfect-cube.md"
     },
     {
       "evidence_id": "EVD-9005",
       "source_kind": "handoff",
-      "source_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md",
-      "source_sha256": "b42f155f9fd65050bc859bd6e33de518a8b1e40aabb404c09836f0caf58576ab",
+      "source_path": "references/evidence-snapshots/EVD-9005.md",
+      "source_sha256": "0261517f50769a16133499d2f18c5def47dee044a09d86930a94e103ae2fdc7a",
       "locator": "Start Here, Decisions Already Made and Next Steps",
       "family_id": "FAM-logic-handout-sandbox",
       "observed_behavior": "Current batch state carries accepted, rejected and pending work without making all session state shared behavior.",
       "basis": [
         "representative-source-evidence"
-      ]
+      ],
+      "origin_path": "/Users/chutpong/Documents/chatgpt-math-doc-generator/thai-math-doc/projects/logic-handout-sandbox/handoff/handoff-latest.md"
     }
   ],
   "entries": [
@@ -1323,7 +1356,9 @@
         "EVD-0050",
         "EVD-0051",
         "EVD-0052",
+        "EVD-0054",
         "EVD-0055",
+        "EVD-0056",
         "EVD-0057",
         "EVD-0058",
         "EVD-0059",
@@ -1333,6 +1368,7 @@
         "EVD-0063",
         "EVD-0064",
         "EVD-0065",
+        "EVD-0066",
         "EVD-0067",
         "EVD-0068",
         "EVD-0069",
@@ -1344,9 +1380,7 @@
         "EVD-0075",
         "EVD-0076",
         "EVD-0077",
-        "EVD-0078",
         "EVD-0079",
-        "EVD-0080",
         "EVD-0081",
         "EVD-0082",
         "EVD-0083",
@@ -1354,7 +1388,8 @@
         "EVD-0085",
         "EVD-0086",
         "EVD-0087",
-        "EVD-0088"
+        "EVD-0088",
+        "EVD-0089"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -1412,27 +1447,27 @@
         "EVD-0041",
         "EVD-0042",
         "EVD-0045",
+        "EVD-0054",
         "EVD-0055",
-        "EVD-0067",
-        "EVD-0068",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0059",
+        "EVD-0060",
+        "EVD-0062",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0069",
         "EVD-0070",
         "EVD-0071",
         "EVD-0072",
         "EVD-0073",
+        "EVD-0074",
         "EVD-0075",
+        "EVD-0076",
         "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0080",
-        "EVD-0081",
-        "EVD-0082",
-        "EVD-0083",
-        "EVD-0084",
-        "EVD-0085",
-        "EVD-0086",
-        "EVD-0087",
-        "EVD-0088"
+        "EVD-0079"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -1472,26 +1507,26 @@
         "EVD-0028",
         "EVD-0037",
         "EVD-0040",
-        "EVD-0067",
-        "EVD-0068",
+        "EVD-0054",
+        "EVD-0055",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0059",
+        "EVD-0060",
+        "EVD-0062",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0069",
         "EVD-0070",
         "EVD-0071",
         "EVD-0072",
         "EVD-0073",
+        "EVD-0074",
         "EVD-0075",
-        "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0080",
-        "EVD-0081",
-        "EVD-0082",
-        "EVD-0083",
-        "EVD-0084",
-        "EVD-0085",
-        "EVD-0086",
-        "EVD-0087",
-        "EVD-0088"
+        "EVD-0076",
+        "EVD-0077"
       ],
       "independent_family_ids": [
         "FAM-outputs-family-tree-real-numbers",
@@ -1539,16 +1574,16 @@
         "EVD-0041",
         "EVD-0042",
         "EVD-0045",
-        "EVD-0055",
-        "EVD-0067",
-        "EVD-0069",
+        "EVD-0054",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0070",
-        "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0081",
-        "EVD-0083",
-        "EVD-0087"
+        "EVD-0072",
+        "EVD-0076",
+        "EVD-0079"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -1581,13 +1616,13 @@
         "EVD-0004",
         "EVD-0009",
         "EVD-0010",
-        "EVD-0060",
-        "EVD-0061",
-        "EVD-0062",
+        "EVD-0074",
+        "EVD-0075",
+        "EVD-0076",
+        "EVD-0077",
+        "EVD-0084",
         "EVD-0085",
-        "EVD-0086",
-        "EVD-0087",
-        "EVD-0088"
+        "EVD-0086"
       ],
       "independent_family_ids": [
         "FAM-69-1-set-exam-20q",
@@ -1632,13 +1667,13 @@
         "EVD-0042",
         "EVD-0045",
         "EVD-0046",
+        "EVD-0058",
+        "EVD-0060",
+        "EVD-0061",
+        "EVD-0062",
+        "EVD-0069",
         "EVD-0071",
-        "EVD-0073",
-        "EVD-0074",
-        "EVD-0075",
-        "EVD-0080",
-        "EVD-0082",
-        "EVD-0087",
+        "EVD-0076",
         "EVD-9001",
         "EVD-9002"
       ],
@@ -1692,26 +1727,26 @@
         "EVD-0041",
         "EVD-0042",
         "EVD-0045",
-        "EVD-0067",
-        "EVD-0068",
+        "EVD-0054",
+        "EVD-0055",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0059",
+        "EVD-0060",
+        "EVD-0062",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0069",
         "EVD-0070",
         "EVD-0071",
         "EVD-0072",
         "EVD-0073",
+        "EVD-0074",
         "EVD-0075",
+        "EVD-0076",
         "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0080",
-        "EVD-0081",
-        "EVD-0082",
-        "EVD-0083",
-        "EVD-0084",
-        "EVD-0085",
-        "EVD-0086",
-        "EVD-0087",
-        "EVD-0088",
         "EVD-9001",
         "EVD-9002",
         "EVD-9004"
@@ -1743,7 +1778,7 @@
       "promotion_status": "promoted",
       "lifecycle": "current-shared-behavior",
       "evidence_ids": [
-        "EVD-0059",
+        "EVD-0083",
         "EVD-9003"
       ],
       "independent_family_ids": [
@@ -1795,8 +1830,8 @@
         "EVD-0050",
         "EVD-0052",
         "EVD-0053",
-        "EVD-0055",
-        "EVD-0056",
+        "EVD-0079",
+        "EVD-0080",
         "EVD-9001",
         "EVD-9002"
       ],
@@ -1861,11 +1896,11 @@
         "EVD-0050",
         "EVD-0052",
         "EVD-0053",
-        "EVD-0054",
-        "EVD-0055",
-        "EVD-0056",
-        "EVD-0060",
-        "EVD-0061",
+        "EVD-0078",
+        "EVD-0079",
+        "EVD-0080",
+        "EVD-0084",
+        "EVD-0085",
         "EVD-9001"
       ],
       "independent_family_ids": [
@@ -1895,8 +1930,8 @@
       "promotion_status": "promoted",
       "lifecycle": "current-shared-behavior",
       "evidence_ids": [
-        "EVD-0085",
-        "EVD-0088"
+        "EVD-0074",
+        "EVD-0077"
       ],
       "independent_family_ids": [
         "FAM-real-number-handouts"
@@ -1924,11 +1959,11 @@
         "EVD-0009",
         "EVD-0010",
         "EVD-0026",
-        "EVD-0055",
-        "EVD-0060",
-        "EVD-0061",
-        "EVD-0071",
-        "EVD-0086"
+        "EVD-0058",
+        "EVD-0075",
+        "EVD-0079",
+        "EVD-0084",
+        "EVD-0085"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -1961,12 +1996,12 @@
         "EVD-0024",
         "EVD-0041",
         "EVD-0042",
-        "EVD-0068",
-        "EVD-0070",
-        "EVD-0072",
-        "EVD-0074",
-        "EVD-0084",
-        "EVD-0088",
+        "EVD-0055",
+        "EVD-0057",
+        "EVD-0059",
+        "EVD-0061",
+        "EVD-0073",
+        "EVD-0077",
         "EVD-9004"
       ],
       "independent_family_ids": [
@@ -1999,7 +2034,19 @@
         "EVD-0019",
         "EVD-0024",
         "EVD-0041",
+        "EVD-0054",
+        "EVD-0055",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0059",
+        "EVD-0060",
+        "EVD-0061",
         "EVD-0062",
+        "EVD-0063",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0067",
         "EVD-0068",
         "EVD-0069",
@@ -2011,17 +2058,7 @@
         "EVD-0075",
         "EVD-0076",
         "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0080",
-        "EVD-0081",
-        "EVD-0082",
-        "EVD-0083",
-        "EVD-0084",
-        "EVD-0085",
         "EVD-0086",
-        "EVD-0087",
-        "EVD-0088",
         "EVD-9004"
       ],
       "independent_family_ids": [
@@ -2049,14 +2086,14 @@
       "promotion_status": "promoted",
       "lifecycle": "current-shared-behavior",
       "evidence_ids": [
-        "EVD-0055",
-        "EVD-0057",
-        "EVD-0058",
-        "EVD-0059",
-        "EVD-0060",
         "EVD-0061",
-        "EVD-0074",
-        "EVD-0084"
+        "EVD-0073",
+        "EVD-0079",
+        "EVD-0081",
+        "EVD-0082",
+        "EVD-0083",
+        "EVD-0084",
+        "EVD-0085"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -2087,8 +2124,8 @@
         "EVD-0032",
         "EVD-0048",
         "EVD-0049",
-        "EVD-0054",
-        "EVD-0063"
+        "EVD-0078",
+        "EVD-0087"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -2145,23 +2182,23 @@
         "EVD-0048",
         "EVD-0050",
         "EVD-0053",
-        "EVD-0067",
-        "EVD-0068",
+        "EVD-0054",
+        "EVD-0055",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0059",
+        "EVD-0060",
+        "EVD-0061",
+        "EVD-0062",
+        "EVD-0063",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
         "EVD-0069",
         "EVD-0070",
         "EVD-0071",
-        "EVD-0072",
-        "EVD-0073",
-        "EVD-0074",
-        "EVD-0075",
-        "EVD-0076",
-        "EVD-0077",
-        "EVD-0078",
-        "EVD-0079",
-        "EVD-0080",
-        "EVD-0081",
-        "EVD-0082",
-        "EVD-0083"
+        "EVD-0072"
       ],
       "independent_family_ids": [
         "FAM-outputs-set-intro",
@@ -2206,12 +2243,12 @@
       "lifecycle": "current-shared-behavior",
       "evidence_ids": [
         "EVD-0037",
-        "EVD-0055",
-        "EVD-0059",
-        "EVD-0060",
-        "EVD-0061",
-        "EVD-0062",
-        "EVD-0066"
+        "EVD-0079",
+        "EVD-0083",
+        "EVD-0084",
+        "EVD-0085",
+        "EVD-0086",
+        "EVD-0090"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -2243,9 +2280,9 @@
       "lifecycle": "historical-evidence",
       "evidence_ids": [
         "EVD-0016",
-        "EVD-0055",
-        "EVD-0060",
-        "EVD-0061"
+        "EVD-0079",
+        "EVD-0084",
+        "EVD-0085"
       ],
       "independent_family_ids": [
         "FAM-68-1-set-midterm-science",
@@ -2271,6 +2308,52 @@
       ],
       "acceptance_tests": [],
       "implementation_refs": []
+    },
+    {
+      "entry_id": "KNW-0022",
+      "fingerprint": "413f765dd404eddfb8b62c6c32ee0632551820a45999963d37d1fa300fccb8d4",
+      "title": "Expression shorthand for math part-dicts",
+      "summary": "Use the shared expr/paren/frac/sup helpers from thai_math_expr instead of re-defining them per generator; input normalization is centralized and OMML output is unchanged.",
+      "capability_class": "safe-primitive",
+      "promotion_status": "promoted",
+      "lifecycle": "current-shared-behavior",
+      "evidence_ids": [
+        "EVD-0054",
+        "EVD-0056",
+        "EVD-0057",
+        "EVD-0058",
+        "EVD-0060",
+        "EVD-0061",
+        "EVD-0062",
+        "EVD-0063",
+        "EVD-0064",
+        "EVD-0065",
+        "EVD-0066",
+        "EVD-0067",
+        "EVD-0068",
+        "EVD-0069",
+        "EVD-0070",
+        "EVD-0071",
+        "EVD-0072",
+        "EVD-0075",
+        "EVD-0076"
+      ],
+      "independent_family_ids": [
+        "FAM-real-number-handouts"
+      ],
+      "acceptance_tests": [
+        {
+          "test_id": "TST-1022",
+          "path": "tests/test_expr_shorthand.py",
+          "assertion": "expr/paren/frac/sup normalize scalar/dict/list inputs and render OMML identical to the historical generator-local variants."
+        }
+      ],
+      "implementation_refs": [
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#expr",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#paren",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#frac",
+        "staging/skills/thai-math-docx/scripts/thai_math_expr.py#sup"
+      ]
     },
     {
       "entry_id": "KNW-0099",

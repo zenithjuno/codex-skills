@@ -2,13 +2,13 @@
 
 Generated from `generator-knowledge.json`. Do not edit this view directly.
 
-- Source generators: 88
-- Knowledge entries: 22
+- Source generators: 90
+- Knowledge entries: 23
 - Current profiles: 3
 
 ## promoted
 
-- `KNW-0001` · **Thai font defaults and editable OMML routing** · `safe-primitive` — Use shared document defaults, Thai/Latin run routing and editable math insertion instead of generator-local OOXML copies. (64 evidence; 8 families)
+- `KNW-0001` · **Thai font defaults and editable OMML routing** · `safe-primitive` — Use shared document defaults, Thai/Latin run routing and editable math insertion instead of generator-local OOXML copies. (66 evidence; 8 families)
 - `KNW-0002` · **Fixed table grid and width emission** · `safe-primitive` — Emit deterministic fixed table grids and explicit cell widths through the shared builder. (45 evidence; 4 families)
 - `KNW-0003` · **Cell margin primitive** · `safe-primitive` — Provide semantic cell-margin control instead of repeated direct tcMar construction. (31 evidence; 3 families)
 - `KNW-0004` · **Border and clear-border primitive** · `safe-primitive` — Provide one shared API for cell/table borders and explicit border clearing. (31 evidence; 4 families)
@@ -21,11 +21,12 @@ Generated from `generator-knowledge.json`. Do not edit this view directly.
 - `KNW-0011` · **Repeat table header control** · `safe-primitive` — Provide deterministic table-header repetition as a shared layout primitive. (2 evidence; 1 families)
 - `KNW-0012` · **Fixed question-grid material pattern** · `material-pattern` — Promote a semantic question-grid pattern above the fixed-width table primitive. (8 evidence; 4 families)
 - `KNW-0013` · **Worked-example material pattern** · `material-pattern` — Provide a semantic worked-example pattern backed by recurrence and an approved teaching progression. (12 evidence; 2 families)
-- `KNW-0014` · **Thai mathematics handout recipe** · `family-recipe` — Assemble explanations, worked examples, practice and response areas through thin family recipes. (30 evidence; 3 families)
+- `KNW-0014` · **Thai mathematics handout recipe** · `family-recipe` — Assemble explanations, worked examples, practice and response areas through thin family recipes. (32 evidence; 3 families)
 - `KNW-0015` · **Exam-paper family recipe** · `family-recipe` — Assemble objective/written sections, question blocks and media through a thin exam recipe owned by the future exam skill. (8 evidence; 4 families)
 - `KNW-0016` · **Detailed answer-key recipe** · `family-recipe` — Provide a thin answer-key assembly recipe while the exam skill owns family variants. (5 evidence; 3 families)
 - `KNW-0017` · **DOCX structural self-audit rule** · `qa-rule` — Move generator-local package assertions into the central QA runner while preserving deterministic safety checks. (47 evidence; 2 families)
 - `KNW-0021` · **Section transition primitive** · `safe-primitive` — Provide explicit section creation and transition control as a shared layout primitive before native-column profiles assemble it. (7 evidence; 6 families)
+- `KNW-0022` · **Expression shorthand for math part-dicts** · `safe-primitive` — Use the shared expr/paren/frac/sup helpers from thai_math_expr instead of re-defining them per generator; input normalization is centralized and OMML output is unchanged. (19 evidence; 1 families)
 
 ## ready-for-promotion
 

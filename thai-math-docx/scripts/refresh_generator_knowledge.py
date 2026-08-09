@@ -252,7 +252,16 @@ def build_outputs(
     source_root: Path,
     adjudication_path: Path,
 ) -> tuple[dict[str, Any], str, str, dict[str, Any]]:
-    paths = sorted(source_root.glob(GENERATOR_GLOB), key=lambda item: item.relative_to(source_root).as_posix())
+    # Archived generators are not part of the live corpus; scanning them would
+    # ingest superseded one-offs (e.g. discarded smoke-test builds) as evidence.
+    paths = sorted(
+        (
+            path
+            for path in source_root.glob(GENERATOR_GLOB)
+            if "archive" not in path.relative_to(source_root).parts
+        ),
+        key=lambda item: item.relative_to(source_root).as_posix(),
+    )
     records = [scan_generator(path, source_root) for path in paths]
     feature_families: dict[str, set[str]] = defaultdict(set)
     for record in records:
@@ -285,8 +294,12 @@ def build_outputs(
         )
 
     adjudication = read_json(adjudication_path)
+    # Policy evidence is snapshotted inside the skill repo and its source_path is
+    # skill-root-relative; an absolute path is still honoured for back-compat.
+    skill_root = adjudication_path.resolve().parent.parent
     for item in adjudication["policy_evidence"]:
-        path = Path(item["source_path"])
+        raw = Path(item["source_path"])
+        path = raw if raw.is_absolute() else skill_root / raw
         actual_hash = sha256_bytes(path.read_bytes())
         if actual_hash != item["source_sha256"]:
             raise ValueError(f"policy evidence hash mismatch: {path}")
