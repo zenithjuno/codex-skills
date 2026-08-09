@@ -22,6 +22,7 @@ misconception this material is aimed at.
 
 Student-facing text is Thai and is written here exactly as it will be printed.
 Everything around it — headings, reasoning, notes to yourself — stays English.
+Maths is Unicode in inline code (`x²`, `−13⁄5`, `{x ∈ ℕ ∣ x < 5}`), never LaTeX.
 
 ### คำสั่ง
 

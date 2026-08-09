@@ -48,9 +48,9 @@ class MaterialPreflightTests(unittest.TestCase):
         normalized = " ".join(skill.split())
         self.assertIn("TEACHING-CONVENTIONS.md", normalized)
         self.assertIn("DOCX-PREFERENCES.md", normalized)
-        self.assertIn("will not touch DOCX", normalized)
+        self.assertIn("actually touch DOCX", normalized)
         self.assertIn("topic's approved", normalized)
-        self.assertIn("Resolve authority by dimension", normalized)
+        self.assertIn("resolve by dimension", normalized)
         self.assertIn("historical files are evidence", normalized)
 
     def test_parent_skill_preserves_approval_and_direct_docx_route(self) -> None:

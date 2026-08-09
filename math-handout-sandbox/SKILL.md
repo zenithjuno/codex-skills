@@ -53,7 +53,8 @@ lists them). Record durable accepted decisions in the relevant design note.
 When the project's `AGENTS.md` defines an authority order, follow it. Otherwise
 resolve by dimension, not file order: the teacher's current instruction, then the
 approved design (pedagogy/content), then conventions (cross-topic defaults), then
-skill defaults. Surface a real conflict.
+skill defaults; historical files are evidence, not compatibility targets. Surface
+a real conflict.
 
 ## Writing a design note
 
@@ -71,6 +72,12 @@ leave one pointer line. Never keep both versions in the current note.
 **Never append content defensively.** Do not widen a note because a DOCX might be
 wanted later — ask one short question and write only what the declared
 deliverable needs. Unasked hoarding is what bloats a note into a transcript.
+
+**Maths is Unicode in inline code, never LaTeX** — `x²`, `−13⁄5`,
+`{x ∈ ℕ ∣ x < 5}`, not `\(-\frac{13}{5}\)`, which renders as source text in a
+Markdown viewer. After writing or editing a note, run
+`scripts/check_note_notation.py <note.md>`; it fails on any LaTeX so this holds
+even in a session that never opened the reference.
 
 ## Mode C — approved production
 

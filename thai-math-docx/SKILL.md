@@ -91,6 +91,7 @@ in `references/api-cheatsheet.md`):
 - `scripts/audit_docx_insertion_safety.py <file.docx>`
 - `scripts/audit_docx_omml.py <file.docx>`
 - `scripts/audit_docx_omml.py <file.docx> --allow-no-math`
+- `scripts/audit_docx_math_in_text.py <file.docx>` — relational maths left in plain text
 
 ## Core Typography
 
@@ -149,7 +150,9 @@ Reserve all-slot `TH Sarabun New` 16 pt for intentionally Thai-styled labels/tit
 
 ## Math and Transcript Policy
 
-In exam question bodies and answer choices, lean toward editable inline OMML for math-ish tokens:
+In **every** produced document — worksheets, examples, one-off notes, exam
+bodies, answer choices alike — math-ish tokens are editable inline OMML, never
+left in a plain Cambria/Thai run:
 
 - variables and variable lists
 - equation-relevant numbers and pure numeric answer choices
@@ -161,7 +164,11 @@ In exam question bodies and answer choices, lean toward editable inline OMML for
 
 Use upright/roman math for known function names; do not italicize `sin`, `cos`, `log`, etc. Avoid empty OMML function nodes such as an empty `<m:func>` argument for forms like `log_2 x`.
 
-Emit math operators as tight OMML tokens without literal preserved spaces. For example, generate `=`, `∪`, `∩`, `+`, `−`, `≤`, and `∈` as their own math tokens and let Microsoft Word's equation engine handle spacing. Do not emit `" = "` or `" ∪ "` as preserved text spaces. Comma-list punctuation such as `", "` and explicit Thai connectors are separate exceptions.
+Emit math operators as tight OMML tokens without literal preserved spaces. For example, generate `=`, `∪`, `∩`, `+`, `−`, `≤`, and `∈` as their own math tokens and let Microsoft Word's equation engine handle spacing. Do not emit `" = "` or `" ∪ "` as preserved text spaces, and never bury an operator like `< 0` inside a `{"type": "text", …}` part. Comma-list punctuation such as `", "` and explicit Thai connectors are separate exceptions.
+
+`scripts/audit_docx_math_in_text.py <file.docx>` fails a document that left a
+relational operator in a plain-text run — run it so this holds even in a session
+that skimmed this policy.
 
 Use `latin_text` transcript parts for ordinary numeric/comma/Latin sequences that should stay Cambria text, not Thai text. Keep mathematical variables inside those sequences as math tokens when they are conceptual variables.
 
