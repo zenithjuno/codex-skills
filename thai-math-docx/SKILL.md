@@ -78,20 +78,14 @@ When producing multiple outputs in one request or material stage, also read
 once only when the whole batch closes. An unfinished handoff checkpoints pending
 facts without reviewing them.
 
-The builder is not tied to JSON. JSON, OCR, Markdown-ish text, spreadsheets, database rows, or direct Python sources should all normalize into the same small part schema before entering the builder.
+Use bundled scripts when applicable (the shared generation layers, including the
+source adapter, are catalogued in `references/api-cheatsheet.md`):
 
-Use bundled scripts when applicable (the shared generation layers are catalogued
-in `references/api-cheatsheet.md`):
-
-- `scripts/audit_generator_shared_api.py --root <generator-root>` before accepting a new generator tree
+- `scripts/audit_generator_shared_api.py --root <generator-root>` — must PASS for
+  every generator you create or edit, before its DOCX ships
 - `scripts/verify_thai_math_docx.py check|fix-and-check ...` as the unified per-file QA gate
-- `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for durable multi-file manifests, aggregate QA and one closing knowledge review
-- `scripts/thai_math_source_adapter.py` to normalize source parts before insertion
-- `scripts/audit_docx_font_defaults.py <file.docx>`
-- `scripts/audit_docx_insertion_safety.py <file.docx>`
-- `scripts/audit_docx_omml.py <file.docx>`
-- `scripts/audit_docx_omml.py <file.docx> --allow-no-math`
-- `scripts/audit_docx_math_in_text.py <file.docx>` — relational maths left in plain text
+- `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for multi-file batches
+- the focused `audit_docx_*.py` diagnostics only to isolate a failure the gate reported
 
 ## Core Typography
 
@@ -190,37 +184,32 @@ For generated or substantially repaired files:
 1. Read the required reference.
 2. Identify Thai text, Latin/admin text, math-ish content, labels, footers, and tables.
 3. Use structured JSON when the source is fragile or multi-question.
-4. Generate editable DOCX content; use OMML for real math.
-5. Set `docDefaults` and `Normal` style safety net.
-6. Apply insertion-safe run-level formatting for ordinary Thai body runs.
-7. Apply all-slot Thai label formatting for question/choice labels.
-8. Style footers and page fields as `TH Sarabun New` 12 pt.
-9. Use fixed table layout/explicit widths when compact exam tables would wrap badly.
-10. Assemble recurring material through shared patterns/recipes. If a capability is unsupported, fail visibly and record its candidate payload; do not approximate it.
-11. Run `thai-font-normalize` on Thai `.docx` output, or at minimum run its `-c/--check` gate. The shared builder writes Thai theme defaults, but the normalizer remains the final safety net.
-12. Run `verify_thai_math_docx.py`: use `check` for audit-only work or `fix-and-check` with a distinct output inside an authorized create/edit/build scope.
-13. Require QA PASS, then report the independent `needs_word_review` flag and its review items.
-14. For a batch, record each QA result immediately but run learning review only once at observable batch/stage close. If the work is handed off unfinished, persist pending deltas and do not review yet.
-15. Report generated files and DOCX-data evidence as handoff readiness; never claim publication perfection or final-product status.
+4. Generate editable DOCX content; real math is OMML.
+5. Apply Core Typography above in full: `docDefaults`/`Normal` safety net,
+   insertion-safe Thai body runs, all-slot Thai labels, `TH Sarabun New` 12 pt
+   footers and page fields.
+6. Use fixed table layout/explicit widths when compact tables would wrap badly.
+7. Assemble recurring material through shared patterns/recipes. If a capability
+   is unsupported, fail visibly and record its candidate payload; do not
+   approximate it.
+8. Run `thai-font-normalize` on Thai `.docx` output, or at minimum its
+   `-c/--check` gate — the final font safety net.
+9. Run `verify_thai_math_docx.py` (`check` for audit-only work, `fix-and-check`
+   with a distinct output inside an authorized build scope). Require QA PASS,
+   then report the independent `needs_word_review` flag and its review items.
+10. For a batch, record each QA result immediately but run learning review only
+    once at observable batch/stage close. An unfinished handoff persists pending
+    deltas without reviewing them.
+11. Report generated files and DOCX-data evidence as handoff readiness; never
+    claim publication perfection or final-product status.
 
 For imported/external DOCX repair, expose it as a first-class operation: normalize Thai fonts, repair defaults, run font-default audit, run OMML audit if math exists, then render only after structural XML gates pass.
 
 ## Minimum Acceptance
 
-A generated or repaired Thai math `.docx` is acceptable only when:
-
-- Thai prose is routed as `TH Sarabun New` 16 pt Complex Script.
-- Ordinary Thai body runs are insertion-safe: Latin slot 12 pt and CS slot 16 pt.
-- Latin/admin prose is `Cambria` 12 pt where appropriate.
-- Question labels are `TH Sarabun New` 16 pt in all font slots.
-- Footer text and page fields are `TH Sarabun New` 12 pt.
-- `docDefaults` and `Normal` pass the font-default audit.
-- Ordinary Thai body runs pass the insertion-safety audit.
-- Real math is editable OMML, not images.
-- Accidental Thai inside generic OMML math items is rejected or repaired.
-- Required mathematics is editable OMML; generic document images are governed
-  by the media contract.
-- Paragraph spacing is single (`1.0`) unless project context says otherwise.
-- `thai-font-normalize` passes.
-- DOCX structure matches the requested page, table, paragraph, font, and OMML requirements.
-- User Microsoft Word inspection remains the final visual authority.
+Acceptance is mechanical, not judged from memory: the unified
+`verify_thai_math_docx.py` gate must PASS (it enforces the typography, insertion
+safety, OMML, geometry and structure rules above) and `thai-font-normalize` must
+pass. Beyond the gates: paragraph spacing stays single (`1.0`) unless project
+context says otherwise, and the user's Microsoft Word inspection remains the
+final visual authority — report handoff readiness, never publication perfection.
