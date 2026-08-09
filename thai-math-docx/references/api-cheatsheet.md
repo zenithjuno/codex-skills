@@ -5,8 +5,8 @@ any generator; open script sources only when it is insufficient.** Never
 hand-roll a helper listed here — the audit fails a generator that reimplements it.
 **Maintenance:** a commit that adds/renames a public function updates this too.
 
-Import from each heading's module. Sizes pt; margins/gaps twips; widths ending
-`_cm` take cm, others EMUs.
+New generator: copy `assets/generator-template.py`. Import from each heading's
+module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 
 ## builder — `thai_math_docx_builder` (document, runs, tables, math)
 - `new_document()` / `configure_document(doc)` — start; apply Thai/Latin defaults
@@ -34,7 +34,7 @@ Import from each heading's module. Sizes pt; margins/gaps twips; widths ending
 - `set_section_columns(section, count, gap_twips, separator=…)`
 - `apply_section_profile(section, profile)` / `add_section_transition(document, profile, start=…)`
 - `add_dotted_response_lines(container, count=…, dots=…, space_after_pt=…, line_spacing=…)`
-- `get_current_layout_profile(use_case)` — named profile from `layout-profiles.json`
+- `get_current_layout_profile(use_case)` — named profile
 
 ## patterns — `thai_math_docx_patterns` (reusable blocks)
 - `add_question_grid(document, questions, columns=…, cell_margins_twips=…)`
@@ -47,7 +47,7 @@ Import from each heading's module. Sizes pt; margins/gaps twips; widths ending
 - `build_exam_paper(title, instruction_parts, objective_questions, written_questions, objective_columns=…)`
 - `build_answer_key(title, answers)`
 
-## expr — `thai_math_expr` (math part-dict shorthand; prefer over hand-rolling)
+## expr — `thai_math_expr` (math shorthand; never hand-roll these)
 - `expr(parts)` · `paren(parts, beg=…, end=…)` · `frac(num, den)` · `sup(base, exponent)` — accept scalar/dict/list
 
 ## adapter — `thai_math_source_adapter` (normalize external data → parts)

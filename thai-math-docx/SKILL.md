@@ -61,9 +61,10 @@ function by layer (builder / layout / patterns / recipes / adapter) plus the
 part-type and expression-kind vocabularies. When you need a worked example or the
 notation rules (vector accent, piecewise/cases, native integral/limit), read
 `references/shared-generator.md`; open a script source only when both are
-insufficient. Start from the bundled scripts rather than re-implementing their
-helpers. `thai-font-normalize` plus the audits are the post-build repair and
-verification layer.
+insufficient. Start a new generator from `assets/generator-template.py` (copy it
+to the topic folder as `build_<slug>.py`, edit only its DATA section) rather than
+re-implementing shared helpers. `thai-font-normalize` plus the audits are the
+post-build repair and verification layer.
 
 Read `references/capability-catalog.md` when choosing among promoted primitives,
 patterns, recipes or profiles. The canonical `generator-knowledge.json` is a
