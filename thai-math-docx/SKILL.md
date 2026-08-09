@@ -166,9 +166,8 @@ Use upright/roman math for known function names; do not italicize `sin`, `cos`, 
 
 Emit math operators as tight OMML tokens without literal preserved spaces. For example, generate `=`, `∪`, `∩`, `+`, `−`, `≤`, and `∈` as their own math tokens and let Microsoft Word's equation engine handle spacing. Do not emit `" = "` or `" ∪ "` as preserved text spaces, and never bury an operator like `< 0` inside a `{"type": "text", …}` part. Comma-list punctuation such as `", "` and explicit Thai connectors are separate exceptions.
 
-`scripts/audit_docx_math_in_text.py <file.docx>` fails a document that left a
-relational operator in a plain-text run — run it so this holds even in a session
-that skimmed this policy.
+Run `scripts/audit_docx_math_in_text.py <file.docx>`; it fails a document that
+left a relational operator in a plain-text run. Its header explains why.
 
 Use `latin_text` transcript parts for ordinary numeric/comma/Latin sequences that should stay Cambria text, not Thai text. Keep mathematical variables inside those sequences as math tokens when they are conceptual variables.
 

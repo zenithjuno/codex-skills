@@ -73,11 +73,10 @@ leave one pointer line. Never keep both versions in the current note.
 wanted later — ask one short question and write only what the declared
 deliverable needs. Unasked hoarding is what bloats a note into a transcript.
 
-**Maths is Unicode in inline code, never LaTeX** — `x²`, `−13⁄5`,
-`{x ∈ ℕ ∣ x < 5}`, not `\(-\frac{13}{5}\)`, which renders as source text in a
-Markdown viewer. After writing or editing a note, run
-`scripts/check_note_notation.py <note.md>`; it fails on any LaTeX so this holds
-even in a session that never opened the reference.
+**Maths is Unicode in inline code, never LaTeX** (`x²`, `−13⁄5`). Run
+`scripts/check_note_notation.py <note.md>` after writing a note; it fails on any
+LaTeX. Why, and what counts, live in that script's header and
+`references/material-design-note.md`.
 
 ## Mode C — approved production
 
