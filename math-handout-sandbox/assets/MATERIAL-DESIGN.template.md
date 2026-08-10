@@ -4,14 +4,17 @@
 
 - Slug: `<slug>`
 - Deliverable: `worksheet` | `answer-key` | `examples` | `design-only`
+- Scaffolding: `worked` | `faded` | `independent` | `mixed`
 - Status: `drafting` | `approved` | `built`
 - Generator: `build_<slug>.py`
 - Output: `<ชื่อไฟล์>.docx`
 - History: `DESIGN-LOG-<slug>.md`
 
-Delete the lines that do not apply rather than writing `—`. `Deliverable`
-decides what reaches the DOCX: `worksheet` prints questions only and keeps the
-solutions here; `answer-key` prints them; `design-only` produces no DOCX at all.
+Delete the lines that do not apply rather than writing `—`. Require
+`Scaffolding` only when `Deliverable: examples`. `Deliverable` states the
+document's role; `Scaffolding` states the support learners see. `worksheet`
+prints prompts only, `answer-key` prints complete solutions, `examples` follows
+its scaffolding contract, and `design-only` produces no DOCX.
 
 ## Learning objective
 
@@ -28,10 +31,20 @@ Maths is Unicode in inline code (`x²`, `−13⁄5`, `{x ∈ ℕ ∣ x < 5}`), n
 
 ### โจทย์ / ตัวอย่าง
 
+For `examples + mixed`, label every item with one of:
+
+- `Support: worked` — print the complete method.
+- `Support: faded` — print selected steps and leave named target steps blank.
+- `Support: independent` — print the prompt only.
+
+For a single-level examples document, the contract-level `Scaffolding` applies to
+every item, so do not repeat it item by item.
+
 ### เฉลยและแนวคิด
 
-Solutions live here for every deliverable mode, including `worksheet`. Whether
-they reach the DOCX is the `Deliverable` line's decision, not this section's.
+Complete solutions live here for every deliverable mode, including `worksheet`
+and faded examples. What reaches the DOCX follows both `Deliverable` and, for
+examples, `Scaffolding`.
 
 ## Layout notes
 

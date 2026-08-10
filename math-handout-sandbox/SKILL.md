@@ -3,14 +3,14 @@ name: math-handout-sandbox
 description: >
   Design and review Thai mathematics teaching materials through a teacher-led,
   discussion-first workflow. Use when a teacher brings images, worksheets,
-  examples, exercise lists, handout drafts, or lesson ideas and wants a quick
-  pedagogical review, a project-aware design discussion, or approved production
-  routing. Analyze teaching flow, misconceptions, mathematical correctness, and
-  variants before creating an SVG, DOCX, slide, or worksheet. Do not use for
-  direct Thai DOCX repair or one-off formatting.
+  worked or faded examples, exercise lists, handout drafts, or lesson ideas and
+  wants a quick pedagogical review, a project-aware design discussion, or
+  approved production routing. Analyze teaching flow, misconceptions,
+  mathematical correctness, and variants before creating an SVG, DOCX, slide,
+  or worksheet. Do not use for direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.08.09 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.10 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 
@@ -60,9 +60,23 @@ a real conflict.
 
 Start a new note from
 [the template](assets/MATERIAL-DESIGN.template.md). Its `Contract` block is not
-decoration: `Deliverable` (`worksheet` | `answer-key` | `examples` |
-`design-only`) settles what reaches the DOCX before any content is drafted.
-Solutions always belong in the note; only `answer-key` prints them into the DOCX.
+decoration. Separate two axes before drafting content:
+
+- `Deliverable` (`worksheet` | `answer-key` | `examples` | `design-only`) states
+  the document's instructional role.
+- `Scaffolding` (`worked` | `faded` | `independent` | `mixed`) states how much
+  support learners see. Require it for `examples`; delete it for other modes.
+
+For `examples + mixed`, label every item `Support: worked | faded | independent`.
+`worked` prints the complete method, `faded` prints selected steps and leaves
+target steps for the learner, and `independent` prints only the prompt. A fading
+sequence may move through all three levels while remaining an `examples`
+deliverable. If every item is independent and no instructional example structure
+reaches the DOCX, classify the document as `worksheet` instead.
+
+Solutions always belong in the note. `worksheet` prints prompts only;
+`answer-key` prints complete solutions; `examples` prints the support declared by
+`Scaffolding`; `design-only` produces no DOCX.
 
 **A design note states what is true now, not how the discussion got there.**
 Replace superseded wording, examples and decisions in place. When the reasoning
