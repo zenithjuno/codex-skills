@@ -854,6 +854,37 @@ class DoctorTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn("completed-looking residue", err)
 
+    def test_resolved_subitem_inside_an_open_list_warns(self) -> None:
+        # The shape that slipped past a bullet-only scan in the field: a
+        # numbered, indented item struck through inside a list that still has
+        # genuinely open siblings.
+        with tempfile.TemporaryDirectory() as directory:
+            control = self.build(
+                directory,
+                open_changes="\n".join([
+                    "- **S16 polish backlog**",
+                    "  1. ~~L6 expression lost on mode switch~~ — fixed by `CHG-096`, deployed",
+                    "  2. teaching card for L6 — still open",
+                ]),
+            )
+            code, _, err = self.doctor(control)
+            self.assertEqual(code, 0)
+            self.assertIn("CHG-096", err)
+            self.assertIn("completed-looking residue", err)
+
+    def test_open_list_without_residue_is_silent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            control = self.build(
+                directory,
+                open_changes="\n".join([
+                    "- **S16 polish backlog**",
+                    "  1. teaching card for L6 — still open",
+                    "  2. sibling parens during pull — still open",
+                ]),
+            )
+            _code, _out, err = self.doctor(control)
+            self.assertNotIn("completed-looking residue", err)
+
     def test_exact_inventory_catches_an_unmapped_new_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1423,6 +1454,9 @@ class ProtocolDocumentationTests(unittest.TestCase):
         self.assertRegex(self.skill, r"part of the authorized commit, not a chore")
         # The owner is often non-technical; the request must describe the effect.
         self.assertRegex(self.skill, r"save point they can return to")
+
+    def test_open_changes_rule_applies_per_item_not_per_bullet(self) -> None:
+        self.assertRegex(self.skill, r"applies per \*item\*, not per\s+bullet")
 
     def test_every_close_surfaces_the_whole_waiting_list(self) -> None:
         self.assertIn("report the waiting list, not just the work", self.skill)

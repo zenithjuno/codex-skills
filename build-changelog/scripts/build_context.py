@@ -1107,7 +1107,11 @@ def command_doctor(control: Path) -> int:
 
     open_changes = sections.get("OPEN CHANGES", "")
     for line in open_changes.splitlines():
-        if not line.strip().startswith(("-", "*")):
+        # Every line, not just top-level bullets: a resolved item is often a
+        # numbered sub-item inside a still-open backlog list, which is exactly
+        # the shape a bullet-only scan cannot see.
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
             continue
         if any(marker.casefold() in line.casefold() for marker in CLOSED_RESIDUE_MARKERS):
             warnings.append(

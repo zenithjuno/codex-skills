@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.06.7 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.11.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -132,7 +132,11 @@ BUILD-LOG and unresolved contract deviations only in OPEN CHANGES — STATE
 carries the present transition coordinates, never an accumulating summary of the
 build. OPEN CHANGES
 holds only unresolved CHGs; remove an entry once its audit entry is appended
-rather than striking it through in place. Never put PRG/CHG bodies in BUILD-CONTROL.
+rather than striking it through in place — and that applies per *item*, not per
+bullet: when one entry inside a still-open backlog list is resolved, delete that
+entry, because a struck-through line with its explanation left underneath is a
+second copy of a cold-log entry sitting in the hot file. Never put PRG/CHG
+bodies in BUILD-CONTROL.
 
 The BLUEPRINT Active Contract Index is canonical. The control section is a
 **mirror kept for bounded resume**, not a second editable source: edit the
