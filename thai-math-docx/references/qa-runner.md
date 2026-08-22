@@ -1,32 +1,8 @@
 # Unified Thai Math DOCX QA Runner
 
-Use `scripts/verify_thai_math_docx.py` as the ordinary per-file gate.
-
-```bash
-python scripts/verify_thai_math_docx.py check input.docx --contract qa-contract.json --report-dir reports/qa
-python scripts/verify_thai_math_docx.py fix-and-check input.docx --output repaired.docx --contract qa-contract.json --report-dir reports/qa
-```
-
-- `check` never changes the audited DOCX.
-- `fix-and-check` requires a distinct output path, copies first, repairs shared
-  font defaults/theme mappings there, then audits the output. It refuses to
-  overwrite the source.
-- JSON is always written. Without `--report-dir`, it goes to `qa-reports/` in
-  the current working directory. An explicit report directory also receives a
-  Markdown report.
-
-## Verdicts
-
-- `PASS` / exit `0`: automated structure/editability/contract checks passed.
-- `FAIL` / exit `1`: the artifact or declared contract failed.
-- `BLOCKED` / exit `2`: the file, contract, report destination or required
-  tooling prevented the checks from running.
-
-`needs_word_review` is independent. A report may be `PASS` with
-`needs_word_review: true` for custom templates, imported/teacher-master sources,
-media placement or unknown media. PASS means the AI-created working draft is
-valid, editable, contract-conformant and practical for a human to finish; it
-does not mean publication-perfect or final product.
+The commands and verdicts live in `SKILL.md` § QA Gate. This file is what you
+need only when writing a contract, reading exactly what the runner checks, or
+looking at rendered pages.
 
 ## Contract
 
@@ -104,7 +80,5 @@ both routes, and says so when the sheet would not actually be cheaper. Use the
 sheet for layout, pagination and page-break review; open one page at full
 resolution only when the sheet shows something wrong on it.
 
-A render is not authority over Thai text. If the rendering toolchain cannot load
-the Thai font, Thai runs vanish from the image while maths and layout still
-render, which looks exactly like missing content. Confirm Thai wording against
-the DOCX or Microsoft Word, never against a PNG.
+What a render does and does not prove is stated once, in
+`references/preferences.md` § Validation and handoff. Do not restate it here.

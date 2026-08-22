@@ -54,14 +54,25 @@ Images are rare and always confirmed by the teacher first. When one is actually
 on the table, read `references/visuals.md` — it carries the confirmation gate,
 the honest state of the pipeline, and the set-diagram construction rules.
 
-For any generator work — new or substantial regeneration — read
-`references/api-cheatsheet.md` first. It is the inventory of every shared
-function by layer (builder / layout / patterns / recipes / adapter) plus the
-part-type and expression-kind vocabularies. When you need a worked example or the
-notation rules (vector accent, piecewise/cases, native integral/limit), read
-`references/shared-generator.md`; open a script source only when both are
-insufficient. Start a new generator from `assets/generator-template.py` (copy it
-to the topic folder as `build_<slug>.py`, edit only its DATA section) rather than
+For generator work, let the shared-API audit decide what you need to read:
+
+```bash
+python3 scripts/audit_generator_shared_api.py --root <generator-root>
+```
+
+It must PASS before any generator's DOCX ships. If it **passes** and you are only
+changing that generator's DATA section, build and move on — you do not need the
+API inventory to edit data. Read `references/api-cheatsheet.md` when the audit
+**fails** (the generator still hand-rolls a shared helper and must be migrated),
+when you are writing a new generator, or when you are adding a structure you have
+not used before; it is the inventory of every shared function by layer (builder /
+layout / patterns / recipes / adapter) plus the part-type and expression-kind
+vocabularies. For a worked example or the notation rules (vector accent,
+piecewise/cases, native integral/limit), read `references/shared-generator.md`;
+open a script source only when both are insufficient.
+
+Start a new generator from `assets/generator-template.py` (copy it to the topic
+folder as `build_<slug>.py`, edit only its DATA section) rather than
 re-implementing shared helpers. `thai-font-normalize` plus the audits are the
 post-build repair and verification layer.
 
@@ -152,6 +163,28 @@ Use a structured transcript, usually JSON, for fragile work:
 - work that must resume deterministically across sessions
 
 For small non-fragile edits, direct DOCX generation/repair is acceptable if audits are still run.
+
+## QA Gate
+
+```bash
+python3 scripts/verify_thai_math_docx.py check <file.docx>
+python3 scripts/audit_docx_math_in_text.py <file.docx>
+```
+
+`check` never modifies the audited file. `fix-and-check` requires a distinct
+`--output`, repairs shared font defaults there, then audits that copy; it refuses
+to overwrite the source. JSON is always written — to `qa-reports/` under the
+working directory unless `--report-dir` says otherwise, so run it from the
+project root rather than inside a skill checkout.
+
+`PASS` / exit `0` means the automated structure, editability and contract checks
+passed; it does not mean publication-perfect. `FAIL` / `1` is the artifact or its
+declared contract. `BLOCKED` / `2` means the checks could not run at all.
+`needs_word_review` is independent and may be true on a PASS — report it
+separately.
+
+Read `references/qa-runner.md` only when you need the contract schema, the full
+list of facts the runner checks, or the rendered-page tooling.
 
 ## Build and Repair Checklist
 
