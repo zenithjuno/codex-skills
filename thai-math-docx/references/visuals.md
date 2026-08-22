@@ -13,9 +13,10 @@ image, say what it would show, and wait for an explicit yes.
 
 Only one path is mature: **set diagrams** — Venn/Euler, shaded set operations,
 student templates. It has a deterministic builder, fixtures and QA assertions in
-the `math-handout-sandbox` skill (`references/set-diagram-builder-v1.md`, then
-`references/set-diagram-svg-workflow.md` for the scene schema). Use it for
-anything set-shaped.
+the `math-handout-sandbox` skill — start at
+`../../math-handout-sandbox/references/set-diagram-builder-v1.md`, then its
+`set-diagram-svg-workflow.md` for the scene schema. Use it for anything
+set-shaped.
 
 Every other visual — function graphs, number lines, geometry figures, tables
 drawn as pictures — has no builder, no fixtures and no QA. Treat that work as
