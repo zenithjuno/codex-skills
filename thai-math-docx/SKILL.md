@@ -59,7 +59,7 @@ batches — is in `references/maintenance.md` and is never production reading.
 
 Rules that hold whichever reference you opened:
 
-- `scripts/audit_generator_shared_api.py --root <generator-root>` must PASS for
+- `scripts/audit_generator_shared_api.py --file <build_slug.py>` must PASS for
   every generator you create or edit, before its DOCX ships. A pass plus a
   DATA-only change means you can build without reading the API inventory.
 - Start a new generator from `assets/generator-template.py`, copied to the topic

@@ -177,12 +177,11 @@ def scan_file(path: Path, root: Path) -> tuple[list[Violation], str | None]:
     return violations, None
 
 
-def scan_root(root: str | Path) -> tuple[list[Violation], list[str], int]:
-    root = Path(root)
+def scan_paths(paths: Iterable[Path], root: Path) -> tuple[list[Violation], list[str], int]:
     violations: list[Violation] = []
     errors: list[str] = []
     scanned = 0
-    for path in sorted(root.rglob("*.py")):
+    for path in paths:
         if any(part == "__pycache__" for part in path.parts):
             continue
         scanned += 1
@@ -193,16 +192,56 @@ def scan_root(root: str | Path) -> tuple[list[Violation], list[str], int]:
     return violations, errors, scanned
 
 
+def scan_root(root: str | Path) -> tuple[list[Violation], list[str], int]:
+    root = Path(root)
+    return scan_paths(sorted(root.rglob("*.py")), root)
+
+
+def scan_files(files: Iterable[str | Path]) -> tuple[list[Violation], list[str], int]:
+    """Audit named generators only.
+
+    A one-generator build should not have to read the whole topic's legacy
+    backlog. Reporting every grandfathered failure alongside the file you are
+    actually shipping costs tens of thousands of characters of tool output and
+    then costs again while the agent explains that the noise is unrelated.
+    """
+    paths = [Path(f) for f in files]
+    missing = [str(p) for p in paths if not p.is_file()]
+    if missing:
+        return [], [f"no such file: {m}" for m in missing], 0
+    # Report each violation relative to its own topic folder, as --root does.
+    violations: list[Violation] = []
+    errors: list[str] = []
+    scanned = 0
+    for path in paths:
+        found, error, count = scan_paths([path], path.parent)
+        violations.extend(found)
+        errors.extend(error)
+        scanned += count
+    return violations, errors, scanned
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", required=True, type=Path)
+    target = parser.add_mutually_exclusive_group(required=True)
+    target.add_argument("--root", type=Path, help="audit every generator under a folder")
+    target.add_argument(
+        "--file",
+        type=Path,
+        action="append",
+        dest="files",
+        help="audit only the named generator; repeatable. Use this during a build.",
+    )
     parser.add_argument("--json", action="store_true", dest="as_json")
     return parser
 
 
 def main(argv: Iterable[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    violations, errors, scanned = scan_root(args.root)
+    if args.files:
+        violations, errors, scanned = scan_files(args.files)
+    else:
+        violations, errors, scanned = scan_root(args.root)
     if args.as_json:
         print(
             json.dumps(

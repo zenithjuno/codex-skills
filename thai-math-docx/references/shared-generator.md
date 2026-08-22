@@ -46,7 +46,7 @@ Use this shared builder when creating new `.docx` files or regenerating content 
 Do not hand-roll Thai run formatting or OMML fragments unless the builder lacks a needed primitive. If it lacks one, patch the builder/reference first, then generate the document.
 
 Do not copy layout or material helpers into a new generator. Run
-`scripts/audit_generator_shared_api.py --root <generator-root>`. An unsupported
+`scripts/audit_generator_shared_api.py --file <build_slug.py>`. An unsupported
 need must raise `UnsupportedCapabilityError`, retain its candidate payload and
 enter work-batch review. Raw OOXML is private to the shared core; the only
 exception is `ReviewedExpertExtension`, which requires a review reference and

@@ -23,9 +23,11 @@ not express what the document needed. **Four places must change together:**
    copy instead of an import.
 4. **Test** it in `tests/`.
 
-Then run the audit across the topic folders — existing generators that
-hand-rolled the move now fail, which is correct: they migrate when someone next
-touches them, per the project's migrate-on-touch rule.
+Then run the audit across the topic folders with `--root` — existing generators
+that hand-rolled the move now fail, which is correct: they migrate when someone
+next touches them, per the project's migrate-on-touch rule. `--root` is the
+maintenance view; a build uses `--file` so an unrelated legacy backlog never
+enters its transcript.
 
 ## When a generator needs something the shared API cannot express
 
