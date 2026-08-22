@@ -139,6 +139,18 @@ For small non-fragile edits, direct DOCX generation/repair is acceptable if audi
 ## QA Gate
 
 ```bash
+python3 scripts/produce.py <topic>/build_<slug>.py [--render]
+```
+
+That is the whole production path: it audits that one generator, runs it, finds
+the DOCX it wrote, gates the document, optionally renders one contact sheet, and
+prints a single line. It stops at the first failure and names the step, the
+reason, and where the evidence is — it does not paste the evidence back.
+
+Reach for the individual scripts only to diagnose something `produce.py` has
+already reported:
+
+```bash
 python3 scripts/verify_thai_math_docx.py check <file.docx>
 ```
 
