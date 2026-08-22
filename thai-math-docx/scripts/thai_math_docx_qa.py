@@ -47,12 +47,20 @@ def sha256_file(path: Path) -> str:
 
 def load_contract(path: str | Path | None) -> dict[str, Any]:
     if path is None:
+        # No contract means the ordinary case: a document this toolchain just
+        # generated, carrying maths and no media. The rare cases — an imported
+        # or teacher-master file, embedded media, a deliberately maths-free
+        # sheet — declare themselves with a contract. The previous default
+        # assumed the worst case instead, which raised a Word-review flag on
+        # every generated file (noise that stopped being read) while leaving
+        # `math.required` false, so a handout whose equations all went missing
+        # still passed.
         raw: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "layout": "standard-a4",
-            "media": "mixed",
-            "source_mode": "imported",
-            "math": {"required": False},
+            "media": "none",
+            "source_mode": "generated",
+            "math": {"required": True},
         }
     else:
         try:

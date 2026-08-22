@@ -154,8 +154,14 @@ declared contract. `BLOCKED` / `2` means the checks could not run at all.
 `needs_word_review` is independent and may be true on a PASS — report it
 separately.
 
-Read `references/qa-runner.md` only when you need the contract schema, the full
-list of facts the runner checks, or the rendered-page tooling.
+Running without `--contract` declares the ordinary case: a document this
+toolchain just generated, carrying maths and no media. **Pass a contract when
+that is not true** — the document embeds media, it was imported or is a teacher
+master, or it deliberately has no equations. Without one, an undeclared image or
+a document whose equations went missing fails the gate, which is the intent.
+
+Read `references/qa-runner.md` when you need the contract schema, the full list
+of facts the runner checks, or the rendered-page tooling.
 
 ## Build and Repair Checklist
 
