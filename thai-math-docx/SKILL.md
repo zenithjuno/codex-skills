@@ -12,7 +12,7 @@ description: >
   Thai text plus mathematical notation must remain editable and Word-compatible.
 ---
 
-<!-- SKILL-VERSION: 2026.08.09 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.22 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -141,6 +141,15 @@ Ordinary Thai body runs should carry:
 - `w:lang w:bidi = th-TH`
 
 Reserve all-slot `TH Sarabun New` 16 pt for intentionally Thai-styled labels/titles, especially question labels and Thai choice markers.
+
+The same rule applies at equation boundaries, because Word formats text typed at
+the cursor from the run to its left:
+
+- OMML runs carry `w:szCs = 32`, so Thai typed after an equation stays 16 pt
+- a paragraph never ends on `m:oMath`; `append_parts` closes it with an empty
+  Thai body run
+
+`audit_docx_insertion_safety.py` fails the build on both.
 
 ## Math and Transcript Policy
 

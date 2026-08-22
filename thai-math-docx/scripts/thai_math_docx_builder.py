@@ -178,12 +178,19 @@ def new_document() -> Document:
 
 
 def math_run(text: Any, m_rpr: str = "", preserve_space: bool = False) -> str:
+    """Latin/symbol OMML run.
+
+    ``w:szCs`` stays at 32 (16 pt) even though math glyphs never use the
+    Complex Script slot: Word formats text typed straight after an equation
+    from that equation's last run, so a smaller ``szCs`` here would silently
+    drop manually typed Thai to 12 pt.
+    """
     text = escape(str(text))
     space_attr = ' xml:space="preserve"' if preserve_space else ""
     return (
         "<m:r>"
         f"{m_rpr}"
-        '<w:rPr><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>'
+        '<w:rPr><w:sz w:val="24"/><w:szCs w:val="32"/></w:rPr>'
         f"<m:t{space_attr}>{text}</m:t>"
         "</m:r>"
     )
@@ -448,6 +455,20 @@ def append_math(paragraph: Any, expr: dict[str, Any] | list[Any] | str) -> None:
     paragraph._p.append(parse_xml(math_omml(expr)))
 
 
+def ensure_thai_insertion_safe_paragraph_end(paragraph: Any) -> None:
+    """Close a paragraph that ends with an equation with a Thai body run.
+
+    Word inherits formatting from the run to the left of the cursor. A
+    paragraph whose last child is ``m:oMath`` leaves an OMML run there, so an
+    empty insertion-safe Thai run is appended for manual typing to inherit.
+    """
+    trailing_tags = (qn("w:r"), qn("m:oMath"), qn("m:oMathPara"))
+    trailing = [child for child in paragraph._p if child.tag in trailing_tags]
+    if not trailing or trailing[-1].tag == qn("w:r"):
+        return
+    set_thai_body_run(paragraph.add_run())
+
+
 def append_parts(paragraph: Any, parts: list[dict[str, Any]]) -> None:
     for part in parts:
         part_type = part["type"]
@@ -466,6 +487,7 @@ def append_parts(paragraph: Any, parts: list[dict[str, Any]]) -> None:
             paragraph.add_run().add_break()
         else:
             raise ValueError(f"Unsupported part type: {part_type}")
+    ensure_thai_insertion_safe_paragraph_end(paragraph)
 
 
 def append_parts_or_tables(doc: Document, paragraph: Any, parts: list[dict[str, Any]], space_after: int = 4) -> Any:

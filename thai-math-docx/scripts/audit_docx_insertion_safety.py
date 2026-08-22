@@ -4,6 +4,10 @@
 Ordinary Thai body runs should display Thai at 16 pt via w:szCs=32 while keeping
 the Latin slot at 12 pt via w:sz=24. Labels/titles may intentionally use all-slot
 Thai 16 pt; this audit treats bold/all-Thai-font runs as label-like by default.
+
+The mirror case is Thai typed after an equation. Word inherits formatting from
+the run to the left of the cursor, so OMML runs must also carry w:szCs=32, and a
+paragraph must not end on an equation with no Thai run behind it.
 """
 
 from __future__ import annotations
@@ -14,7 +18,9 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+M = "{http://schemas.openxmlformats.org/officeDocument/2006/math}"
 THAI_FONT = "TH Sarabun New"
+THAI_SZ_CS = 32
 
 
 def text_of(run: ET.Element) -> str:
@@ -31,6 +37,33 @@ def attr(el: ET.Element | None, name: str) -> str | None:
     return el.attrib.get(f"{W}{name}")
 
 
+def audit_math_insertion_safety(name: str, root: ET.Element) -> list[str]:
+    """Flag equations that would shrink Thai typed straight after them."""
+    issues: list[str] = []
+    small: list[str] = []
+    for run in root.findall(f".//{M}oMath//{M}r"):
+        sz_cs = attr(run.find(f"{W}rPr/{W}szCs"), "val")
+        if sz_cs and int(sz_cs) < THAI_SZ_CS:
+            small.append(sz_cs)
+    if small:
+        sizes = ", ".join(sorted(set(small)))
+        issues.append(
+            f"{name}: {len(small)} math run(s) have w:szCs={sizes}; "
+            f"Thai typed after those equations inherits the smaller size "
+            f"(expected w:szCs={THAI_SZ_CS})"
+        )
+    trailing_tags = (f"{W}r", f"{M}oMath", f"{M}oMathPara")
+    for index, para in enumerate(root.findall(f".//{W}p"), 1):
+        trailing = [child.tag for child in para if child.tag in trailing_tags]
+        if trailing and trailing[-1] != f"{W}r":
+            text = "".join(t.text or "" for t in para.iter(f"{W}t"))
+            snippet = text.replace("\n", " ")[:80]
+            issues.append(
+                f"{name}: paragraph {index}: ends on an equation with no Thai run behind it: {snippet!r}"
+            )
+    return issues
+
+
 def audit_docx(path: Path) -> list[str]:
     issues: list[str] = []
     with zipfile.ZipFile(path) as zf:
@@ -39,6 +72,7 @@ def audit_docx(path: Path) -> list[str]:
             if not (name == "word/document.xml" or name.startswith("word/header") or name.startswith("word/footer")):
                 continue
             root = ET.fromstring(zf.read(name))
+            issues.extend(audit_math_insertion_safety(name, root))
             for index, run in enumerate(root.findall(f".//{W}r"), 1):
                 text = text_of(run)
                 if not has_thai(text):
@@ -78,7 +112,7 @@ def main() -> int:
         for issue in issues:
             print(f"- {issue}")
         return 1
-    print("PASS: Thai body runs are insertion-safe")
+    print("PASS: Thai body runs and equation boundaries are insertion-safe")
     return 0
 
 
