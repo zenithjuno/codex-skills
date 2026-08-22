@@ -74,5 +74,29 @@ class DefaultContractTests(unittest.TestCase):
         self.assertTrue(result["needs_word_review"])
 
 
+class FontCoverageTests(unittest.TestCase):
+    """The gate must keep covering what thai-font-normalize checks.
+
+    SKILL.md now tells a producer not to run thai-font-normalize on a generated
+    document, on the evidence that the gate detects everything its --check mode
+    does. If that stops being true, this fails rather than the claim silently
+    rotting.
+    """
+
+    def test_broken_theme_font_fails_the_gate(self) -> None:
+        import zipfile
+        with tempfile.TemporaryDirectory() as tmp:
+            good = build(WITH_MATH, Path(tmp), "good.docx")
+            broken = Path(tmp) / "broken.docx"
+            with zipfile.ZipFile(good) as src, zipfile.ZipFile(broken, "w") as out:
+                for name in src.namelist():
+                    data = src.read(name)
+                    if name == "word/theme/theme1.xml":
+                        data = data.decode().replace("TH Sarabun New", "Angsana New").encode()
+                    out.writestr(name, data)
+            result = qa.audit_docx(broken, qa.load_contract(None), mode="check")
+        self.assertEqual("FAIL", result["verdict"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -185,8 +185,11 @@ For generated or substantially repaired files:
 7. Assemble recurring material through shared patterns/recipes. If a capability
    is unsupported, fail visibly and record its candidate payload; do not
    approximate it.
-8. Run `thai-font-normalize` on Thai `.docx` output, or at minimum its
-   `-c/--check` gate — the final font safety net.
+8. **Repair path only:** run `thai-font-normalize` on an imported or
+   teacher-master DOCX, which repairs theme, docDefaults and Thai run routing.
+   A document this toolchain generated does not need it — `save_docx` already
+   normalized the theme, and the gate below detects every invariant that tool
+   checks.
 9. Run `verify_thai_math_docx.py` (`check` for audit-only work, `fix-and-check`
    with a distinct output inside an authorized build scope). Require QA PASS,
    then report the independent `needs_word_review` flag and its review items.
@@ -201,7 +204,14 @@ For imported/external DOCX repair, expose it as a first-class operation: normali
 ## Minimum Acceptance
 
 Acceptance is mechanical, not judged from memory: the unified
-`verify_thai_math_docx.py` gate must PASS and `thai-font-normalize` must pass.
-The gate enforces the typography, insertion-safety, OMML, geometry and structure
-rules; `references/preferences.md` states them. Report handoff readiness, never
-publication perfection.
+`verify_thai_math_docx.py` gate must PASS. That is the whole acceptance test —
+it enforces the typography, insertion-safety, OMML, geometry and structure
+rules, and `references/preferences.md` states them.
+
+`thai-font-normalize` is a **repair** tool, not a second acceptance gate.
+Measured against every document in the reference project plus a deliberately
+broken theme, its `--check` mode found nothing the gate misses, while the gate
+found insertion-safety failures it does not look for. Run it to fix an imported
+file; do not run it to re-confirm a passing generated one.
+
+Report handoff readiness, never publication perfection.
