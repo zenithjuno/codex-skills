@@ -423,5 +423,44 @@ class UnifiedQaCliTests(unittest.TestCase):
         self.assertIn("schema_version", result.stdout)
 
 
+class SingleCommandGateTests(unittest.TestCase):
+    """One command must cover the whole document.
+
+    math-in-plain-text used to be a second script a worker had to remember.
+    Anything a worker could forget to run belongs inside the gate.
+    """
+
+    def test_gate_reports_every_document_check(self) -> None:
+        import tempfile
+        import thai_math_docx_builder as builder
+        import thai_math_docx_qa as qa
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = builder.new_document()
+            builder.add_paragraph(doc, [{"type": "text", "text": "ทดสอบ"}])
+            path = builder.save_docx(doc, Path(tmp) / "gate.docx")
+            contract = qa.normalize_contract({
+                "schema_version": "1.0.0", "layout": "standard-a4", "media": "none",
+                "source_mode": "generated", "math": {"required": False},
+            })
+            result = qa.audit_docx(path, contract, mode="check")
+        ids = {check["id"] for check in result["checks"]}
+        for expected in ("package-xml-integrity", "thai-fonts-defaults-theme-insertion",
+                         "omml-editability", "math-in-plain-text",
+                         "geometry-table-shape", "media-contract", "mutation-provenance"):
+            self.assertIn(expected, ids)
+
+    def test_relational_maths_in_plain_text_fails_the_gate(self) -> None:
+        import tempfile
+        import thai_math_docx_builder as builder
+        import thai_math_docx_qa as qa
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = builder.new_document()
+            builder.add_paragraph(doc, [{"type": "text", "text": "ถ้า x = 0 แล้วจบ"}])
+            path = builder.save_docx(doc, Path(tmp) / "leak.docx")
+            result = qa.audit_docx(path, qa.load_contract(None), mode="check")
+        self.assertEqual("FAIL", result["verdict"])
+        self.assertTrue(any("plain-text run" in f for f in result["failures"]), result["failures"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 from docx import Document
 
 import audit_docx_font_defaults as font_defaults
+import audit_docx_math_in_text as math_in_text
 import audit_docx_insertion_safety as insertion_safety
 import audit_docx_omml as omml_audit
 import thai_math_docx_builder as builder
@@ -507,6 +508,18 @@ def audit_docx(
         reviews.extend(media_reviews)
         metrics["media"] = media_metrics
         _check(checks, "media-contract", "FAIL" if media_failures else ("REVIEW" if media_reviews else "PASS"), "Media inventory and contract", issue_count=len(media_failures), review_count=len(media_reviews))
+
+        # Relational maths left in a plain-text run is a defect the other checks
+        # cannot see: the OMML audit only inspects equations that exist. Folded
+        # in here so one command covers the whole document. Must stay inside
+        # this guard — an unreadable package has already failed above, and
+        # scanning it would raise instead of reporting.
+        plain_math = math_in_text.scan(path)
+        failures.extend(
+            f"{part}: relational maths left in a plain-text run: {text[:80]!r}"
+            for part, text in plain_math[:10]
+        )
+        _check(checks, "math-in-plain-text", "FAIL" if plain_math else "PASS", "Relational maths kept inside editable OMML", issue_count=len(plain_math))
 
     if contract["source_mode"] in {"imported", "teacher-master"}:
         reviews.append(f"{contract['source_mode']} source requires representative Microsoft Word handoff review")
