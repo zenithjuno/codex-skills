@@ -9,27 +9,30 @@ REFERENCES = ROOT / "references"
 
 
 class PreferenceRoutingTests(unittest.TestCase):
-    def test_routing_index_keeps_evidence_out_of_routine_read_path(self) -> None:
-        index = (REFERENCES / "preference-ledger.md").read_text(encoding="utf-8")
-        self.assertIn("routing index", index)
-        self.assertIn("do not read every preference", index)
-        self.assertIn("preference-evidence.md", index)
+    def test_preferences_is_one_file_not_an_index_over_cards(self) -> None:
+        # The ledger-plus-cards layout spent 41% of itself on two nested indexes
+        # over four files that were read together anyway.
+        self.assertFalse((REFERENCES / "preferences").exists())
+        self.assertFalse((REFERENCES / "preference-ledger.md").exists())
+        prefs = (REFERENCES / "preferences.md").read_text(encoding="utf-8")
+        self.assertIn("preference-evidence.md", prefs)
 
-    def test_active_cards_cover_each_routable_preference_domain(self) -> None:
-        cards = REFERENCES / "preferences"
-        expected = {
-            "typography-and-editability.md",
-            "page-layout.md",
-            "math-notation.md",
-            "validation-and-handoff.md",
-        }
-        self.assertEqual(expected, {path.name for path in cards.glob("*.md")} - {"README.md"})
-        self.assertIn("8.5 + 8.5 = 17 cm", (cards / "page-layout.md").read_text(encoding="utf-8"))
+    def test_preferences_covers_each_routable_domain(self) -> None:
+        prefs = (REFERENCES / "preferences.md").read_text(encoding="utf-8")
+        for heading in ("## Authority", "## Typography and editability",
+                        "## Page layout and response areas",
+                        "## Mathematical notation", "## Validation and handoff"):
+            self.assertIn(heading, prefs)
+        self.assertIn("8.5 + 8.5 = 17 cm", prefs)
+        # an image is gated out of the routine read path
+        self.assertIn("visuals.md", prefs)
 
     def test_parent_skill_routes_project_profile_before_global_cards(self) -> None:
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        # Compare on collapsed whitespace: these assertions pin the rule, not the
+        # line wrap, which a reflow would otherwise break.
+        skill = " ".join((ROOT / "SKILL.md").read_text(encoding="utf-8").split())
         self.assertIn("DOCX-PREFERENCES.md", skill)
-        self.assertIn("Historical DOCX files are\nevidence only", skill)
+        self.assertIn("Historical DOCX files are evidence only", skill)
         self.assertIn("preference-evidence.md", skill)
 
     def test_deep_docx_reference_is_on_demand(self) -> None:

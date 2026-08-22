@@ -23,28 +23,27 @@ This is a document-production skill, not a discussion-gated sandbox workflow. If
 ## Visual Truth
 
 Microsoft Word on the teacher's machine is the visual authority.
-`preferences/validation-and-handoff.md` states exactly what a render can and
-cannot answer; do not restate it from memory.
+`references/preferences.md` § Validation and handoff states exactly what a
+render can and cannot answer; do not restate it from memory.
 
 ## User Preference Routing
 
-Before working on a Thai mathematics DOCX, read
-`references/preference-ledger.md` as the routing index, then open only the active
-preference cards relevant to the task. Do not load the full evidence history for
-routine work. If the named project folder contains `DOCX-PREFERENCES.md`, read it
-first: current teacher instruction wins, then an explicit topic requirement, then
-that project profile, then the relevant global card. Historical DOCX files are
-evidence only, never a compatibility target.
+Before working on a Thai mathematics DOCX, read `references/preferences.md`. It
+is the single set of current rules — typography, page layout, notation,
+validation and handoff — and it is binding. If the named project folder contains
+`DOCX-PREFERENCES.md`, read it first: current teacher instruction wins, then an
+explicit topic requirement, then that project profile, then `preferences.md`.
+Historical DOCX files are evidence only, never a compatibility target.
 
-Treat active-card rules as binding. Read `references/preference-evidence.md` only
-when a rule is disputed, needs rationale, or is being changed. When the teacher
-confirms a new preference, update the matching active card and append an evidence
-entry using that file's template; do not edit old evidence.
+Read `references/preference-evidence.md` only when a rule is disputed, needs
+rationale, or is being changed. When the teacher confirms a new preference,
+update `preferences.md` and append an evidence entry using that file's template;
+do not edit old evidence.
 
 ## Deep Reference — load on demand
 
 Do not read `references/thai-math-docx-text.md` by default. Ordinary production
-uses this skill, the relevant preference card(s), and the directly relevant
+uses this skill, `references/preferences.md`, and the directly relevant
 script/module. Read the deep reference only for unfamiliar OOXML behavior, OMML
 edge cases not covered here, font-routing/debugging, fragile transcript or
 copy/paste behavior, repair failures, low-level package/XML investigation,
@@ -93,7 +92,7 @@ Every generated or repaired Thai math DOCX sets both `docDefaults` and `Normal`
 to `ascii = Cambria`, `hAnsi = Cambria`, `cs = TH Sarabun New`, `sz = 24`,
 `szCs = 32`, `bidi = th-TH`, so the document survives Clear Formatting. Which
 font and size to use where is a preference — see
-`preferences/typography-and-editability.md`.
+`references/preferences.md`.
 
 ### Insertion-safe Thai runs
 
@@ -162,7 +161,8 @@ For generated or substantially repaired files:
 2. Identify Thai text, Latin/admin text, math-ish content, labels, footers, and tables.
 3. Use structured JSON when the source is fragile or multi-question.
 4. Generate editable DOCX content; real math is OMML.
-5. Apply Core Typography above in full: `docDefaults`/`Normal` safety net,
+5. Apply the Font Invariants above and the typography rules in
+   `references/preferences.md` in full: `docDefaults`/`Normal` safety net,
    insertion-safe Thai body runs, all-slot Thai labels, `TH Sarabun New` 12 pt
    footers and page fields.
 6. Use fixed table layout/explicit widths when compact tables would wrap badly.
@@ -187,5 +187,5 @@ For imported/external DOCX repair, expose it as a first-class operation: normali
 Acceptance is mechanical, not judged from memory: the unified
 `verify_thai_math_docx.py` gate must PASS and `thai-font-normalize` must pass.
 The gate enforces the typography, insertion-safety, OMML, geometry and structure
-rules; the preference cards state them. Report handoff readiness, never
+rules; `references/preferences.md` states them. Report handoff readiness, never
 publication perfection.

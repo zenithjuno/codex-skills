@@ -1,7 +1,7 @@
 # Thai Math DOCX Preference Evidence
 
 This is the append-only evidence history behind the active preference cards in
-[`preferences/`](preferences/README.md). Do not load it for routine production.
+[`preferences.md`](preferences.md). Do not load it for routine production.
 Read a relevant entry only when a preference is disputed, needs its rationale,
 or a new preference is being adjudicated.
 
