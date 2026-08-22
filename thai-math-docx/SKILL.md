@@ -24,7 +24,13 @@ This is a document-production skill, not a discussion-gated sandbox workflow. If
 
 Treat Microsoft Word on the user's machine as the visual truth.
 
-Do not use LibreOffice/Codex rendering to judge wrapping, spacing, page composition, or visual quality. For autonomous QA, inspect DOCX data only: section geometry, fixed table grid/widths, cell margins, paragraph spacing, font routing, and OMML/XML invariants. Use a render only when the user specifically asks for a diagnostic render; never treat it as visual evidence. Microsoft Word inspection by the user remains the final visual gate.
+Split what a render can and cannot answer, rather than avoiding one:
+
+- **A fresh render answers** — did every block reach the page, are equations present and upright, roughly how many pages, is a table grossly misshapen, did a section land where it was meant to. A contact sheet costs about a quarter of what opening the pages separately costs, so this is the cheap first look.
+- **A fresh render does not answer** — exact line wrapping, precise spacing and kerning, pagination near a page boundary, or final visual quality. LibreOffice is not Word; never report those from a render.
+- **A stored render answers nothing.** Page images already sitting in a repository predate the current font setup and may have lost Thai runs or dropped OMML entirely. Never conclude from one that Thai wording or an equation is missing — re-render, or read the DOCX.
+
+For autonomous QA still inspect DOCX data as the primary evidence: section geometry, fixed table grid/widths, cell margins, paragraph spacing, font routing, and OMML/XML invariants. Microsoft Word inspection by the user remains the final visual gate.
 
 ## User Preference Routing
 
