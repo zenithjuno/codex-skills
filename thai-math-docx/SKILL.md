@@ -42,60 +42,32 @@ do not edit old evidence.
 
 ## Deep Reference — load on demand
 
-Do not read `references/thai-math-docx-text.md` by default. Ordinary production
-uses this skill, `references/preferences.md`, and the directly relevant
-script/module. Read the deep reference only for unfamiliar OOXML behavior, OMML
-edge cases not covered here, font-routing/debugging, fragile transcript or
-copy/paste behavior, repair failures, low-level package/XML investigation,
-generator-internal changes, new DOCX capability work, or a conflict with
-historical design rationale.
+Ordinary production uses this file, `references/preferences.md`, and the directly
+relevant script. Read anything below only when its condition is actually met.
 
-Images are rare and always confirmed by the teacher first. When one is actually
-on the table, read `references/visuals.md` — it carries the confirmation gate,
-the honest state of the pipeline, and the set-diagram construction rules.
+| Read | When |
+|---|---|
+| `api-cheatsheet.md` | the shared-API audit fails, you are writing a new generator, or you are adding a structure you have not used before — it is the inventory of every shared function by layer plus the part-type and expression-kind vocabularies |
+| `shared-generator.md` | you need a worked example or a notation rule — vector accent, piecewise/cases, native integral/limit |
+| `qa-runner.md` | you need the contract schema, the full list of facts the runner checks, or the rendered-page tooling |
+| `visuals.md` | an image is on the table, and only after the teacher has confirmed it |
+| `batch-lifecycle.md` | one request produces several documents |
+| `capability-catalog.md` | choosing among promoted primitives, patterns, recipes or profiles |
+| `thai-math-docx-text.md` | unfamiliar OOXML, an OMML edge case, font-routing debugging, a fragile transcript or copy/paste behaviour, a repair failure, low-level package/XML work, generator-internal changes, new DOCX capability work, or a conflict with historical design rationale |
 
-For generator work, let the shared-API audit decide what you need to read:
+Open a script source only when its reference is insufficient.
+`generator-knowledge.json` is a maintenance data source, never routine reading.
 
-```bash
-python3 scripts/audit_generator_shared_api.py --root <generator-root>
-```
+Rules that hold whichever reference you opened:
 
-It must PASS before any generator's DOCX ships. If it **passes** and you are only
-changing that generator's DATA section, build and move on — you do not need the
-API inventory to edit data. Read `references/api-cheatsheet.md` when the audit
-**fails** (the generator still hand-rolls a shared helper and must be migrated),
-when you are writing a new generator, or when you are adding a structure you have
-not used before; it is the inventory of every shared function by layer (builder /
-layout / patterns / recipes / adapter) plus the part-type and expression-kind
-vocabularies. For a worked example or the notation rules (vector accent,
-piecewise/cases, native integral/limit), read `references/shared-generator.md`;
-open a script source only when both are insufficient.
-
-Start a new generator from `assets/generator-template.py` (copy it to the topic
-folder as `build_<slug>.py`, edit only its DATA section) rather than
-re-implementing shared helpers. `thai-font-normalize` plus the audits are the
-post-build repair and verification layer.
-
-Read `references/capability-catalog.md` when choosing among promoted primitives,
-patterns, recipes or profiles. The canonical `generator-knowledge.json` is a
-maintenance data source, not a reason to load the bulky historical evidence in
-ordinary document production.
-
-Before QA, read `references/qa-runner.md`. Use the unified runner for the
-per-file gate; use individual audit scripts only to diagnose a focused failure.
-When producing multiple outputs in one request or material stage, also read
-`references/batch-lifecycle.md`: QA remains per file, while knowledge review runs
-once only when the whole batch closes. An unfinished handoff checkpoints pending
-facts without reviewing them.
-
-Use bundled scripts when applicable (the shared generation layers, including the
-source adapter, are catalogued in `references/api-cheatsheet.md`):
-
-- `scripts/audit_generator_shared_api.py --root <generator-root>` — must PASS for
-  every generator you create or edit, before its DOCX ships
-- `scripts/verify_thai_math_docx.py check|fix-and-check ...` as the unified per-file QA gate
-- `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for multi-file batches
-- the focused `audit_docx_*.py` diagnostics only to isolate a failure the gate reported
+- `scripts/audit_generator_shared_api.py --root <generator-root>` must PASS for
+  every generator you create or edit, before its DOCX ships. A pass plus a
+  DATA-only change means you can build without reading the API inventory.
+- Start a new generator from `assets/generator-template.py`, copied to the topic
+  folder as `build_<slug>.py`, and edit only its DATA section, rather than
+  re-implementing shared helpers.
+- `thai-font-normalize` plus the audits are the post-build repair and
+  verification layer.
 
 ## Font Invariants
 

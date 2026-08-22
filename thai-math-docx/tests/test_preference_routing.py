@@ -36,11 +36,27 @@ class PreferenceRoutingTests(unittest.TestCase):
         self.assertIn("preference-evidence.md", skill)
 
     def test_deep_docx_reference_is_on_demand(self) -> None:
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        # Pins the routing, not the prose: the section may be a table or
+        # sentences, but the deep reference must stay condition-gated and the
+        # conditions themselves must survive a rewrite.
+        skill = " ".join((ROOT / "SKILL.md").read_text(encoding="utf-8").split())
         self.assertIn("Deep Reference — load on demand", skill)
-        self.assertIn("Do not read `references/thai-math-docx-text.md` by default", skill)
-        self.assertIn("unfamiliar OOXML behavior", skill)
-        self.assertIn("generator-internal changes", skill)
+        self.assertIn("only when its condition is actually met", skill)
+        self.assertIn("thai-math-docx-text.md", skill)
+        for condition in ("unfamiliar OOXML", "generator-internal changes",
+                          "conflict with historical design rationale"):
+            self.assertIn(condition, skill)
+
+    def test_every_on_demand_reference_exists(self) -> None:
+        # A routing row pointing at a file that was renamed or removed sends the
+        # agent nowhere; the earlier visuals.md rename broke five such pointers.
+        import re
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        section = skill[skill.index("## Deep Reference"):skill.index("## Font Invariants")]
+        named = set(re.findall(r"`([a-z0-9-]+\.md)`", section))
+        self.assertTrue(named, "the routing table names no references")
+        for name in sorted(named):
+            self.assertTrue((REFERENCES / name).exists(), f"routing points at missing {name}")
 
     def test_evidence_history_retains_all_confirmed_entries(self) -> None:
         evidence = (REFERENCES / "preference-evidence.md").read_text(encoding="utf-8")
