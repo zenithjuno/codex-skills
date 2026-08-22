@@ -22,15 +22,9 @@ This is a document-production skill, not a discussion-gated sandbox workflow. If
 
 ## Visual Truth
 
-Treat Microsoft Word on the user's machine as the visual truth.
-
-Split what a render can and cannot answer, rather than avoiding one:
-
-- **A fresh render answers** — did every block reach the page, are equations present and upright, roughly how many pages, is a table grossly misshapen, did a section land where it was meant to. A contact sheet costs about a quarter of what opening the pages separately costs, so this is the cheap first look.
-- **A fresh render does not answer** — exact line wrapping, precise spacing and kerning, pagination near a page boundary, or final visual quality. LibreOffice is not Word; never report those from a render.
-- **A stored render answers nothing.** Page images already sitting in a repository predate the current font setup and may have lost Thai runs or dropped OMML entirely. Never conclude from one that Thai wording or an equation is missing — re-render, or read the DOCX.
-
-For autonomous QA still inspect DOCX data as the primary evidence: section geometry, fixed table grid/widths, cell margins, paragraph spacing, font routing, and OMML/XML invariants. Microsoft Word inspection by the user remains the final visual gate.
+Microsoft Word on the teacher's machine is the visual authority.
+`preferences/validation-and-handoff.md` states exactly what a render can and
+cannot answer; do not restate it from memory.
 
 ## User Preference Routing
 
@@ -93,47 +87,15 @@ source adapter, are catalogued in `references/api-cheatsheet.md`):
 - `scripts/verify_thai_math_docx_batch.py start|add|handoff|close ...` for multi-file batches
 - the focused `audit_docx_*.py` diagnostics only to isolate a failure the gate reported
 
-## Core Typography
+## Font Invariants
 
-Default document invariants:
+Every generated or repaired Thai math DOCX sets both `docDefaults` and `Normal`
+to `ascii = Cambria`, `hAnsi = Cambria`, `cs = TH Sarabun New`, `sz = 24`,
+`szCs = 32`, `bidi = th-TH`, so the document survives Clear Formatting. Which
+font and size to use where is a preference — see
+`preferences/typography-and-editability.md`.
 
-- Thai prose/instructions/choices/units: `TH Sarabun New`, 16 pt, Complex Script route.
-- Latin/admin prose: `Cambria`, 12 pt.
-- Question numbers such as `1.`, `2.`, `3.`: Thai-style labels, `TH Sarabun New` 16 pt in all font slots.
-- Thai choice markers such as `ก.`, `ข.`, `ค.`, `ง.`: Thai-style labels.
-- Footer text and footer page fields: `TH Sarabun New` 12 pt throughout.
-- Real mathematical notation: editable Word Equation / OMML, not images.
-
-Every generated or repaired Thai math DOCX must set both `docDefaults` and `Normal`:
-
-- `ascii = Cambria`
-- `hAnsi = Cambria`
-- `cs = TH Sarabun New`
-- `sz = 24`
-- `szCs = 32`
-- `bidi = th-TH`
-
-## Page Geometry
-
-For every newly generated Thai mathematics DOCX, use A4 with `2.54 cm` (`1 in`)
-margins on all four sides unless the teacher explicitly supplies a different
-template or margin instruction. Do not narrow margins to force dense content
-onto a page. Instead, recompute fixed table widths inside the usable page width,
-restructure the layout, or continue content cleanly onto another page.
-
-### Standard table width
-
-Use the current named profile rather than inferring a width from the number of
-columns:
-
-- 1 column: `16 cm`
-- explicitly requested equal 2-column layout: `8.5 cm` per column (`17 cm` total)
-
-Keep the standard `2.54 cm` margins and do not silently shrink the explicit
-`8.5 cm × 2` layout to nominal text width. Use explicit fixed grid and cell
-widths. Deliberately unequal data tables require an explicit task contract.
-
-## Insertion-Safe Thai Runs
+### Insertion-safe Thai runs
 
 For ordinary Thai body runs, do not set every font slot to 16 pt. The visible Thai should be 16 pt through Complex Script, while future manually typed Latin after that run should inherit Cambria 12 pt behavior.
 
@@ -223,8 +185,7 @@ For imported/external DOCX repair, expose it as a first-class operation: normali
 ## Minimum Acceptance
 
 Acceptance is mechanical, not judged from memory: the unified
-`verify_thai_math_docx.py` gate must PASS (it enforces the typography, insertion
-safety, OMML, geometry and structure rules above) and `thai-font-normalize` must
-pass. Beyond the gates: paragraph spacing stays single (`1.0`) unless project
-context says otherwise, and the user's Microsoft Word inspection remains the
-final visual authority — report handoff readiness, never publication perfection.
+`verify_thai_math_docx.py` gate must PASS and `thai-font-normalize` must pass.
+The gate enforces the typography, insertion-safety, OMML, geometry and structure
+rules; the preference cards state them. Report handoff readiness, never
+publication perfection.

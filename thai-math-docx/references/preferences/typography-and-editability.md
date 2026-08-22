@@ -7,6 +7,8 @@ Use for every Thai mathematics DOCX.
   is not evidence to omit direct formatting from generated content.
 - Keep student-facing text, labels, answer lines, and tables editable in Word.
 - Real mathematical notation is editable Word Equation/OMML, not an image.
+- Footer text and footer page fields: `TH Sarabun New` 12 pt throughout.
+- Paragraph spacing stays single (`1.0`) unless project context says otherwise.
 
 For unfamiliar XML/run-level behavior or debugging, read
 `../thai-math-docx-text.md`; it is not a routine production read.
