@@ -21,7 +21,6 @@ class PreferenceRoutingTests(unittest.TestCase):
             "typography-and-editability.md",
             "page-layout.md",
             "math-notation.md",
-            "diagrams-and-visuals.md",
             "validation-and-handoff.md",
         }
         self.assertEqual(expected, {path.name for path in cards.glob("*.md")} - {"README.md"})

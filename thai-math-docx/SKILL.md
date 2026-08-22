@@ -51,9 +51,9 @@ copy/paste behavior, repair failures, low-level package/XML investigation,
 generator-internal changes, new DOCX capability work, or a conflict with
 historical design rationale.
 
-When creating or revising an editable SVG set/mathematics diagram that will be
-placed in Word, also read `references/svg-diagram-layering.md` for the confirmed
-physical-size, label, fill-layer, and Word-conversion rules.
+Images are rare and always confirmed by the teacher first. When one is actually
+on the table, read `references/visuals.md` — it carries the confirmation gate,
+the honest state of the pipeline, and the set-diagram construction rules.
 
 For any generator work — new or substantial regeneration — read
 `references/api-cheatsheet.md` first. It is the inventory of every shared

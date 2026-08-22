@@ -11,7 +11,7 @@ default.
 | Any Thai mathematics DOCX | [`preferences/typography-and-editability.md`](preferences/typography-and-editability.md) |
 | Page, table, columns, dotted lines, response space | [`preferences/page-layout.md`](preferences/page-layout.md) |
 | Math notation or set-builder notation | [`preferences/math-notation.md`](preferences/math-notation.md) |
-| SVG, Venn/Euler, or answer diagrams | [`preferences/diagrams-and-visuals.md`](preferences/diagrams-and-visuals.md) and `svg-diagram-layering.md` when creating the SVG |
+| An image of any kind — only after the teacher confirms it | [`visuals.md`](visuals.md) |
 | QA, render interpretation, or handoff status | [`preferences/validation-and-handoff.md`](preferences/validation-and-handoff.md) |
 | A project folder contains `DOCX-PREFERENCES.md` | Read it before these global cards; it owns that project's stable overrides. |
 | A rule is disputed or being changed | [`preference-evidence.md`](preference-evidence.md), filtered by its `Tags` or `PREF-` id |

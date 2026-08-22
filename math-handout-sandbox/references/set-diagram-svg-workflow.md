@@ -7,7 +7,7 @@ shading rules to unrelated visuals such as function graphs.
 
 For the generic constraints of placing editable SVG into Microsoft Word, also
 read the companion reference at
-`../thai-math-docx/references/svg-diagram-layering.md`.
+`../thai-math-docx/references/visuals.md`.
 
 ## Required asset pair
 

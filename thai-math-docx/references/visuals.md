@@ -1,7 +1,45 @@
-# Editable SVG Set-Diagram Layering
+# Visuals in a Thai Math DOCX
 
-This is the permanent construction reference for SVG set diagrams that a teacher
-will place in Microsoft Word and may later Convert to Shape/Object.
+Everything about putting a picture into a document lives here. Read it only when
+an image is actually on the table.
+
+## Before making any image
+
+**The teacher confirms every image before it is built.** Images are rare in this
+work and are never produced because a document "could" have one. Propose the
+image, say what it would show, and wait for an explicit yes.
+
+## Honest state of this pipeline
+
+Only one path is mature: **set diagrams** — Venn/Euler, shaded set operations,
+student templates. It has a deterministic builder, fixtures and QA assertions in
+the `math-handout-sandbox` skill (`references/set-diagram-builder-v1.md`, then
+`references/set-diagram-svg-workflow.md` for the scene schema). Use it for
+anything set-shaped.
+
+Every other visual — function graphs, number lines, geometry figures, tables
+drawn as pictures — has no builder, no fixtures and no QA. Treat that work as
+experimental: say so to the teacher, expect hand-tuning in Word, and do not
+present the result as a repeatable capability.
+
+## Asset policy
+
+- The SVG is the editable source asset for any diagram meant to stay
+  customizable. Never trace a raster image into an SVG source.
+- For a finished, text-heavy answer diagram that must stay visually stable in
+  Word, place an inline high-resolution PNG — at least 600 dpi at the intended
+  size — and keep equations editable outside the image.
+- Render a PNG golden first, have the teacher review it, and only then produce
+  the matching SVG-text source.
+
+## Set-diagram construction
+
+The rest of this file is the permanent construction reference for SVG set
+diagrams that a teacher will place in Microsoft Word and may later Convert to
+Shape/Object.
+
+- Venn diagrams use circles; Euler diagrams use ellipses.
+- Put each set label just outside its own boundary.
 
 ## Canonical rule — uniform union shading
 
@@ -45,8 +83,8 @@ shaded union without inventing a darker “third value.”
   `tspan`, or transforms on text.
 - Do not use `opacity`, `fill-opacity`, `mask`, `clipPath`, `filter`, or raster
   `<image>` elements for the uniform-union case.
-- Keep the `U` label near the set-circle group rather than stranded at a far
-  frame corner. Do not insert a white background rectangle by default.
+- Keep the `U` label near the set-circle group, **not** stranded at a far frame
+  corner. Do not insert a white background rectangle by default.
 - Render a PNG golden reference first, then create the matching SVG-text source.
   Microsoft Word after Convert to Shape/Object is the visual authority.
 
