@@ -51,12 +51,11 @@ relevant script. Read anything below only when its condition is actually met.
 | `shared-generator.md` | you need a worked example or a notation rule — vector accent, piecewise/cases, native integral/limit |
 | `qa-runner.md` | you need the contract schema, the full list of facts the runner checks, or the rendered-page tooling |
 | `visuals.md` | an image is on the table, and only after the teacher has confirmed it |
-| `batch-lifecycle.md` | one request produces several documents |
-| `capability-catalog.md` | choosing among promoted primitives, patterns, recipes or profiles |
 | `thai-math-docx-text.md` | unfamiliar OOXML, an OMML edge case, font-routing debugging, a fragile transcript or copy/paste behaviour, a repair failure, low-level package/XML work, generator-internal changes, new DOCX capability work, or a conflict with historical design rationale |
 
-Open a script source only when its reference is insufficient.
-`generator-knowledge.json` is a maintenance data source, never routine reading.
+Open a script source only when its reference is insufficient. Anything about
+maintaining the skill itself — adding a shared function, the knowledge base,
+batches — is in `references/maintenance.md` and is never production reading.
 
 Rules that hold whichever reference you opened:
 

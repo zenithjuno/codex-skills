@@ -36,8 +36,12 @@ SCENARIOS: dict[str, tuple[str, list[str]]] = {
     ),
     "batch": (
         "produce several documents in one request",
-        ALWAYS + ["references/api-cheatsheet.md",
-                  "references/batch-lifecycle.md", "references/capability-catalog.md"],
+        ALWAYS + ["references/api-cheatsheet.md", "references/maintenance.md",
+                  "references/batch-lifecycle.md"],
+    ),
+    "maintain": (
+        "change the skill itself — not production",
+        ["SKILL.md", "references/maintenance.md"],
     ),
     "visual": (
         "an image, after the teacher confirmed it",
