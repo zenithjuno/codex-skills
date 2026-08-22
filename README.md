@@ -76,7 +76,7 @@
 for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"; done
 ```
 
-ปล่อยการเปลี่ยนแปลงด้วย [protocol กลาง](docs/SKILL_RELEASE_PROTOCOL.md) เท่านั้น:
+ปล่อยการเปลี่ยนแปลงด้วย [protocol กลาง](skill-release/SKILL.md) เท่านั้น:
 
 ```bash
 cd ~/.codex/skills
