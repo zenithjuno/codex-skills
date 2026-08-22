@@ -12,8 +12,35 @@ import sys
 from typing import Iterable
 
 
+# Leaf helpers were protected from the start; the core assembly path was not, so
+# a generator could hand-roll `append_parts` and a central fix would never reach
+# it. That is exactly what happened: the 2026-08-22 trailing-Thai-run fix landed
+# in the shared `append_parts` and left two generators still emitting the bug.
+# Protect anything a correctness fix would be made inside.
 PROTECTED_HELPERS = {
     "add_dotted_response_lines",
+    "add_heading",
+    "add_paragraph",
+    "add_question_block",
+    "add_table",
+    "append_parts",
+    "append_parts_or_tables",
+    "configure_document",
+    "configure_paragraph",
+    "ensure_thai_insertion_safe_paragraph_end",
+    "math_omml",
+    "math_run",
+    "mop",
+    "mr",
+    "mtext",
+    "new_document",
+    "normalize_docx_theme_thai_fonts",
+    "save_docx",
+    "set_default_run_properties",
+    "set_latin_run",
+    "set_run_font",
+    "set_thai_label_run",
+    "thai_mtext",
     "add_media_block",
     "add_question_grid",
     "add_response_area",
