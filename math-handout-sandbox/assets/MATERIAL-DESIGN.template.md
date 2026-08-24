@@ -21,6 +21,39 @@ its scaffolding contract, and `design-only` produces no DOCX.
 One or two lines: what the learner should be able to do afterwards, and the
 misconception this material is aimed at.
 
+## Source observations
+
+What the reference material actually does — the textbook section, the old
+worksheet, the exam paper the teacher sent. Evidence, not opinion, and only the
+parts that shaped a decision here.
+
+| Item | What it does | Where it falls short |
+|---|---|---|
+
+Then say in one or two lines what this redesign fixes. If there is no reference
+material, delete this section.
+
+## Progression map
+
+The sequence and the job each item does in it. This is the section that makes a
+set teach instead of merely test, so write it before drafting the items.
+
+| # | Item | Answer (teacher) | Job of this item |
+|---|---|---|---|
+
+`Job of this item` is the point: what it establishes, what it contrasts with the
+item before it, or which decision it forces the learner to make. Follow the
+table with a short paragraph on why this order and where the difficulty steps
+up — and name any item pair that exists to be compared.
+
+## Anticipated errors
+
+Where learners go wrong, and where this material meets that. One line each, tied
+to the item number that handles it.
+
+| Misconception | Handled at |
+|---|---|
+
 ## Approved content
 
 Student-facing text is Thai and is written here exactly as it will be printed.
@@ -51,6 +84,18 @@ examples, `Scaffolding`.
 Only what differs from the topic's `DOCX-PREFERENCES.md`. If nothing differs,
 delete this section — do not restate the shared profile.
 
+## Artifact plan
+
+What the approved content becomes, and how to tell the build got it right.
+
+- **Page plan** — only when the split across pages matters to the teaching.
+- **Acceptance checks** — the content claims a reviewer can check on the built
+  document: which items must stay unchanged, what must not appear, what order
+  things must be in. These are content criteria; the QA gate covers the
+  mechanics and does not know any of this.
+
+Delete the plan when the deliverable is `design-only`.
+
 ## Open questions
 
 What is still waiting on the teacher. Delete when empty.
@@ -68,6 +113,8 @@ rework to reverse. A turn of discussion is not a decision.
 **Keep this note current, not cumulative.** Replace superseded wording, examples
 and decisions in place. When the reasoning behind a replaced choice is worth
 keeping, move it to `DESIGN-LOG-<slug>.md` and leave one pointer line here.
-Never keep both versions. A note that records every step of the conversation
-stops being readable and costs a fortune to reload — one in this project reached
-48,000 characters that way.
+Never keep both versions.
+
+Length is not the enemy — a transcript is. Analysis that explains why the
+sequence works earns its space; a record of every turn of the conversation does
+not, and one note in this project reached 48,000 characters that way.
