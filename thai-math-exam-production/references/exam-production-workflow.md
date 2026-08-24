@@ -2,7 +2,8 @@
 
 ## Foundation
 
-1. Parent preflight declares root, authority, routes and long-project control.
+1. Root, authority, routes and long-project control are declared — from the
+   project's `AGENTS.md` where it exists, otherwise by parent preflight.
 2. Analyze the reference exam item by item: topic, skill, intended trap,
    difficulty, ambiguity and keep/adapt/rebuild/merge/replace decision.
 3. Lock objective/written counts, points, total, passing threshold, book policy,

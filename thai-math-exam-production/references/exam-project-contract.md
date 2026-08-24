@@ -1,6 +1,7 @@
 # Exam Project Contract
 
-The exam skill owns structured exam state only. Parent Project Map/control owns
+The exam skill owns structured exam state only. The project's `AGENTS.md`, or
+the parent's Project Map/control where there is none, owns
 project authority and routing. DOCX, fonts, diagrams, blind correctness and
 handoff remain with their named skills.
 

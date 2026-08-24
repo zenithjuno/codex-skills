@@ -11,6 +11,8 @@ description: >
   formatting, or answer-key checking by itself.
 ---
 
+<!-- SKILL-VERSION: 2026.08.24 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
+
 # Thai Math Exam Production
 
 Own the exam blueprint, difficulty taxonomy, item map, variants, config-first
@@ -19,8 +21,14 @@ approval.
 
 ## Required routes
 
-Run parent `math-handout-sandbox` preflight first so the exam has a declared root,
-Project Map, authority matrix and material-control boundary. Announce routes:
+Orient through the parent `math-handout-sandbox`, but follow its current rule
+rather than always running preflight: **when the project has an `AGENTS.md`, that
+is the entrypoint** — take the project map, read boundaries, authority order and
+topic index from it, and do not run preflight. Run
+`math-handout-sandbox` preflight only when the project has no `AGENTS.md`, or
+root, scope, authority or routes are genuinely unclear. Either way the exam needs
+a declared root, an authority order and a material-control boundary before item
+work starts. Announce routes:
 
 - teaching/material design → `math-handout-sandbox`;
 - DOCX/OMML/layout and font-normalization path → `thai-math-docx`;
@@ -30,6 +38,11 @@ Project Map, authority matrix and material-control boundary. Announce routes:
 
 Do not copy those implementations here. Use coding `build-changelog` only when
 changing an exam generator/tool/skill, not for ordinary exam production.
+
+An exam paper is a `worksheet` in the parent's `Deliverable` vocabulary — the
+printed paper carries questions only. A separate detailed answer key is its own
+`answer-key` deliverable. `Scaffolding` does not apply to either; that axis is
+for teaching examples, not exam items.
 
 ## Start or resume
 
@@ -69,9 +82,12 @@ Never infer current state from chat memory when the config files exist.
    repeated nearby structures, score totals and time fit.
 10. Route a questions-only snapshot to `blind-answer-key-audit`; disagreements
     require adjudication and never silently rewrite the key.
-11. Export only approved structured content through `thai-math-docx` and its
-    mandatory QA/batch lifecycle. The DOCX is a handoff-ready working draft for
-    human finishing, not the unseen final product.
+11. Export only approved structured content through `thai-math-docx`. Its
+    `produce.py` is the whole production path — audit, build, gate, optional
+    contact sheet — and one gate covers the document; the batch lifecycle is
+    maintenance tooling, not part of ordinary export. The DOCX is a
+    handoff-ready working draft for human finishing, not the unseen final
+    product.
 
 Validate the relevant gate whenever state advances. Do not approve a later gate
 while an earlier prerequisite remains pending.
