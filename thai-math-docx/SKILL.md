@@ -12,7 +12,7 @@ description: >
   Thai text plus mathematical notation must remain editable and Word-compatible.
 ---
 
-<!-- SKILL-VERSION: 2026.08.22 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.24 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="6.3in" height="1.15in" viewBox="0 0 630 115">
+  <line x1="25" y1="78" x2="605" y2="78" stroke="#000000" stroke-width="1.8"/>
+  <polygon points="25,78 40,70 40,86" fill="#000000"/><polygon points="605,78 590,70 590,86" fill="#000000"/>
+  <line x1="90" y1="67" x2="90" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="165" y1="67" x2="165" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="240" y1="67" x2="240" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="315" y1="67" x2="315" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="390" y1="67" x2="390" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="465" y1="67" x2="465" y2="89" stroke="#000000" stroke-width="1.8"/><line x1="540" y1="67" x2="540" y2="89" stroke="#000000" stroke-width="1.8"/>
+  <line x1="240" y1="28" x2="465" y2="28" stroke="#000000" stroke-width="3"/>
+  <circle cx="240" cy="28" r="9" fill="#FFFFFF" stroke="#000000" stroke-width="2.4"/>
+  <circle cx="465" cy="28" r="9" fill="#000000"/>
+  <text x="231" y="110" font-family="Cambria" font-size="12pt" fill="#000000">−2</text>
+  <text x="461" y="110" font-family="Cambria" font-size="12pt" fill="#000000">4</text>
+</svg>

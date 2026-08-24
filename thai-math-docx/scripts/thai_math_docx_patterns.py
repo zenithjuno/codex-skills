@@ -5,10 +5,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any, Callable, Mapping, Sequence
+import xml.etree.ElementTree as ET
+from xml.sax.saxutils import escape
 
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import parse_xml
+from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+from docx.opc.part import Part
 from docx.shared import Cm
 
 import thai_math_docx_builder as builder
@@ -53,6 +60,107 @@ class MediaBlock:
     width_cm: float
     editable_source_path: str | Path | None = None
     contains_equations: bool = False
+
+
+def _svg_aspect_ratio(source: Path) -> float:
+    root = ET.fromstring(source.read_bytes())
+    view_box = root.get("viewBox")
+    if view_box:
+        values = [float(value) for value in re.split(r"[\s,]+", view_box.strip())]
+        if len(values) == 4 and values[2] > 0 and values[3] > 0:
+            return values[2] / values[3]
+
+    def numeric_dimension(name: str) -> float | None:
+        value = root.get(name)
+        if not value:
+            return None
+        match = re.fullmatch(r"\s*([0-9]+(?:\.[0-9]+)?)\s*(?:px|pt|pc|mm|cm|in)?\s*", value)
+        return float(match.group(1)) if match else None
+
+    width = numeric_dimension("width")
+    height = numeric_dimension("height")
+    if width and height and width > 0 and height > 0:
+        return width / height
+    raise ValueError(f"SVG requires a positive viewBox or numeric width and height: {source}")
+
+
+def add_svg_picture(
+    container: Any,
+    source_path: str | Path,
+    *,
+    width_cm: float,
+    alt_text: str | None = None,
+) -> Any:
+    """Embed an SVG package part as a centered inline Word picture."""
+    source = Path(source_path)
+    if source.suffix.lower() != ".svg" or not source.is_file():
+        raise ValueError(f"SVG source must be an existing .svg file: {source}")
+    if width_cm <= 0:
+        raise ValueError("SVG width_cm must be greater than zero")
+
+    paragraph = container.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    package = paragraph.part.package
+    svg_part = Part(
+        package.next_partname("/word/media/image%d.svg"),
+        "image/svg+xml",
+        source.read_bytes(),
+        package,
+    )
+    relationship_id = paragraph.part.relate_to(svg_part, RT.IMAGE)
+
+    doc_pr_ids = [
+        int(node.get("id", "0"))
+        for node in paragraph.part.element.iter(qn("wp:docPr"))
+        if node.get("id", "0").isdigit()
+    ]
+    drawing_id = max(doc_pr_ids, default=0) + 1
+    width_emu = int(Cm(width_cm))
+    height_emu = round(width_emu / _svg_aspect_ratio(source))
+    safe_name = escape(source.name, {'"': "&quot;"})
+    safe_description = escape(alt_text or source.stem, {'"': "&quot;"})
+
+    drawing = parse_xml(
+        f"""
+        <w:drawing xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+          xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+          xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+          xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <wp:inline distT="0" distB="0" distL="0" distR="0">
+            <wp:extent cx="{width_emu}" cy="{height_emu}"/>
+            <wp:effectExtent l="0" t="0" r="0" b="0"/>
+            <wp:docPr id="{drawing_id}" name="{safe_name}" descr="{safe_description}"/>
+            <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
+            <a:graphic>
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic>
+                  <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="{safe_name}"/>
+                    <pic:cNvPicPr/>
+                  </pic:nvPicPr>
+                  <pic:blipFill>
+                    <a:blip r:embed="{relationship_id}"/>
+                    <a:stretch><a:fillRect/></a:stretch>
+                  </pic:blipFill>
+                  <pic:spPr>
+                    <a:xfrm>
+                      <a:off x="0" y="0"/>
+                      <a:ext cx="{width_emu}" cy="{height_emu}"/>
+                    </a:xfrm>
+                    <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                    <a:noFill/>
+                    <a:ln><a:noFill/></a:ln>
+                  </pic:spPr>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+        """
+    )
+    paragraph.add_run()._r.append(drawing)
+    return paragraph
 
 
 def _validate_parts(parts: Sequence[Mapping[str, Any]], field: str) -> None:
@@ -202,17 +310,19 @@ def add_media_block(
     if block.media_kind == "svg-editable":
         if source.suffix.lower() != ".svg":
             raise ValueError("svg-editable media requires an .svg source")
-        if expert_extension is None:
-            raise UnsupportedCapabilityError(
-                "svg-word-insertion",
-                "the current python-docx path has no reviewed native SVG package inserter",
-                {
-                    "capability": "svg-word-insertion",
-                    "source_path": str(source),
-                    "required_policy": "keep editable SVG source; never rasterize silently",
-                },
-            )
-        return expert_extension.apply(container, {"block": block})
+        if expert_extension is not None:
+            return expert_extension.apply(container, {"block": block})
+        add_svg_picture(
+            container,
+            source,
+            width_cm=block.width_cm,
+            alt_text=source.stem,
+        )
+        return {
+            "media_kind": block.media_kind,
+            "source_path": str(source),
+            "needs_qa_review": True,
+        }
     raise UnsupportedCapabilityError(
         "media-kind",
         f"unknown media kind {block.media_kind!r}",

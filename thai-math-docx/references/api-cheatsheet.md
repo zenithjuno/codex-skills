@@ -40,6 +40,7 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 - `add_question_grid(document, questions, columns=…, cell_margins_twips=…)`
 - `add_worked_example(document, title, prompt_parts, steps, heading_fill=…)`
 - `add_response_area(container, label=…, line_count=…, dots=…)`
+- `add_svg_picture(container, source_path, width_cm=…, alt_text=…)` — native embedded SVG package part
 - `add_media_block(container, block, expert_extension=…)`
 
 ## recipes — `thai_math_docx_recipes` (whole-document assembly)

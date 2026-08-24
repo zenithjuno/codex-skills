@@ -44,6 +44,7 @@ PROTECTED_HELPERS = {
     "add_media_block",
     "add_question_grid",
     "add_response_area",
+    "add_svg_picture",
     "add_section_transition",
     "add_worked_example",
     "append_math",

@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import zipfile
 
 from docx import Document
 from docx.oxml.ns import qn
@@ -97,14 +98,34 @@ class MaterialPatternTests(unittest.TestCase):
         self.assertEqual("png-answer-visual", result["media_kind"])
         self.assertTrue(result["needs_qa_review"])
 
-    def test_svg_never_rasterizes_silently_and_expert_hook_is_marked(self) -> None:
+    def test_svg_inserts_native_package_media_without_rasterizing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "diagram.svg"
+            source.write_text(
+                "<svg xmlns='http://www.w3.org/2000/svg' width='6in' height='1in' viewBox='0 0 600 100'>"
+                "<line x1='0' y1='50' x2='600' y2='50' stroke='black'/></svg>",
+                encoding="utf-8",
+            )
+            block = patterns.MediaBlock(source, "svg-editable", 8.0)
+            document = Document()
+            result = patterns.add_media_block(document, block)
+            output = root / "svg.docx"
+            document.save(output)
+            with zipfile.ZipFile(output) as package:
+                media = [name for name in package.namelist() if name.endswith(".svg")]
+                self.assertEqual(1, len(media))
+                self.assertEqual(source.read_bytes(), package.read(media[0]))
+                self.assertIn(b"image/svg+xml", package.read("[Content_Types].xml"))
+                self.assertIn(b".svg", package.read("word/_rels/document.xml.rels"))
+        self.assertEqual("svg-editable", result["media_kind"])
+        self.assertTrue(result["needs_qa_review"])
+
+    def test_svg_expert_hook_remains_available_and_marked(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "diagram.svg"
-            source.write_text("<svg xmlns='http://www.w3.org/2000/svg'/>", encoding="utf-8")
+            source.write_text("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'/>", encoding="utf-8")
             block = patterns.MediaBlock(source, "svg-editable", 8.0)
-            with self.assertRaises(patterns.UnsupportedCapabilityError) as caught:
-                patterns.add_media_block(Document(), block)
-            self.assertEqual("svg-word-insertion", caught.exception.capability)
 
             extension = patterns.ReviewedExpertExtension(
                 name="svg-package-spike",

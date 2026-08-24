@@ -11,17 +11,23 @@ image, say what it would show, and wait for an explicit yes.
 
 ## Honest state of this pipeline
 
-Only one path is mature: **set diagrams** — Venn/Euler, shaded set operations,
-student templates. It has a deterministic builder, fixtures and QA assertions in
-the `math-handout-sandbox` skill — start at
-`../../math-handout-sandbox/references/set-diagram-builder-v1.md`, then its
-`set-diagram-svg-workflow.md` for the scene schema. Use it for anything
-set-shaped.
+Two paths have approved reusable support:
 
-Every other visual — function graphs, number lines, geometry figures, tables
-drawn as pictures — has no builder, no fixtures and no QA. Treat that work as
-experimental: say so to the teacher, expect hand-tuning in Word, and do not
-present the result as a repeatable capability.
+- **Set diagrams** — Venn/Euler, shaded set operations, student templates. They
+  have a deterministic builder, fixtures and QA assertions in the
+  `math-handout-sandbox` skill — start at
+  `../../math-handout-sandbox/references/set-diagram-builder-v1.md`, then its
+  `set-diagram-svg-workflow.md` for the scene schema.
+- **Worksheet number lines** — approved SVG reference assets live in
+  `../assets/number-line/`; use the native `add_svg_picture` pattern or an
+  `svg-editable` `MediaBlock` to package them directly in DOCX. The asset pack
+  covers blank axes, open/closed rays in both directions and a mixed bounded
+  interval. Adapt endpoint values and positions while preserving its geometry.
+
+Other visuals — function graphs, geometry figures, tables drawn as pictures —
+still have no builder, fixtures or QA. Treat that work as experimental: say so
+to the teacher, expect hand-tuning in Word, and do not present the result as a
+repeatable capability.
 
 ## Asset policy
 
@@ -32,6 +38,30 @@ present the result as a repeatable capability.
   size — and keep equations editable outside the image.
 - Render a PNG golden first, have the teacher review it, and only then produce
   the matching SVG-text source.
+
+## Number-line construction and DOCX insertion
+
+The approved number-line asset contract is in `../assets/number-line/STYLE.md`.
+Its non-negotiable geometry is a separate solution layer above the base axis,
+with every endpoint aligned vertically to its tick and no connector between
+them. Completed graphs label only important endpoints by default; blank student
+axes have no numbers.
+
+Insert a confirmed SVG natively rather than silently rasterizing it:
+
+```python
+from thai_math_docx_patterns import MediaBlock, add_media_block
+
+add_media_block(
+    document,
+    MediaBlock(source_path, "svg-editable", width_cm=16.0),
+)
+```
+
+Declare the output with an `svg-editable` media contract. The shared QA gate
+checks that SVG package parts are embedded and unlinked; every new document
+still receives a representative Microsoft Word placement review because SVG
+support outside Word varies.
 
 ## Set-diagram construction
 
