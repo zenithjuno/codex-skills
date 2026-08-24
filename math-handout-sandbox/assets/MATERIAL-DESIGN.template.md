@@ -1,5 +1,9 @@
 # Material Design — <ชื่อหัวข้อภาษาไทย>
 
+> Headings stay English so they stay searchable. Everything you write under them
+> is Thai, because the teacher reads this to judge and argue with it. Only the
+> `Contract` values are English — those are read by tooling.
+
 ## Contract
 
 - Slug: `<slug>`
@@ -16,49 +20,83 @@ document's role; `Scaffolding` states the support learners see. `worksheet`
 prints prompts only, `answer-key` prints complete solutions, `examples` follows
 its scaffolding contract, and `design-only` produces no DOCX.
 
-## Learning objective
-
-One or two lines: what the learner should be able to do afterwards, and the
-misconception this material is aimed at.
-
 ## Source observations
 
-What the reference material actually does — the textbook section, the old
-worksheet, the exam paper the teacher sent. Evidence, not opinion, and only the
-parts that shaped a decision here.
+สิ่งที่ของเดิมทำจริง — หนังสือเรียน แบบฝึกหัดเก่า หรือข้อสอบที่ครูส่งมา
+เขียนเป็นหลักฐาน ไม่ใช่ความเห็น และเฉพาะส่วนที่มีผลต่อการตัดสินใจในไฟล์นี้
 
-| Item | What it does | Where it falls short |
-|---|---|---|
+| ข้อเดิม | ผลลัพธ์ | สิ่งที่ได้ฝึกจริง | ปัญหาด้าน Material Design |
+|---|---|---|---|
 
-Then say in one or two lines what this redesign fixes. If there is no reference
-material, delete this section.
+`สิ่งที่ได้ฝึกจริง` คือคอลัมน์ที่ทำงานหนักที่สุด — โจทย์หลายข้อฝึกอย่างหนึ่ง
+แต่หน้าตาเหมือนฝึกอีกอย่าง เขียนสิ่งที่มันฝึกจริง ไม่ใช่สิ่งที่มันอ้างว่าฝึก
+
+จบด้วยหนึ่งถึงสองบรรทัดว่าชุดใหม่นี้แก้อะไร ถ้าไม่มีของเดิมให้ตรวจ ลบหัวข้อนี้ทิ้ง
+
+## Learning objective
+
+ทำครบชุดแล้วผู้เรียนควรทำอะไรได้ และแนวคิดแกนกลางของชุดนี้คืออะไร —
+เขียนแกนกลางเป็นประโยคเดียวที่ครูพูดออกเสียงในคาบได้จริง
 
 ## Progression map
 
-The sequence and the job each item does in it. This is the section that makes a
-set teach instead of merely test, so write it before drafting the items.
+ลำดับของชุด และหน้าที่ของแต่ละข้อในลำดับนั้น เขียนก่อนร่างโจทย์จริง
 
 | # | Item | Answer (teacher) | Job of this item |
 |---|---|---|---|
 
-`Job of this item` is the point: what it establishes, what it contrasts with the
-item before it, or which decision it forces the learner to make. Follow the
-table with a short paragraph on why this order and where the difficulty steps
-up — and name any item pair that exists to be compared.
+`Job of this item` คือหัวใจ: ข้อนี้ปูอะไร ขัดกับข้อก่อนหน้าตรงไหน
+หรือบังคับให้ผู้เรียนตัดสินใจอะไร
+
+ตามด้วยย่อหน้าสั้น ๆ ว่า **ทำไมเรียงแบบนี้ · ความซับซ้อนเพิ่มขึ้นตรงไหน ·
+ข้อไหนเป็นคู่ที่ตั้งใจให้เปรียบเทียบกัน**
+
+### ตรวจก่อนเสนอ — ตรวจกับชุดจริง ไม่ใช่กับแผน
+
+แผนที่ดีกับโจทย์ที่ดีเป็นคนละเรื่อง ชุดที่ผ่านแผนแล้วยังพังได้ด้วยสี่อาการนี้
+
+- ทุกข้อบังคับให้ตัดสินใจอะไรบางอย่างที่พลาดได้จริงไหม — ไม่ใช่ทำตามสูตรได้เลย
+- มีข้อไหนเป็นข้อก่อนหน้าที่เปลี่ยนแค่ตัวเลขไหม
+- ชนิดของงานเปลี่ยนกี่ครั้งตลอดชุด ไม่ใช่แค่ตัวเลขโตขึ้น
+- ข้อที่ยากที่สุดยังอยู่ในเป้าหมายของบทไหม หรือความยากไปโผล่ที่ทักษะอื่น
 
 ## Anticipated errors
 
-Where learners go wrong, and where this material meets that. One line each, tied
-to the item number that handles it.
+คลังความเข้าใจผิดของเรื่องนี้ — ไม่ใช่ทุกข้อต้องถูกจี้ในชุดนี้ บางอันรอไปลง
+ชุดถัดไปได้ ประโยชน์ของคลังคือเห็นภาพรวมแล้วเลือกจังหวะแทรกได้ดี
 
-| Misconception | Handled at |
+| ความเข้าใจผิด | จี้ไว้ที่ |
 |---|---|
+
+`จี้ไว้ที่` เขียนได้ว่า `ตัวอย่างที่ 2` · `ข้อ 4` · หรือ `ยังไม่ได้วาง` —
+ค่าสุดท้ายมีความหมาย มันคือรายการรอสำหรับชุดหน้า
+
+## Link to the teaching examples
+
+แบบฝึกหัดเป็นลูกของชุดตัวอย่างในเชิงประเด็นและ misconception ตารางนี้บอกว่า
+รับอะไรมาบ้าง และฝึกซ้ำที่ข้อไหน
+
+| ประเด็นที่สอนไว้ | สอนไว้ที่ | ฝึกที่ข้อ |
+|---|---|---|
+
+- ประเด็นที่ไม่มีเลขข้อ = สอนแล้วไม่ได้ฝึก
+- ข้อที่ไม่ปรากฏในคอลัมน์ขวา = ผู้เรียนย้อนกลับไปหาที่มาไม่ได้ ต้องเพิ่มตัวอย่าง
+  หรือตัดข้อนั้นทิ้ง
+
+`สอนไว้ที่` เขียนเป็นอะไรก็ได้ที่ชี้ที่มาได้จริง — `ตัวอย่างที่ 3` ·
+หัวข้อในหนังสือ · หรือชื่อโน้ตอื่น
+
+**ไม่มีชุดตัวอย่าง ก็ลบหัวข้อนี้ทิ้ง** แบบฝึกหัดที่ตั้งใจ craft ขึ้นมาลอย ๆ
+ไม่ต้อง link ไปไหน ให้สังเคราะห์ประเด็นเองใน `Progression map` และ
+`Anticipated errors` แทน
+
+เมื่อแก้ชุดตัวอย่างหรือชุดฝึก กลับมาแก้ตารางนี้ในเทิร์นเดียวกัน ไม่มีเครื่องมือ
+ไหนตรวจให้ได้ว่าประเด็นยังตรงกันอยู่
 
 ## Approved content
 
-Student-facing text is Thai and is written here exactly as it will be printed.
-Everything around it — headings, reasoning, notes to yourself — stays English.
-Maths is Unicode in inline code (`x²`, `−13⁄5`, `{x ∈ ℕ ∣ x < 5}`), never LaTeX.
+ข้อความที่นักเรียนจะอ่านเขียนที่นี่ตรงตามที่จะพิมพ์จริง คณิตศาสตร์เป็น Unicode
+ใน inline code (`x²`, `−13⁄5`, `{x ∈ ℕ ∣ x < 5}`) ไม่ใช้ LaTeX
 
 ### คำสั่ง
 
@@ -75,38 +113,44 @@ every item, so do not repeat it item by item.
 
 ### เฉลยและแนวคิด
 
-Complete solutions live here for every deliverable mode, including `worksheet`
-and faded examples. What reaches the DOCX follows both `Deliverable` and, for
-examples, `Scaffolding`.
+เฉลยเต็มอยู่ที่นี่ทุกโหมด รวมทั้ง `worksheet` และตัวอย่างแบบ faded
+สิ่งที่ไปถึง DOCX ขึ้นกับ `Deliverable` และ `Scaffolding`
+
+## Rejected alternative
+
+สิ่งที่พิจารณาแล้วไม่เอา พร้อมเหตุผล — ไม่ต้องเขียนทุกไอเดียที่ถูกทิ้ง เขียน
+เฉพาะอันที่คนอ่านทีหลังน่าจะเสนอซ้ำ เพื่อให้เขาเจอเหตุผลก่อนเสนอ
+
+---
+
+> ตั้งแต่บรรทัดนี้ลงไปเป็นส่วนสำหรับคนผลิตและสำหรับเก็บประวัติ ไม่ใช่ส่วนที่ครู
+> ต้องอ่านเพื่ออนุมัติ เขียนให้พอใช้งาน ไม่ต้องขัดเกลา
 
 ## Layout notes
 
-Only what differs from the topic's `DOCX-PREFERENCES.md`. If nothing differs,
-delete this section — do not restate the shared profile.
+เฉพาะสิ่งที่ต่างจาก `DOCX-PREFERENCES.md` ของหัวข้อนั้น ถ้าไม่ต่างเลย ลบทิ้ง —
+อย่าเขียนซ้ำโปรไฟล์ที่ใช้ร่วมกัน
 
 ## Artifact plan
 
-What the approved content becomes, and how to tell the build got it right.
+- **Page plan** — เขียนเมื่อการแบ่งหน้ามีผลต่อการสอนเท่านั้น
+- **Acceptance checks** — ข้อความที่ตรวจได้บนไฟล์ที่ build เสร็จ เช่น ข้อไหน
+  ต้องคงเดิม อะไรต้องไม่โผล่ อะไรต้องมาก่อนอะไร เกต QA ตรวจกลไกได้ แต่ไม่รู้
+  เรื่องพวกนี้เลย
 
-- **Page plan** — only when the split across pages matters to the teaching.
-- **Acceptance checks** — the content claims a reviewer can check on the built
-  document: which items must stay unchanged, what must not appear, what order
-  things must be in. These are content criteria; the QA gate covers the
-  mechanics and does not know any of this.
-
-Delete the plan when the deliverable is `design-only`.
+ลบทั้งหัวข้อเมื่อ `Deliverable: design-only`
 
 ## Open questions
 
-What is still waiting on the teacher. Delete when empty.
+อะไรที่ยังรอครูตอบ ว่างเมื่อไหร่ลบทิ้ง
 
 ## Decisions
 
 | Date | Decision | Why |
 |---|---|---|
 
-Durable decisions only — a decision the teacher accepted and that would cost
-rework to reverse. A turn of discussion is not a decision.
+เฉพาะการตัดสินใจที่ครูรับแล้วและย้อนกลับแล้วเสียแรง — การคุยหนึ่งรอบไม่ใช่
+การตัดสินใจ
 
 ---
 
