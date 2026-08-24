@@ -41,11 +41,19 @@ repeatable capability.
 
 ## Number-line construction and DOCX insertion
 
-The approved number-line asset contract is in `../assets/number-line/STYLE.md`.
-Its non-negotiable geometry is a separate solution layer above the base axis,
-with every endpoint aligned vertically to its tick and no connector between
-them. Completed graphs label only important endpoints by default; blank student
-axes have no numbers.
+**Start from the approved assets; do not draw a number line from scratch.**
+`../assets/number-line/` holds the standard set — `blank.svg`, the four ray
+variants, `bounded-mixed.svg`, an `approved-golden.png` reference, and
+`STYLE.md`, which is the contract: exact canvas size, stroke weights, the
+separate solution layer above the axis, endpoint radii, tick alignment and
+labelling. Read `STYLE.md` and edit a copy of the closest variant; changing the
+endpoint text and moving endpoint geometry to the required tick is the intended
+way to make a new one.
+
+These assets are a standard, not a library: a project keeps its own working copy
+(typically `<project>/assets/number-line/`) because generators load the SVG at
+build time. Copy the set in when a project first needs number lines, and treat
+`STYLE.md` as the source of truth in both places.
 
 Insert a confirmed SVG natively rather than silently rasterizing it:
 
