@@ -23,6 +23,7 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 from thai_math_docx_layout import get_current_layout_profile, set_table_fixed_widths_cm
+from thai_math_source_adapter import normalize_math_string
 
 
 M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -359,6 +360,23 @@ def item_to_omml_fragment(item: Any) -> str:
         return mop(value)
     if value == ",":
         return mtext(", ")
+    # Composite/implicit-product string such as "3x", "-2x", "ac", "2π", "x_1":
+    # decompose with the one shared grammar so a variable adjacent to a
+    # coefficient or another variable is still italic. Idempotent for atoms.
+    return compact_item_to_omml_fragment(value)
+
+
+def compact_item_to_omml_fragment(value: str) -> str:
+    tokens = normalize_math_string(value)
+    if tokens != [value]:
+        # grammar split it (e.g. "3x" -> ["3","x"], "x_1" -> [sub-dict]); render each
+        return "".join(item_to_omml_fragment(token) for token in tokens)
+    # one atomic token that matched no whitelist above: a product of single-letter
+    # variables like "ac"/"xy". Known functions are handled before we get here, so
+    # a bare multi-letter alphabetic run is variables. Deliberate upright
+    # multi-letter identifiers/units/labels must be passed as {"kind": "upright"}.
+    if value.isalpha() and len(value) > 1:
+        return "".join(mr(char) for char in value)
     return mtext(value)
 
 

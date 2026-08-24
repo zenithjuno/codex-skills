@@ -425,6 +425,16 @@ Italicize variables:
 </m:r>
 ```
 
+Variables stay italic **even when adjacent to a coefficient or another variable**.
+The builder decomposes compact string items such as `"3x"`, `"−2x"`, `"ac"`, and
+`"2π"` through the shared math grammar, so `3x` renders as an upright `3` run
+followed by an italic `x` run — you do not need to pre-split them into
+`["3", "x"]`. Known function names (`sin`, `cos`, `log`, `ln`, …) are never split.
+Deliberate multi-letter **upright** identifiers, units, or labels (e.g. `cm`,
+`kg`, a segment name `AB`) must be passed as an explicit `{"kind": "upright",
+"text": "…"}` node — a bare multi-letter alphabetic string is treated as a
+product of variables and italicized.
+
 Use upright/plain equation text for:
 
 - numerals

@@ -23,6 +23,13 @@ NS = {
     "v": "urn:schemas-microsoft-com:vml",
 }
 THAI_RE = re.compile(r"[\u0E00-\u0E7F]")
+# A coefficient fused to a lowercase variable inside a single upright run is the
+# composite-variable-italic bug signature (e.g. "3x","-2y","10n"). A correct
+# build always splits these into an upright coefficient + an italic variable, so
+# this pattern never appears legitimately. Uppercase is excluded to spare labels
+# like "3D". Pure letter-products ("ac") are covered by builder regression tests,
+# not here, because they collide with deliberate upright units/labels.
+FUSED_COEFF_VAR_RE = re.compile(r"[0-9][a-z\u03b1\u03b2\u03b3\u03b8\u03bc\u03c0\u03c3]")
 
 MATH_TAGS = {
     "oMath": "oMath",
@@ -112,6 +119,7 @@ def main() -> int:
     counts: Counter[str] = Counter()
     files_seen = []
     unformatted_thai_math = []
+    fused_coeff_var = []
 
     with zipfile.ZipFile(docx_path) as zf:
         for name, root in iter_word_xml(zf):
@@ -125,6 +133,10 @@ def main() -> int:
 
             for math_run in root.findall(".//m:oMath//m:r", NS):
                 text = text_content(math_run)
+                m_rpr = math_run.find("m:rPr", NS)
+                is_upright = m_rpr is not None and m_rpr.find("m:nor", NS) is not None
+                if is_upright and FUSED_COEFF_VAR_RE.search(text):
+                    fused_coeff_var.append((name, text.strip()))
                 if not THAI_RE.search(text):
                     continue
                 counts["thai_math_run_count"] += 1
@@ -166,6 +178,12 @@ def main() -> int:
         snippet = text if len(text) <= 40 else text[:37] + "..."
         failures.append(
             f"{name}: Thai text inside OMML lacks explicit Thai math formatting: {snippet!r}",
+        )
+    for name, text in fused_coeff_var:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        failures.append(
+            f"{name}: upright OMML run fuses a coefficient to a variable "
+            f"(variables must be italic): {snippet!r}",
         )
 
     if failures:

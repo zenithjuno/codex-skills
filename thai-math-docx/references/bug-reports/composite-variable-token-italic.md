@@ -1,5 +1,18 @@
 # Bug Report / Codex Handoff: 2026-08-24 — Composite variable tokens render upright
 
+> **RESOLVED 2026-08-24 (skill layer).** Fixed at the single choke point
+> `item_to_omml_fragment()` in `scripts/thai_math_docx_builder.py`: bare string
+> items are now decomposed through the shared `normalize_math_string` grammar
+> (imported from `thai_math_source_adapter.py` — no second grammar, no import
+> cycle), and a leftover multi-letter alphabetic token is rendered as a product
+> of italic single-variable runs. Known functions and explicit `upright` nodes
+> are untouched. Regression + audit red-green live in
+> `tests/test_composite_variable_italic.py`; the OMML audit
+> (`scripts/audit_docx_omml.py`) now fails any upright run that fuses a
+> coefficient to a lowercase variable. Remaining open item: rebuild and
+> teacher-confirm the affected real-numbers DOCX in Word.
+
+
 - Handoff date: `2026-08-24`
 - Handoff slug: `thai-math-docx-composite-variable-italic`
 - Scope kind: `work-object`
