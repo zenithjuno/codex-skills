@@ -516,7 +516,7 @@ def audit_docx(
         # scanning it would raise instead of reporting.
         plain_math = math_in_text.scan(path)
         failures.extend(
-            f"{part}: relational maths left in a plain-text run: {text[:80]!r}"
+            f"{part}: relation fused into one run instead of separate OMML tokens: {text[:80]!r}"
             for part, text in plain_math[:10]
         )
         _check(checks, "math-in-plain-text", "FAIL" if plain_math else "PASS", "Relational maths kept inside editable OMML", issue_count=len(plain_math))

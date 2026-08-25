@@ -459,7 +459,7 @@ class SingleCommandGateTests(unittest.TestCase):
             path = builder.save_docx(doc, Path(tmp) / "leak.docx")
             result = qa.audit_docx(path, qa.load_contract(None), mode="check")
         self.assertEqual("FAIL", result["verdict"])
-        self.assertTrue(any("plain-text run" in f for f in result["failures"]), result["failures"])
+        self.assertTrue(any("fused into one run" in f for f in result["failures"]), result["failures"])
 
 
 if __name__ == "__main__":

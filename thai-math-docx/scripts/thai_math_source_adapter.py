@@ -15,10 +15,12 @@ from typing import Any
 
 THOUSAND_RE = re.compile(r"\d{1,3}(?:,\d{3})+")
 MATH_TOKEN_RE = re.compile(
-    r"([A-Za-zαβγθμπσ]+[_^]−?\d+(?:\.\d+)?|[A-Za-zαβγθμπσ]+[_^][A-Za-zαβγθμπσ]+|−?\d+(?:\.\d+)?|[A-Za-z]+|[αβγθμπσ]|[ℝ∈∉⊂⊆∪∩×·|≥≤≠=+\-−*/(){}\[\],.!%:<>]|↔|→|⇒|⇔|∨|∧|∘)"
+    r"([A-Za-zαβγθμπσ]+[_^]−?\d+(?:\.\d+)?|[A-Za-zαβγθμπσ]+[_^][A-Za-zαβγθμπσ]+|−?\d+(?:\.\d+)?|[A-Za-z]+|[αβγθμπσ]|[ℝ∈∉⊂⊆∪∩×·|∣≥≤≠=+\-−*/(){}\[\],.!%:<>]|↔|→|⇒|⇔|∨|∧|∘)"
 )
 
-OPS_REQUIRING_TOKENIZATION = ["+", "−", "-", "=", "≥", "≤", "≠", "∈", "∪", "∩", "×", "|", "^", "_", "!", "%"]
+# "∣" is U+2223 (DIVIDES), the set-builder "such that" bar; without it a
+# set-builder authored as "{x∣x≤−1" fails tokenization and dumps upright.
+OPS_REQUIRING_TOKENIZATION = ["+", "−", "-", "=", "≥", "≤", "≠", "∈", "∪", "∩", "×", "|", "∣", "^", "_", "!", "%"]
 
 
 def normalize_math_string(value: Any) -> list[Any]:
