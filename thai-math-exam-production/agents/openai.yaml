@@ -2,3 +2,6 @@ interface:
   display_name: "Thai Math Exam Production"
   short_description: "Design and validate Thai math exam projects"
   default_prompt: "Use $thai-math-exam-production to scaffold and manage this Thai mathematics exam workflow."
+
+policy:
+  allow_implicit_invocation: true

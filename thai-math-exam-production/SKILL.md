@@ -11,7 +11,7 @@ description: >
   formatting, or answer-key checking by itself.
 ---
 
-<!-- SKILL-VERSION: 2026.08.24 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.08.25 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
 
 # Thai Math Exam Production
 
