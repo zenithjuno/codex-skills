@@ -265,7 +265,7 @@ def font(scene: Scene) -> ImageFont.FreeTypeFont:
 def text_rect(scene: Scene, text: str, center: tuple[float, float]) -> tuple[float, float, float, float]:
     bbox = font(scene).getbbox(text, anchor="mm")
     x, y = center[0] * scene.canvas.px, center[1] * scene.canvas.px
-    return tuple((value + origin) / scene.canvas.px for value, origin in zip(bbox, (x, y, x, y), strict=True))
+    return tuple((value + origin) / scene.canvas.px for value, origin in zip(bbox, (x, y, x, y)))
 
 
 def membership(point: tuple[float, float], circles: tuple[Circle, ...]) -> tuple[bool, ...]:
@@ -284,7 +284,9 @@ def rect_outside_circle(rect: tuple[float, float, float, float], circle: Circle,
 
 
 def rect_in_region(rect: tuple[float, float, float, float], circles: tuple[Circle, ...], target: tuple[bool, ...]) -> bool:
-    return all(rect_inside_circle(rect, circle) if is_inside else rect_outside_circle(rect, circle) for circle, is_inside in zip(circles, target, strict=True))
+    if len(circles) != len(target):
+        raise ValueError(f"circles/target length mismatch: {len(circles)} != {len(target)}")
+    return all(rect_inside_circle(rect, circle) if is_inside else rect_outside_circle(rect, circle) for circle, is_inside in zip(circles, target))
 
 
 def rect_in_frame(rect: tuple[float, float, float, float], frame: tuple[float, float, float, float] | None, canvas: Canvas, margin: float = 2.0) -> bool:

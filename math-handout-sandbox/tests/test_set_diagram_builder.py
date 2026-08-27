@@ -113,6 +113,11 @@ class SetDiagramBuilderTests(unittest.TestCase):
             with self.assertRaises(builder.SceneError):
                 builder.validate_numerals(scene)
 
+    def test_rect_in_region_rejects_length_mismatch(self):
+        circles = (builder.Circle("P", 50.0, 50.0, 30.0), builder.Circle("Q", 90.0, 50.0, 30.0))
+        with self.assertRaises(ValueError):
+            builder.rect_in_region((10.0, 10.0, 12.0, 12.0), circles, (True,))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
