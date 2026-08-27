@@ -3,6 +3,9 @@
 > Headings stay English so they stay searchable. Everything you write under them
 > is Thai, because the teacher reads this to judge and argue with it. Only the
 > `Contract` values are English — those are read by tooling.
+>
+> Which sections a note needs is set by `references/design-note-sections.md`:
+> the Spine below is always present; the rest is kept or deleted by its trigger.
 
 ## Contract
 
@@ -137,12 +140,14 @@ every item, so do not repeat it item by item.
 
 ## Artifact plan
 
+Opt-in — โน้ตส่วนใหญ่ไม่มีหัวข้อนี้ เพราะเรื่อง artifact มักตัดสินหน้างานระหว่างทาง
+ไม่ได้วางล่วงหน้า ใส่เฉพาะเมื่อการแบ่งหน้ามีผลต่อการสอน หรือมี acceptance check
+ที่ต้องระบุ นอกนั้นลบทั้งหัวข้อทิ้ง
+
 - **Page plan** — เขียนเมื่อการแบ่งหน้ามีผลต่อการสอนเท่านั้น
 - **Acceptance checks** — ข้อความที่ตรวจได้บนไฟล์ที่ build เสร็จ เช่น ข้อไหน
   ต้องคงเดิม อะไรต้องไม่โผล่ อะไรต้องมาก่อนอะไร เกต QA ตรวจกลไกได้ แต่ไม่รู้
   เรื่องพวกนี้เลย
-
-ลบทั้งหัวข้อเมื่อ `Deliverable: design-only`
 
 ## Open questions
 

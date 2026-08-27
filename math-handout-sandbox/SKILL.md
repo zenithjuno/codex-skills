@@ -90,7 +90,7 @@ deliverable needs. Unasked hoarding is what bloats a note into a transcript.
 **Maths is Unicode in inline code, never LaTeX** (`x²`, `−13⁄5`). Run
 `scripts/check_note_notation.py <note.md>` after writing a note; it fails on any
 LaTeX. Why, and what counts, live in that script's header and
-`references/material-design-note.md`.
+`references/design-note-conventions.md`.
 
 ## Mode C — approved production
 

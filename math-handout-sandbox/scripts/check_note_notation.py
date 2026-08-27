@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail a Markdown design note that writes maths as LaTeX instead of Unicode.
 
-The convention (references/material-design-note.md): maths in a design note is
+The convention (references/design-note-conventions.md): maths in a design note is
 literal Unicode inside inline code — ``x² = 16``, ``{x ∈ ℕ ∣ x < 5}`` — never raw
 TeX/LaTeX, which renders as source text in an ordinary Markdown viewer.
 
