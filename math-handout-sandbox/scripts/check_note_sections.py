@@ -43,26 +43,30 @@ KNOWN = set(SPINE) | {
 }
 
 HEADING = re.compile(r"^##[ \t]+(.+?)\s*$")
+# Source observations, when present, must end with a diagnosis of the source's
+# systemic weakness — the analytical heart that keeps the note from rubber-
+# stamping the original. Accept the Thai label too.
+DIAGNOSIS = re.compile(r"^###[ \t]+(?:Diagnosis|วินิจฉัย)\b", re.M)
 
 
-def section_headings(path: Path) -> list[str]:
+def section_headings(text: str) -> list[str]:
     """Top-level (`## `) headings, in order; deeper `###`/`####` are ignored."""
-    out: list[str] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        m = HEADING.match(line)
-        if m:
-            out.append(m.group(1))
-    return out
+    return [m.group(1) for line in text.splitlines()
+            for m in (HEADING.match(line),) if m]
 
 
 def scan(path: Path) -> list[tuple[str, str]]:
     """Return [(severity, message)]. severity in {'FAIL', 'REVIEW'}."""
-    heads = section_headings(path)
+    text = path.read_text(encoding="utf-8")
+    heads = section_headings(text)
     present = set(heads)
     issues: list[tuple[str, str]] = []
     for name in SPINE:
         if name not in present:
             issues.append(("FAIL", f"missing Spine section: ## {name}"))
+    if "Source observations" in present and not DIAGNOSIS.search(text):
+        issues.append(("FAIL", "## Source observations must end with a `### Diagnosis` "
+                               "(the source's systemic weakness, not a per-item note)"))
     for name in heads:
         if name in DROPPED:
             issues.append(("FAIL", f"dropped section belongs in the sheet index, not the note: ## {name}"))

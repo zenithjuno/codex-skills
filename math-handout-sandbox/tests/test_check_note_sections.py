@@ -46,8 +46,25 @@ class SpineTests(unittest.TestCase):
         self.assertEqual(2, sum(1 for s, _ in issues if s == "FAIL"))
 
     def test_conditional_and_optin_never_flagged(self):
-        note = SPINE_NOTE + "## Source observations\n## Scaffolding plan\n## Artifact plan\n"
+        note = SPINE_NOTE + "## Anticipated errors\n## Layout notes\n## Scaffolding plan\n## Artifact plan\n"
         self.assertEqual([], chk.scan(write(note)))
+
+    def test_source_observations_requires_diagnosis(self):
+        note = SPINE_NOTE + "## Source observations\n| ข้อเดิม |\n"
+        sev = [s for s, _ in chk.scan(write(note))]
+        self.assertIn("FAIL", sev)
+
+    def test_source_observations_with_diagnosis_passes(self):
+        note = SPINE_NOTE + "## Source observations\n\n| ข้อเดิม |\n\n### Diagnosis\nระบบพัง\n"
+        self.assertEqual([], chk.scan(write(note)))
+
+    def test_thai_diagnosis_label_accepted(self):
+        note = SPINE_NOTE + "## Source observations\n\n### วินิจฉัย\nจุดอ่อนเชิงระบบ\n"
+        self.assertEqual([], chk.scan(write(note)))
+
+    def test_no_source_observations_needs_no_diagnosis(self):
+        # A from-scratch note has neither section; that must be clean.
+        self.assertEqual([], chk.scan(write(SPINE_NOTE)))
 
     def test_unknown_heading_is_review_not_fail(self):
         note = SPINE_NOTE + "## Blueprint audit\n"

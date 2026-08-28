@@ -36,6 +36,32 @@ A note missing any of these cannot be argued or approved.
 | **Progression map** | The sequence and the job of each item. This is where approval actually happens — the teacher's most-valued section. |
 | **Approved content** | The material itself (assembled from `content-components.md`). |
 
+## Spine when adapting — Source observations
+
+**When the note adapts existing material (a book, an old sheet, an exam the
+teacher supplied), `Source observations` is Spine — not optional.** It is the
+oldest and most-valued shape in this project: the earliest notes made it Section
+1, a per-item pros/cons table that drove the whole redesign. Its purpose is to
+keep the design honest — without a real critique of the source, the note just
+agrees with whatever was already there.
+
+- **Analyze, then decide progression.** The table is `ข้อเดิม | ข้อดี |
+  ข้อเสีย/ความเสี่ยง | ตัดสิน → ไปไหน`. The last column (`เก็บ` / `ย้าย → ช่วง X` /
+  `ตัด` / `แทรกใหม่`) is the bridge: `Progression map` inherits from it, and every
+  placement traces back to a verdict here.
+- **Mandatory `### Diagnosis`.** The table ends with a one-paragraph diagnosis of
+  the source's *systemic* weakness (not per-item), which the new sequence answers.
+  `check_note_sections.py` fails a note that has `Source observations` without a
+  `### Diagnosis`.
+- **Two-sided honesty.** Do not manufacture problems to look thorough — a good
+  item is kept with the verdict `เก็บ`, and a genuinely sound source is affirmed
+  with reasons, never waved through as “all fine”. Equally, a source being adapted
+  is never passed without a real critique.
+- **Scale to the overhaul.** Heavy rework (reorder/replace many) earns a full
+  per-item before/after table — length is fine here. A light adaptation lists only
+  the items that move and confirms the rest are kept.
+- **From scratch (no source) → the section is absent**, and so is `Diagnosis`.
+
 ## Conditional — on by default, delete when it does not apply
 
 Ship the heading; remove it when its trigger is absent (do not leave it empty
@@ -43,7 +69,6 @@ except where noted).
 
 | Section | Include when | Data |
 |---|---|---|
-| **Source observations** | there is existing material (book, old sheet, exam) to critique | 50% new / 83% old — dropped in a trim, then restored |
 | **Anticipated errors** | the topic has misconceptions worth cataloguing for good timing | 50% new / 23% old |
 | **Decisions** | a choice was accepted and reversing it would cost real work; **may stay empty early on** | 100% new |
 | **Layout notes** | the layout differs from the topic's `DOCX-PREFERENCES.md`; else delete | 35% new |
