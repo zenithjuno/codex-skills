@@ -54,12 +54,25 @@ class SpineTests(unittest.TestCase):
         sev = [s for s, _ in chk.scan(write(note))]
         self.assertIn("FAIL", sev)
 
-    def test_source_observations_with_diagnosis_passes(self):
-        note = SPINE_NOTE + "## Source observations\n\n| ข้อเดิม |\n\n### Diagnosis\nระบบพัง\n"
+    def test_full_adapting_pipeline_passes(self):
+        note = (SPINE_NOTE + "## Source observations\n\n| ข้อเดิม |\n\n### Diagnosis\nระบบพัง\n"
+                + "## Recommended revision\n| ลำดับเสนอ |\n")
         self.assertEqual([], chk.scan(write(note)))
 
     def test_thai_diagnosis_label_accepted(self):
-        note = SPINE_NOTE + "## Source observations\n\n### วินิจฉัย\nจุดอ่อนเชิงระบบ\n"
+        note = (SPINE_NOTE + "## Source observations\n\n### วินิจฉัย\nจุดอ่อนเชิงระบบ\n"
+                + "## Recommended revision\n")
+        self.assertEqual([], chk.scan(write(note)))
+
+    def test_source_without_revision_is_review(self):
+        # Analyzed a source but proposed no revision — nudge, not a hard fail.
+        note = SPINE_NOTE + "## Source observations\n\n### Diagnosis\nระบบพัง\n"
+        issues = chk.scan(write(note))
+        self.assertEqual([("REVIEW", issues[0][1])], issues)
+        self.assertIn("Recommended revision", issues[0][1])
+
+    def test_recommended_revision_not_unknown(self):
+        note = SPINE_NOTE + "## Recommended revision\n| ลำดับเสนอ |\n"
         self.assertEqual([], chk.scan(write(note)))
 
     def test_no_source_observations_needs_no_diagnosis(self):

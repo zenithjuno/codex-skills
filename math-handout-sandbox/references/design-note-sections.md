@@ -36,31 +36,52 @@ A note missing any of these cannot be argued or approved.
 | **Progression map** | The sequence and the job of each item. This is where approval actually happens — the teacher's most-valued section. |
 | **Approved content** | The material itself (assembled from `content-components.md`). |
 
-## Spine when adapting — Source observations
+## Spine when adapting — the source-critique pipeline
 
-**When the note adapts existing material (a book, an old sheet, an exam the
-teacher supplied), `Source observations` is Spine — not optional.** It is the
-oldest and most-valued shape in this project: the earliest notes made it Section
-1, a per-item pros/cons table that drove the whole redesign. Its purpose is to
-keep the design honest — without a real critique of the source, the note just
-agrees with whatever was already there.
+When the note adapts existing material (a book, an old sheet, an exam the teacher
+supplied), it must critique that source before proposing anything — otherwise the
+note just agrees with whatever was already there. This is the oldest, most-valued
+shape in the project. Three staged sections carry it, in order: **observe →
+diagnose → recommend.**
 
-- **Analyze, then decide progression.** The table is `ข้อเดิม | ข้อดี |
-  ข้อเสีย/ความเสี่ยง | ตัดสิน → ไปไหน`. The last column (`เก็บ` / `ย้าย → ช่วง X` /
-  `ตัด` / `แทรกใหม่`) is the bridge: `Progression map` inherits from it, and every
-  placement traces back to a verdict here.
-- **Mandatory `### Diagnosis`.** The table ends with a one-paragraph diagnosis of
-  the source's *systemic* weakness (not per-item), which the new sequence answers.
-  `check_note_sections.py` fails a note that has `Source observations` without a
-  `### Diagnosis`.
-- **Two-sided honesty.** Do not manufacture problems to look thorough — a good
-  item is kept with the verdict `เก็บ`, and a genuinely sound source is affirmed
-  with reasons, never waved through as “all fine”. Equally, a source being adapted
-  is never passed without a real critique.
-- **Scale to the overhaul.** Heavy rework (reorder/replace many) earns a full
-  per-item before/after table — length is fine here. A light adaptation lists only
-  the items that move and confirms the rest are kept.
-- **From scratch (no source) → the section is absent**, and so is `Diagnosis`.
+- **`Source observations` — Spine when adapting.** A per-item `ข้อเดิม | ข้อดี |
+  ข้อเสีย/ความเสี่ยง` table — observation only: what each item really trains, where
+  it is strong or risky. No verdict here; where an item should go is a *proposal*,
+  and proposals live in `Recommended revision`.
+- **`### Diagnosis` — mandatory.** Ends the table with the source's *systemic*
+  weakness (not per-item), as one paragraph or a `สิ่งที่ดี / สิ่งที่ยังไม่ดี` split.
+  `check_note_sections.py` FAILs a `Source observations` without a `### Diagnosis`
+  (Thai `วินิจฉัย` accepted).
+- **`Recommended revision` — nearly Spine when adapting.** Its own `##` section,
+  because it aggregates observations, progression and misconception coverage into
+  one proposal: a `ลำดับเสนอ | โจทย์ | หน้าที่ | คำตอบ` table plus rationale and any
+  alternative, closing with a `### Decision needed` that frames the fork neutrally.
+  Being a fresh sequence it can hold **new** items the source never had — which the
+  source-bound observations table cannot. A genuinely sound source collapses it to a
+  one-line “keep all”. `check_note_sections.py` REVIEWs (not FAILs) a note that
+  analyzed a source but proposed no revision.
+- **Two-sided honesty.** Do not manufacture problems to look thorough — a sound
+  item is affirmed with reasons, never waved through as “all fine”; equally, a
+  source being adapted is never passed without a real critique.
+- **Scale to the overhaul.** Heavy rework earns a full before/after — length is
+  fine. A light adaptation observes only the items with a real point and proposes a
+  minimal revision.
+- **From scratch (no source) → all three are absent.**
+
+### Content boundary — one weakness, different lenses (not repeated three times)
+
+A single weakness may surface in several sections, but each writes a *different*
+thing. Keeping to these lanes is what stops an agent from saying the same thing
+three ways — and it is a definition, not something a script can enforce.
+
+| Section | Writes ONLY | Never writes (goes elsewhere) |
+|---|---|---|
+| **Source observations** | per-item strengths/risks of the source | the fix or move → `Recommended revision`; the whole-set pattern → `Diagnosis` |
+| **Diagnosis** | the one systemic weakness of the set | per-item notes → `Source observations`; the fix → `Recommended revision` |
+| **Progression map** | the *current* sequence + whether difficulty climbs | the *proposed* new sequence → `Recommended revision` |
+| **Anticipated errors** | misconception inventory + `สถานะ` coverage (covered / gap / new) | how to close a gap → `Recommended revision` |
+| **Recommended revision** | the proposal: new order, inserts, cuts, rationale, alternative | raw observation → `Source observations` |
+| **Decision needed** | the teacher's choice framed neutrally (A vs B) | a recommendation of which to pick (that is the proposal above) |
 
 ## Conditional — on by default, delete when it does not apply
 

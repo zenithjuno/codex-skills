@@ -37,8 +37,9 @@ DROPPED = {"Status", "Approval gate"}
 # Every heading that is a legitimate top-level section of a note (Spine +
 # Conditional + Opt-in). A `##` outside this set is a soft REVIEW.
 KNOWN = set(SPINE) | {
-    "Source observations", "Anticipated errors", "Decisions", "Layout notes",
-    "Scaffolding plan", "Link to the teaching examples", "Rejected alternative",
+    "Source observations", "Recommended revision", "Anticipated errors",
+    "Decisions", "Layout notes", "Scaffolding plan",
+    "Link to the teaching examples", "Rejected alternative",
     "Open questions", "Artifact plan",
 }
 
@@ -67,6 +68,9 @@ def scan(path: Path) -> list[tuple[str, str]]:
     if "Source observations" in present and not DIAGNOSIS.search(text):
         issues.append(("FAIL", "## Source observations must end with a `### Diagnosis` "
                                "(the source's systemic weakness, not a per-item note)"))
+    if "Source observations" in present and "Recommended revision" not in present:
+        issues.append(("REVIEW", "## Source observations without a ## Recommended revision — "
+                                 "a source was analyzed but no revision proposed; intended?"))
     for name in heads:
         if name in DROPPED:
             issues.append(("FAIL", f"dropped section belongs in the sheet index, not the note: ## {name}"))
