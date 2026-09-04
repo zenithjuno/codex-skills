@@ -38,9 +38,9 @@ Full six-part detail exists for `ACTIVE`/foundation stages; later `PLANNED` stag
 
 | Stage | Name | Lifecycle | Outcome |
 |---|---|---|---|
-| `S01` | regression baseline | `PLANNED` | |
-| `S02` | qa.py gate math scan (CHG-001) | `PLANNED` | |
-| `S03` | builder lazy math-grammar import | `PLANNED` | |
+| `S01` | regression baseline | `PASS` | |
+| `S02` | qa.py gate math scan (CHG-001) | `PASS` | |
+| `S03` | builder lazy math-grammar import | `ACTIVE` | |
 | `S04` | thai-docx skeleton + SKILL.md | `PLANNED` | ครูเห็น description/ทริกของสกิลใหม่ ชัดว่าใช้ตอนไหน ไม่ชนกับ math |
 | `S05` | dependency + render-env preflight | `PLANNED` | ครูเห็นว่าถ้าขาด LibreOffice/ฟอนต์/สกิลพี่น้อง มันฟ้องบอกวิธีแก้ ไม่เงียบ |
 | `S06` | prose+table generate (core, math-free) | `PLANNED` | ครูเห็นเอกสารไทย prose+ตารางที่สร้างจาก engine ไทยถูก |

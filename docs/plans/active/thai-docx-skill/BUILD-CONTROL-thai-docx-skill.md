@@ -39,12 +39,12 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **NOT STARTED — awaiting plan approval**
-- Completed: none
-- Next action: on `Approve plan thai-docx-skill — start S01`, create branch + baseline + P01 log, begin S01.
-- Active gate: plan approval
-- Active history log: (none yet)
-- Last change: control plane created (design phase)
+- Current stage: **S03 — ACTIVE** (builder lazy `normalize_math_string` import)
+- Completed: S01 (baseline 137 OK), S02 (qa scan gated + CHG-001; suite 140 OK; checkpoint `build/thai-docx-skill/S02`)
+- Next action: finish S03 builder edit + builder no-leak test → gate `Pass S03`.
+- Active gate: **S03** (`Pass S03` / `Fail S03 — reason`)
+- Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
+- Last change: 2026-09-04 S02 committed; starting S03.
 
 ## VERSION CONTROL
 - Mode: `git`. Repo root: `~/.codex/skills`.

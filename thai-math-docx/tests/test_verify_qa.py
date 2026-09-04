@@ -501,11 +501,18 @@ class UnifiedQaCliTests(unittest.TestCase):
 class SingleCommandGateTests(unittest.TestCase):
     """One command must cover the whole document.
 
-    math-in-plain-text used to be a second script a worker had to remember.
-    Anything a worker could forget to run belongs inside the gate.
+    Anything a worker could forget to run belongs inside the gate. The one
+    deliberate exception (CHG-001, thai-docx seam) is the plain-text-math scan:
+    it false-fails on ordinary prose relations (e.g. "คะแนน ≥ 80"), so it runs
+    only when the document is a math document (math.required, or equations
+    present) and is legitimately absent for a declared math-free document.
     """
 
-    def test_gate_reports_every_document_check(self) -> None:
+    ALWAYS = ("package-xml-integrity", "thai-fonts-defaults-theme-insertion",
+              "omml-editability", "geometry-table-shape", "media-contract",
+              "mutation-provenance")
+
+    def _audit(self, math_required: bool):
         import tempfile
         import thai_math_docx_builder as builder
         import thai_math_docx_qa as qa
@@ -515,14 +522,23 @@ class SingleCommandGateTests(unittest.TestCase):
             path = builder.save_docx(doc, Path(tmp) / "gate.docx")
             contract = qa.normalize_contract({
                 "schema_version": "1.0.0", "layout": "standard-a4", "media": "none",
-                "source_mode": "generated", "math": {"required": False},
+                "source_mode": "generated", "math": {"required": math_required},
             })
             result = qa.audit_docx(path, contract, mode="check")
-        ids = {check["id"] for check in result["checks"]}
-        for expected in ("package-xml-integrity", "thai-fonts-defaults-theme-insertion",
-                         "omml-editability", "math-in-plain-text",
-                         "geometry-table-shape", "media-contract", "mutation-provenance"):
+        return {check["id"] for check in result["checks"]}
+
+    def test_gate_reports_every_document_check_for_a_math_document(self) -> None:
+        ids = self._audit(math_required=True)
+        for expected in self.ALWAYS:
             self.assertIn(expected, ids)
+        self.assertIn("math-in-plain-text", ids)
+
+    def test_math_free_document_runs_every_check_except_the_gated_plain_text_scan(self) -> None:
+        ids = self._audit(math_required=False)
+        for expected in self.ALWAYS:
+            self.assertIn(expected, ids)
+        # CHG-001: the plain-text-math scan is gated off for a declared math-free doc.
+        self.assertNotIn("math-in-plain-text", ids)
 
     def test_relational_maths_in_plain_text_fails_the_gate(self) -> None:
         import tempfile
