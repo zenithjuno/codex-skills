@@ -473,22 +473,32 @@ def append_math(paragraph: Any, expr: dict[str, Any] | list[Any] | str) -> None:
     paragraph._p.append(parse_xml(math_omml(expr)))
 
 
-def ensure_thai_insertion_safe_paragraph_end(paragraph: Any) -> None:
-    """Close a paragraph that ends with an equation with a Thai body run.
+INSERTION_ANCHOR_TEXT = "\u00a0\u00a0"
 
-    Word inherits formatting from the run to the left of the cursor. A
-    paragraph whose last child is ``m:oMath`` leaves an OMML run there, so an
-    empty insertion-safe Thai run is appended for manual typing to inherit.
+
+def append_insertion_anchor(paragraph: Any, text: str = INSERTION_ANCHOR_TEXT) -> None:
+    """Append a Word-persistent run with safe Thai/Latin inheritance."""
+    set_thai_body_run(paragraph.add_run(text))
+
+
+def ensure_thai_insertion_safe_paragraph_end(paragraph: Any) -> None:
+    """Close a paragraph-ending equation with a persistent safe text run.
+
+    Word removes empty ``w:r`` elements when it opens and saves a document.
+    Two non-breaking spaces keep this boundary run alive so text typed after
+    the equation inherits Cambria 12 pt for Latin and TH Sarabun New 16 pt for
+    Thai. Label-to-equation deletion safety is handled separately by the
+    leading anchor inserted in ``append_parts``.
     """
     trailing_tags = (qn("w:r"), qn("m:oMath"), qn("m:oMathPara"))
     trailing = [child for child in paragraph._p if child.tag in trailing_tags]
     if not trailing or trailing[-1].tag == qn("w:r"):
         return
-    set_thai_body_run(paragraph.add_run())
+    append_insertion_anchor(paragraph)
 
 
 def append_parts(paragraph: Any, parts: list[dict[str, Any]]) -> None:
-    for part in parts:
+    for index, part in enumerate(parts):
         part_type = part["type"]
         if part_type == "text":
             run = paragraph.add_run(part["text"])
@@ -497,8 +507,17 @@ def append_parts(paragraph: Any, parts: list[dict[str, Any]]) -> None:
             run = paragraph.add_run(part["text"])
             set_latin_run(run, bold=part.get("bold"))
         elif part_type == "label":
-            run = paragraph.add_run(part["text"])
+            label_text = str(part["text"])
+            next_is_math = index + 1 < len(parts) and parts[index + 1].get("type") == "math"
+            if next_is_math:
+                # Keep the persistent safe run on the side that survives when
+                # the user selects and deletes the equation. Trailing ordinary
+                # spaces belong to the safe anchor, not the all-slot Thai label.
+                label_text = label_text.rstrip(" \t\u00a0")
+            run = paragraph.add_run(label_text)
             set_thai_label_run(run, bold=part.get("bold", True), size=part.get("size", 16))
+            if next_is_math:
+                append_insertion_anchor(paragraph)
         elif part_type == "math":
             append_math(paragraph, part.get("expr", part))
         elif part_type == "line_break":

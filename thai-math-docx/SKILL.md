@@ -12,7 +12,7 @@ description: >
   Thai text plus mathematical notation must remain editable and Word-compatible.
 ---
 
-<!-- SKILL-VERSION: 2026.08.25 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.04 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -52,6 +52,7 @@ relevant script. Read anything below only when its condition is actually met.
 | `qa-runner.md` | you need the contract schema, the full list of facts the runner checks, or the rendered-page tooling |
 | `visuals.md` | an image is on the table, and only after the teacher has confirmed it |
 | `thai-math-docx-text.md` | unfamiliar OOXML, an OMML edge case, font-routing debugging, a fragile transcript or copy/paste behaviour, a repair failure, low-level package/XML work, generator-internal changes, new DOCX capability work, or a conflict with historical design rationale |
+| `CHANGELOG.md` | you need a compact account of recent behavior changes before debugging, reorganizing, or merging another skill branch |
 
 Open a script source only when its reference is insufficient. Anything about
 maintaining the skill itself — adding a shared function, the knowledge base,
@@ -92,11 +93,16 @@ Ordinary Thai body runs should carry:
 Reserve all-slot `TH Sarabun New` 16 pt for intentionally Thai-styled labels/titles, especially question labels and Thai choice markers.
 
 The same rule applies at equation boundaries, because Word formats text typed at
-the cursor from the run to its left:
+the cursor from the surrounding persistent run state:
 
 - OMML runs carry `w:szCs = 32`, so Thai typed after an equation stays 16 pt
-- a paragraph never ends on `m:oMath`; `append_parts` closes it with an empty
-  Thai body run
+- a paragraph never ends on `m:oMath`; `append_parts` closes it with a
+  non-empty, insertion-safe anchor (`NBSP`) carrying Cambria 12 pt in the
+  Latin slots and TH Sarabun New 16 pt in the Complex Script slot
+- when an all-slot Thai label is followed immediately by math, `append_parts`
+  also places the safe anchor *before* the equation; this is the anchor that
+  survives when the teacher selects and deletes that equation
+- an empty `w:r` is not an anchor: Microsoft Word removes it on open/save
 
 `audit_docx_insertion_safety.py` fails the build on both.
 
@@ -114,11 +120,20 @@ left in a plain Cambria/Thai run:
 - native integral, binomial, and limit nodes when they preserve source meaning better than compatibility notation
 - known function notation such as `sin`, `cos`, `tan`, `log`, `ln`
 
+Never feed linear Unicode notation such as `√18`, `∛(−64)`, or `1⁄2` to a
+generic math text run. Build roots and stacked fractions as explicit `rad` and
+`frac` nodes. Build operator precedence in the expression tree: binary `−` and
+`=` belong outside adjacent fractions; a product numerator contains every
+factor; parentheses stay only when they are mathematical factors, not merely
+source-parser scope. If a project accepts a linear source language, test its
+parser against these tree shapes before generating the DOCX.
+
 Use upright/roman math for known function names; do not italicize `sin`, `cos`, `log`, etc. Avoid empty OMML function nodes such as an empty `<m:func>` argument for forms like `log_2 x`.
 
 Emit math operators as tight OMML tokens without literal preserved spaces. For example, generate `=`, `∪`, `∩`, `+`, `−`, `≤`, and `∈` as their own math tokens and let Microsoft Word's equation engine handle spacing. Do not emit `" = "` or `" ∪ "` as preserved text spaces, and never bury an operator like `< 0` inside a `{"type": "text", …}` part. Comma-list punctuation such as `", "` and explicit Thai connectors are separate exceptions.
 
-The QA gate fails a document that left a relational operator in a plain-text
+The OMML audit fails literal structural glyphs (`√`, `∛`, `⁄`) inside `m:t`.
+The QA gate also fails a document that left a relational operator in a plain-text
 run; `scripts/audit_docx_math_in_text.py` runs that check alone when you need to
 isolate it, and its header explains why.
 

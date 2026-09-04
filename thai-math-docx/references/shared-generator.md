@@ -111,6 +111,21 @@ Use these part types when calling `append_parts` or `add_paragraph`:
 
 Thai body text is insertion-safe: `w:sz=24`, `w:szCs=32`, Thai routes through Complex Script, and future manually typed Latin after the Thai run does not inherit 16 pt.
 
+When an all-slot Thai `label` is followed by `math`, `append_parts` removes the
+label's trailing ordinary whitespace and writes a persistent two-`NBSP` safe
+anchor *before* the equation. If the final inline part is math it writes another
+safe anchor after the equation. This sandwich has two different jobs: the
+leading anchor survives selecting/deleting the equation, while the trailing
+anchor controls text typed immediately outside it. A trailing-only spike failed
+the deletion test because selecting the equation removed that anchor with it.
+
+Do not replace either boundary with an empty run: Word removes empty `w:r`
+elements on open/save. The insertion-safety audit treats a label touching an
+equation, an empty boundary run, an ordinary trailing space, or an `NBSP` anchor
+with unsafe effective font slots as a failure. Word may remove redundant direct
+run properties after save; the audit resolves inherited `docDefaults`/`Normal`
+values before judging the anchor.
+
 ## OMML Expression Kinds
 
 The shared builder supports these expression kinds:
@@ -139,6 +154,28 @@ The shared builder supports these expression kinds:
 - `cases`
 
 Operators such as `=`, `∪`, `∩`, `+`, `−`, `<`, `≤`, `∈`, `∧`, `∨`, `↔`, `→`, and `:` are emitted as tight OMML tokens. Do not add literal preserved spaces around them.
+
+### Structural roots and fractions
+
+Do not pass linear Unicode roots or fraction slashes through `expr`, `plain`,
+or `upright`. The strings `√18`, `∛(−64)`, and `1⁄2` may look plausible but
+remain glyphs inside `m:t`; the OMML audit rejects them. Use explicit trees:
+
+```python
+cube_root = {"kind": "rad", "deg": ["3"], "items": ["−", "64"]}
+difference = expr([frac("3", "x"), "−", frac("9", ["x", "+", "1"])])
+product_fraction = frac(
+    [paren(["x", "−", "6"]), paren(["x", "+", "4"])],
+    paren(["x", "+", "3"]),
+)
+equation = expr([frac("A", "B"), "=", frac("15", ["x", "+", "1"])])
+```
+
+The outer `expr` owns binary operators such as `−` and `=`. A fraction owns
+only its numerator and denominator. Preserve parentheses that are actual
+factors; discard wrappers used only by a source parser to mark the numerator or
+denominator span. A linear-source adapter must have focused tree-shape tests for
+these cases instead of relying on a visual render.
 
 Use `thai_text` only when Thai must live inside the equation layout. Ordinary Thai prose belongs outside OMML as `type: "text"`.
 

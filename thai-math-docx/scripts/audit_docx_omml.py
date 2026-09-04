@@ -30,6 +30,14 @@ THAI_RE = re.compile(r"[\u0E00-\u0E7F]")
 # like "3D". Pure letter-products ("ac") are covered by builder regression tests,
 # not here, because they collide with deliberate upright units/labels.
 FUSED_COEFF_VAR_RE = re.compile(r"[0-9][a-z\u03b1\u03b2\u03b3\u03b8\u03bc\u03c0\u03c3]")
+# These glyphs are linear-source notation, not editable equation structures.
+# A literal occurrence inside m:t is always a generator/parser regression:
+# roots must be m:rad and stacked fractions must be m:f.
+LITERAL_STRUCTURAL_GLYPHS = {
+    "√": "square root (expected m:rad)",
+    "∛": "cube root (expected m:rad with a degree)",
+    "⁄": "fraction slash (expected m:f)",
+}
 
 MATH_TAGS = {
     "oMath": "oMath",
@@ -120,6 +128,7 @@ def main() -> int:
     files_seen = []
     unformatted_thai_math = []
     fused_coeff_var = []
+    literal_structural_glyphs = []
 
     with zipfile.ZipFile(docx_path) as zf:
         for name, root in iter_word_xml(zf):
@@ -133,6 +142,9 @@ def main() -> int:
 
             for math_run in root.findall(".//m:oMath//m:r", NS):
                 text = text_content(math_run)
+                for glyph, expected in LITERAL_STRUCTURAL_GLYPHS.items():
+                    if glyph in text:
+                        literal_structural_glyphs.append((name, glyph, expected, text.strip()))
                 m_rpr = math_run.find("m:rPr", NS)
                 is_upright = m_rpr is not None and m_rpr.find("m:nor", NS) is not None
                 if is_upright and FUSED_COEFF_VAR_RE.search(text):
@@ -184,6 +196,12 @@ def main() -> int:
         failures.append(
             f"{name}: upright OMML run fuses a coefficient to a variable "
             f"(variables must be italic): {snippet!r}",
+        )
+    for name, glyph, expected, text in literal_structural_glyphs:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        failures.append(
+            f"{name}: literal structural glyph {glyph!r} inside m:t; "
+            f"{expected}: {snippet!r}",
         )
 
     if failures:

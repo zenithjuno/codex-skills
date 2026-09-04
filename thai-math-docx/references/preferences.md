@@ -20,6 +20,10 @@ never a compatibility target.
 - Paragraph spacing stays single (`1.0`) unless project context says otherwise.
 - Keep student-facing text, labels, answer lines, and tables editable in Word.
 - Real mathematical notation is editable Word Equation/OMML, not an image.
+- Equation boundaries must remain editable after a real Word open/save cycle.
+  Use non-empty insertion-safe anchors on both sides of a label→equation
+  boundary: before the equation for delete/retype, and after a paragraph-ending
+  equation for typing outside it. An empty run is not durable.
 
 ## Page layout and response areas
 
@@ -42,6 +46,11 @@ these measurements in a generator.
 ## Mathematical notation
 
 - Use editable Word Equation/OMML for mathematical notation.
+- Use native `m:rad` and `m:f` structures for roots and stacked fractions;
+  literal `√`, `∛`, and `⁄` inside an OMML text run are invalid.
+- Keep binary operators outside neighboring fractions. Preserve parentheses
+  that are mathematical factors, but do not render wrappers used only to scope
+  a numerator or denominator in linear source.
 - In set-builder notation, keep visible spaces around the condition bar:
   `{x ∈ ℕ ∣ x < 5}`.
 - Keep Thai prose outside OMML unless it deliberately belongs inside an equation
@@ -65,6 +74,10 @@ these measurements in a generator.
   `needs_word_review` items.
 - Hand off a generated DOCX as a high-quality editable draft for the teacher's
   final Word adjustment, not as an asserted final product.
+- For a newly changed equation-boundary strategy, the decisive manual check is
+  in Microsoft Word: open/save, delete and retype a pure-math choice, then type
+  Thai and Latin immediately outside the equation. XML and LibreOffice checks
+  cannot prove cursor-inheritance behavior.
 
 ## Not in this file
 
