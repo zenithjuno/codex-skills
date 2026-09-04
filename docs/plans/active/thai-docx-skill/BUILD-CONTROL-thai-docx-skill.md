@@ -44,8 +44,7 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 - Next action: user gate `Pass S07` → start S08 (render + contact_sheet + QA integration).
 - Active gate: **S07** (`Pass S07` / `Fail S07 — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
-- Last change: 2026-09-04 S03 builder lazy import + no-leak test; full suite 141 OK; combined seam proof clean.
-- Uncommitted: S03 edits + doc updates (checkpoint on `Pass S03`/commit).
+- Last change: 2026-09-04 S07 repair.py (fix-thai-font + legacy sweep); TARGET fully New; thai-docx 9 OK, regression 141 OK. All checkpoints committed through S07.
 
 ## VERSION CONTROL
 - Mode: `git`. Repo root: `~/.codex/skills`.
@@ -74,4 +73,4 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 - (none open) — CHG-001 LANDED at S02 (2026-09-04): scan gated + gate-coverage test updated. See PRG-S02.
 
 ## HISTORY INDEX
-- `history/BUILD-LOG-thai-docx-skill-P01.md` — PRG-S01 (baseline), PRG-S02 (CHG-001 scan gate), PRG-S03 (builder lazy import). Query by id; do not bulk-read.
+- `history/BUILD-LOG-thai-docx-skill-P01.md` — PRG-S01..S07 (baseline, CHG-001 scan gate, builder lazy import, skeleton+SKILL, preflight, generate, font-profile/DEC-010, repair). Query by id; do not bulk-read.
