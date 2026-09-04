@@ -18,7 +18,7 @@ I always give you the exact line to copy.
 
 ## Golden rules of this build
 1. **thai-math-docx is sacred** — its existing `tests/` must stay green at every seam stage (regression net).
-2. **No math on the general path** — prove it mechanically (no math module in `sys.modules`), not by eyeballing.
+2. **No math authoring/scanner on the general path** — prove it mechanically (no `audit_docx_math_in_text` / `thai_math_expr` / `thai_math_source_adapter` in `sys.modules`; `audit_docx_omml` validator is allowed — Ω2), not by eyeballing.
 3. **No duplicated engine code** — thai-docx imports/invokes the engine by absolute path; it copies nothing.
 4. **Engine (seam) before interface (skill)** — prove the seam is safe before building thai-docx on it.
 5. **Smallest touch to the crown jewel** — prefer lazy-import over relocating code; relocate only if trivially safe.
@@ -83,8 +83,8 @@ Full six-part detail exists for `ACTIVE`/foundation stages; later `PLANNED` stag
   (focused 2) the updated gate-coverage test
   passes both ways. (regression) full suite green vs S01 baseline except that one intentionally-updated test.
 👁️ YOU SEE — a small before/after: a prose doc with `คะแนน ≥ 80` → **before**: QA FAIL "fused into one run"; **after**:
-  QA PASS, no math module loaded. Plus "ชุดเทสต์เดิมผ่าน N/N (แก้ 1 ตัวตามตั้งใจ = CHG-001)".
-✅ PASS GATE — gated call proven (prose-with-operator PASSes + no math module loaded) AND regression identical to S01 except CHG-001's test. `Pass S02` / `Fail S02 — เหตุผล`.
+  QA PASS, no math scanner module (`audit_docx_math_in_text`) loaded. Plus "ชุดเทสต์เดิมผ่าน N/N (แก้ 1 ตัวตามตั้งใจ = CHG-001)".
+✅ PASS GATE — gated call proven (prose-with-operator PASSes + no `audit_docx_math_in_text` loaded) AND regression identical to S01 except CHG-001's test. `Pass S02` / `Fail S02 — เหตุผล`.
 
 ### S03 — builder: make the single math-grammar import lazy (⚠️ highest-risk, slow down)
 📁 SCOPE — modify `thai-math-docx/scripts/thai_math_docx_builder.py` (one import); create `thai-math-docx/tests/test_builder_mathfree_no_leak.py`. **No new module, no OMML relocation** (SQ1 dropped: zero no-leak benefit, = the parked refactor). Protected: math audit modules + the OMML block (stays in place).
