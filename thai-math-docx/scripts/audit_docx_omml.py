@@ -13,6 +13,7 @@ import sys
 import zipfile
 from collections import Counter
 from pathlib import Path
+from typing import Iterable
 from xml.etree import ElementTree as ET
 
 
@@ -56,6 +57,22 @@ MATH_TAGS = {
     "limLow": "limit_low",
     "acc": "accent",
 }
+REPORT_COUNT_KEYS = [
+    "oMath",
+    "fraction",
+    "radical",
+    "superscript",
+    "subscript",
+    "subscript_superscript",
+    "nary",
+    "bar",
+    "matrix",
+    "delimiter",
+    "function",
+    "limit_low",
+    "accent",
+    "thai_math_run_count",
+]
 
 
 def q(ns_key: str, local: str) -> str:
@@ -112,93 +129,62 @@ def has_explicit_thai_math_format(math_run: ET.Element) -> bool:
     )
 
 
-def main() -> int:
-    if len(sys.argv) not in (2, 3):
-        print("Usage: audit_docx_omml.py <file.docx> [--allow-no-math]")
-        return 2
-
-    docx_path = Path(sys.argv[1])
-    allow_no_math = len(sys.argv) == 3 and sys.argv[2] == "--allow-no-math"
-    if len(sys.argv) == 3 and not allow_no_math:
-        print("FAIL: unknown option; expected --allow-no-math")
-        return 2
-    if not docx_path.exists():
-        print(f"FAIL: file not found: {docx_path}")
-        return 2
-
+def audit_word_roots(
+    word_roots: Iterable[tuple[str, ET.Element]],
+    *,
+    allow_no_math: bool = False,
+) -> dict[str, object]:
+    """Return the complete OMML audit for already-parsed Word XML roots."""
     counts: Counter[str] = Counter()
-    files_seen = []
-    unformatted_thai_math = []
-    fused_coeff_var = []
-    literal_structural_glyphs = []
-    redundant_radicand_delimiters = []
-    numerator_unary_minus = []
+    files_seen: list[str] = []
+    unformatted_thai_math: list[tuple[str, str]] = []
+    fused_coeff_var: list[tuple[str, str]] = []
+    literal_structural_glyphs: list[tuple[str, str, str, str]] = []
+    redundant_radicand_delimiters: list[tuple[str, str]] = []
+    numerator_unary_minus: list[tuple[str, str]] = []
 
-    with zipfile.ZipFile(docx_path) as zf:
-        for name, root in iter_word_xml(zf):
-            files_seen.append(name)
-            for tag, label in MATH_TAGS.items():
-                counts[label] += len(root.findall(f".//m:{tag}", NS))
+    for name, root in word_roots:
+        files_seen.append(name)
+        for tag, label in MATH_TAGS.items():
+            counts[label] += len(root.findall(f".//m:{tag}", NS))
 
-            counts["word_drawing"] += len(root.findall(".//w:drawing", NS))
-            counts["word_pict"] += len(root.findall(".//w:pict", NS))
-            counts["vml_image"] += len(root.findall(".//v:imagedata", NS))
+        counts["word_drawing"] += len(root.findall(".//w:drawing", NS))
+        counts["word_pict"] += len(root.findall(".//w:pict", NS))
+        counts["vml_image"] += len(root.findall(".//v:imagedata", NS))
 
-            for math_run in root.findall(".//m:oMath//m:r", NS):
-                text = text_content(math_run)
-                for glyph, expected in LITERAL_STRUCTURAL_GLYPHS.items():
-                    if glyph in text:
-                        literal_structural_glyphs.append((name, glyph, expected, text.strip()))
-                m_rpr = math_run.find("m:rPr", NS)
-                is_upright = m_rpr is not None and m_rpr.find("m:nor", NS) is not None
-                if is_upright and FUSED_COEFF_VAR_RE.search(text):
-                    fused_coeff_var.append((name, text.strip()))
-                if not THAI_RE.search(text):
-                    continue
-                counts["thai_math_run_count"] += 1
-                if not has_explicit_thai_math_format(math_run):
-                    unformatted_thai_math.append((name, text.strip()))
+        for math_run in root.findall(".//m:oMath//m:r", NS):
+            text = text_content(math_run)
+            for glyph, expected in LITERAL_STRUCTURAL_GLYPHS.items():
+                if glyph in text:
+                    literal_structural_glyphs.append((name, glyph, expected, text.strip()))
+            m_rpr = math_run.find("m:rPr", NS)
+            is_upright = m_rpr is not None and m_rpr.find("m:nor", NS) is not None
+            if is_upright and FUSED_COEFF_VAR_RE.search(text):
+                fused_coeff_var.append((name, text.strip()))
+            if not THAI_RE.search(text):
+                continue
+            counts["thai_math_run_count"] += 1
+            if not has_explicit_thai_math_format(math_run):
+                unformatted_thai_math.append((name, text.strip()))
 
-            for radical in root.findall(".//m:oMath//m:rad", NS):
-                radicand = radical.find("m:e", NS)
-                if radicand is not None and len(radicand) == 1 and radicand[0].tag == q("m", "d"):
-                    redundant_radicand_delimiters.append((name, text_content(radicand[0]).strip()))
+        for radical in root.findall(".//m:oMath//m:rad", NS):
+            radicand = radical.find("m:e", NS)
+            if radicand is not None and len(radicand) == 1 and radicand[0].tag == q("m", "d"):
+                redundant_radicand_delimiters.append((name, text_content(radicand[0]).strip()))
 
-            for fraction in root.findall(".//m:oMath//m:f", NS):
-                numerator = fraction.find("m:num", NS)
-                if numerator is None or not len(numerator):
-                    continue
-                first = numerator[0]
-                if first.tag == q("m", "r") and text_content(first).strip() == "−":
-                    numerator_unary_minus.append((name, text_content(numerator).strip()))
+        for fraction in root.findall(".//m:oMath//m:f", NS):
+            numerator = fraction.find("m:num", NS)
+            if numerator is None or not len(numerator):
+                continue
+            first = numerator[0]
+            if first.tag == q("m", "r") and text_content(first).strip() == "−":
+                numerator_unary_minus.append((name, text_content(numerator).strip()))
 
     image_count = counts["word_drawing"] + counts["word_pict"] + counts["vml_image"]
-
-    print("OMML audit:")
-    print(f"- files_checked: {', '.join(files_seen) if files_seen else '(none)'}")
-    for key in [
-        "oMath",
-        "fraction",
-        "radical",
-        "superscript",
-        "subscript",
-        "subscript_superscript",
-        "nary",
-        "bar",
-        "matrix",
-        "delimiter",
-        "function",
-        "limit_low",
-        "accent",
-        "thai_math_run_count",
-    ]:
-        print(f"- {key}: {counts[key]}")
-    print(f"- image_count: {image_count}")
-
-    failures = []
-    notes = []
+    failures: list[str] = []
+    notes: list[str] = []
     if counts["oMath"] == 0 and not allow_no_math:
-        failures.append("expected at least one editable OMML equation, found 0")
+        failures.append("expected at least one editable OMML m:oMath equation, found 0")
     if image_count:
         notes.append(
             f"found {image_count} drawing/pict/image element(s); image validity is handled by the media QA contract",
@@ -206,7 +192,8 @@ def main() -> int:
     for name, text in unformatted_thai_math:
         snippet = text if len(text) <= 40 else text[:37] + "..."
         failures.append(
-            f"{name}: Thai text inside OMML lacks explicit Thai math formatting: {snippet!r}",
+            f"{name}: Thai text inside generic/unformatted math run lacks "
+            f"explicit Thai math formatting: {snippet!r}",
         )
     for name, text in fused_coeff_var:
         snippet = text if len(text) <= 40 else text[:37] + "..."
@@ -233,13 +220,57 @@ def main() -> int:
             f"before the m:f object: {snippet!r}",
         )
 
-    if failures:
+    metrics = {key: counts[key] for key in REPORT_COUNT_KEYS}
+    metrics["image_count"] = image_count
+    return {
+        "files_checked": files_seen,
+        "failures": failures,
+        "notes": notes,
+        "metrics": metrics,
+        "unformatted_thai_math": [f"{name}: {text!r}" for name, text in unformatted_thai_math],
+    }
+
+
+def audit_docx(docx_path: Path, *, allow_no_math: bool = False) -> dict[str, object]:
+    """Run the complete OMML audit against one DOCX package."""
+    with zipfile.ZipFile(docx_path) as zf:
+        return audit_word_roots(iter_word_xml(zf), allow_no_math=allow_no_math)
+
+
+def print_report(report: dict[str, object]) -> None:
+    files_seen = report["files_checked"]
+    metrics = report["metrics"]
+    print("OMML audit:")
+    print(f"- files_checked: {', '.join(files_seen) if files_seen else '(none)'}")
+    for key in REPORT_COUNT_KEYS:
+        print(f"- {key}: {metrics[key]}")
+    print(f"- image_count: {metrics['image_count']}")
+
+
+def main() -> int:
+    if len(sys.argv) not in (2, 3):
+        print("Usage: audit_docx_omml.py <file.docx> [--allow-no-math]")
+        return 2
+
+    docx_path = Path(sys.argv[1])
+    allow_no_math = len(sys.argv) == 3 and sys.argv[2] == "--allow-no-math"
+    if len(sys.argv) == 3 and not allow_no_math:
+        print("FAIL: unknown option; expected --allow-no-math")
+        return 2
+    if not docx_path.exists():
+        print(f"FAIL: file not found: {docx_path}")
+        return 2
+
+    report = audit_docx(docx_path, allow_no_math=allow_no_math)
+    print_report(report)
+
+    if report["failures"]:
         print("FAIL: OMML audit failed")
-        for failure in failures:
+        for failure in report["failures"]:
             print(f"- {failure}")
         return 1
 
-    for note in notes:
+    for note in report["notes"]:
         print(f"NOTE: {note}")
 
     print("PASS: OMML audit passed")

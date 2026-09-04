@@ -1,5 +1,15 @@
 # Thai Math DOCX Changelog
 
+## 2026-09-04 — Full OMML audit in the unified gate
+
+- Unified QA and the standalone OMML command now consume one structured audit
+  core; future OMML rules automatically reach the normal production path.
+- `produce.py` now rejects literal structural glyphs, redundant whole-radicand
+  delimiters, unary minus inside a numerator, literal set braces, fused upright
+  coefficient-variable runs, and unformatted Thai math.
+- Added integration coverage proving malformed DOCX output fails both unified QA
+  and normal generator production while valid native structures still pass.
+
 ## 2026-09-04 — Semantic grouping and editable set braces
 
 - Radicand scope wrappers are now rejected when they become a redundant visible

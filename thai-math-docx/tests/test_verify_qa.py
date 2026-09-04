@@ -22,6 +22,7 @@ if str(SCRIPTS) not in sys.path:
 import thai_math_docx_builder as builder
 import thai_math_docx_layout as layout
 import thai_math_docx_qa as qa
+from thai_math_expr import frac, paren
 
 
 CLI = SCRIPTS / "verify_thai_math_docx.py"
@@ -199,6 +200,80 @@ class UnifiedQaCoreTests(unittest.TestCase):
             result = qa.audit_docx(path, qa.load_contract(write_contract(Path(directory) / "contract.json", contract(math_required=True))))
         self.assertEqual("FAIL", result["verdict"])
         self.assertTrue(any("generic/unformatted math" in failure for failure in result["failures"]))
+
+    def test_full_omml_structural_audit_is_part_of_unified_qa(self) -> None:
+        cases = {
+            "literal-root": (["√", "18"], "literal structural glyph '√'"),
+            "redundant-radicand-delimiter": (
+                {"kind": "rad", "deg": ["3"], "items": [paren(["−", "64"])]},
+                "entire radicand is wrapped",
+            ),
+            "numerator-unary-minus": (
+                frac(["−", "1"], "4"),
+                "unary minus starts inside fraction numerator",
+            ),
+            "literal-set-braces": (
+                ["{", "−", "3", ",", "4", "}"],
+                "opening set brace",
+            ),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            qa_contract = qa.load_contract(
+                write_contract(root / "contract.json", contract(math_required=True))
+            )
+            for name, (value, expected) in cases.items():
+                with self.subTest(name=name):
+                    document = builder.new_document()
+                    builder.add_paragraph(document, [{"type": "math", "expr": value}])
+                    path = builder.save_docx(document, root / f"{name}.docx")
+                    result = qa.audit_docx(path, qa_contract)
+                    self.assertEqual("FAIL", result["verdict"], result)
+                    self.assertIn(expected, "\n".join(result["failures"]))
+
+            valid = builder.new_document()
+            builder.add_paragraph(
+                valid,
+                [
+                    {
+                        "type": "math",
+                        "expr": [
+                            "−",
+                            frac("1", "4"),
+                            "+",
+                            {"kind": "rad", "items": ["18"]},
+                            "+",
+                            paren(["−", "3", ",", "4"], beg="{", end="}"),
+                        ],
+                    }
+                ],
+            )
+            valid_path = builder.save_docx(valid, root / "valid-structures.docx")
+            valid_result = qa.audit_docx(valid_path, qa_contract)
+        self.assertEqual("PASS", valid_result["verdict"], valid_result)
+
+    def test_upright_fused_coefficient_variable_fails_unified_qa(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = builder.new_document()
+            paragraph = document.add_paragraph()
+            paragraph._p.append(
+                parse_xml(
+                    '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+                    '<m:r><m:rPr><m:nor/></m:rPr><m:t>3x</m:t></m:r>'
+                    '</m:oMath>'
+                )
+            )
+            builder.append_parts(paragraph, [{"type": "text", "text": " "}])
+            path = builder.save_docx(document, root / "fused.docx")
+            result = qa.audit_docx(
+                path,
+                qa.load_contract(
+                    write_contract(root / "contract.json", contract(math_required=True))
+                ),
+            )
+        self.assertEqual("FAIL", result["verdict"])
+        self.assertIn("fuses a coefficient to a variable", "\n".join(result["failures"]))
 
     def test_fixed_table_contract_checks_grid_and_missing_cells(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

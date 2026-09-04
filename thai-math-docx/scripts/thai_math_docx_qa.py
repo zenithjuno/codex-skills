@@ -27,7 +27,6 @@ LAYOUT_MODES = {"standard-a4", "fixed-table", "native-columns", "custom-template
 MEDIA_MODES = {"none", "svg-editable", "png-golden", "mixed"}
 SOURCE_MODES = {"generated", "imported", "teacher-master"}
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-M = "{http://schemas.openxmlformats.org/officeDocument/2006/math}"
 A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
 REL = "{http://schemas.openxmlformats.org/package/2006/relationships}"
 THAI_FONT = "TH Sarabun New"
@@ -148,14 +147,6 @@ def _word_roots(roots: Mapping[str, ET.Element]) -> list[tuple[str, ET.Element]]
     ]
 
 
-def _text(element: ET.Element) -> str:
-    return "".join(element.itertext())
-
-
-def _has_thai(text: str) -> bool:
-    return any("\u0e00" <= character <= "\u0e7f" for character in text)
-
-
 def _parse_package(path: Path) -> tuple[dict[str, ET.Element], list[str], list[str], set[str]]:
     roots: dict[str, ET.Element] = {}
     failures: list[str] = []
@@ -224,21 +215,16 @@ def _audit_omml(
     roots: Mapping[str, ET.Element],
     contract: Mapping[str, Any],
 ) -> tuple[list[str], dict[str, Any]]:
-    failures: list[str] = []
-    math_count = 0
-    unformatted: list[str] = []
-    for name, root in _word_roots(roots):
-        math_count += len(root.findall(f".//{M}oMath"))
-        for run in root.findall(f".//{M}oMath//{M}r"):
-            text = _text(run)
-            if _has_thai(text) and not omml_audit.has_explicit_thai_math_format(run):
-                unformatted.append(f"{name}: {_text(run).strip()[:60]!r}")
-    if contract["math"].get("required") and math_count == 0:
-        failures.append("contract requires editable OMML but no m:oMath was found")
-    failures.extend(
-        f"Thai inside generic/unformatted math run: {item}" for item in unformatted
+    result = omml_audit.audit_word_roots(
+        _word_roots(roots),
+        allow_no_math=not contract["math"].get("required"),
     )
-    return failures, {"oMath_count": math_count, "unformatted_thai_math": unformatted}
+    metrics = dict(result["metrics"])
+    metrics["oMath_count"] = metrics["oMath"]
+    metrics["files_checked"] = list(result["files_checked"])
+    metrics["unformatted_thai_math"] = list(result["unformatted_thai_math"])
+    metrics["notes"] = list(result["notes"])
+    return list(result["failures"]), metrics
 
 
 def _audit_geometry_and_tables(
@@ -495,7 +481,7 @@ def audit_docx(
         omml_failures, omml_metrics = _audit_omml(roots, contract)
         failures.extend(omml_failures)
         metrics["omml"] = omml_metrics
-        _check(checks, "omml-editability", "FAIL" if omml_failures else "PASS", "Editable OMML and Thai-in-math checks", issue_count=len(omml_failures))
+        _check(checks, "omml-editability", "FAIL" if omml_failures else "PASS", "Full editable OMML structure and Thai-in-math checks", issue_count=len(omml_failures))
 
         layout_failures, layout_reviews, layout_metrics = _audit_geometry_and_tables(roots, contract["layout"])
         failures.extend(layout_failures)

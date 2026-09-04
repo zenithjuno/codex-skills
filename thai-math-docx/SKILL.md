@@ -181,9 +181,11 @@ python3 scripts/verify_thai_math_docx.py check <file.docx>
 ```
 
 That one command is the whole document gate. It covers package integrity, Thai
-font/theme/defaults, insertion safety, OMML editability, relational maths left in
-plain text, page geometry and table shape, the media contract, and mutation
-provenance. There is no second command to remember — the focused
+font/theme/defaults, insertion safety, the complete OMML structural audit,
+relational maths left in plain text, page geometry and table shape, the media
+contract, and mutation provenance. The standalone OMML command and this gate
+share one audit core, so every new OMML rule reaches normal production
+automatically. There is no second command to remember — the focused
 `scripts/audit_docx_*.py` scripts exist only to isolate a failure it reported.
 
 `check` never modifies the audited file. `fix-and-check` requires a distinct
