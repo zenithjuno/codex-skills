@@ -569,3 +569,115 @@ Routing: **reconcile branch/baseline (R4-F10), optionally add the R4-F9 clause, 
 - R4-F10 → RECONCILED: merged `main` into `build/thai-docx-skill` (`3f978a4`); re-anchored all citations to the merged engine (scan L503, `_audit_omml` unconditional, builder import L26/use L368 — builder DID change, seam held); A8/A10 → 16 files; baseline recorded. Ω2/DEC-009 taken because the hardening made `_audit_omml` run on every doc — 2026-09-04
 - Plan → BLUEPRINT v1.4; content build-ready; awaiting round-5 closeout or S01 approval — 2026-09-04
 - S01 heads-up + DEC-003(a)↔gates↔acceptance#2 + no-leak union — re-verified consistent — 2026-09-03
+
+---
+
+## Round 5 — 2026-09-04
+Reviewed: BLUEPRINT v1.4 + CONSTRUCTION_PLAN + BUILD-CONTROL + AGENTS.md on `build/thai-docx-skill` (commit `674f165`,
+plan reconciled onto merged engine `3f978a4`). Scrutinized by: Claude (Opus 4.8), outsider cold-read. Scope: Ω2's
+single assumption (proven against merged code), CHG-001 scope on the expanded suite, v1.4 coherence. Closed items not
+reopened. **R4-F10 (branch/baseline reconciliation) is now DONE** — the hardening is merged (`3f978a4`), the plan is
+reconciled to v1.4 with line numbers re-cited against it, and this branch is where the build runs.
+
+### Coverage — what this closeout did
+- **Read the merged validator itself** (`audit_docx_omml.py`), not the plan's description of it, and traced
+  `audit_word_roots` for a math-free prose doc.
+- Re-read the merged `qa.py` wiring (`_audit_omml` L214/L220, unconditional call L481, scan L503) and the gating
+  signal's availability.
+- Re-grepped the whole (now 16-file) test suite for CHG-001 scope.
+- Swept the v1.4 current surfaces for no-leak-set consistency and stale citations.
+
+### 1. [heart] Ω2's assumption — `audit_docx_omml` passes free on math-free prose — VERIFIED TRUE against merged code
+- **Traced `audit_word_roots` (audit_docx_omml.py:132–231) for a prose doc (no `m:oMath`), `allow_no_math=True`:**
+  every failure-producing branch except one is scoped **inside** `for … in root.findall(".//m:oMath//…")` loops
+  (L155 runs, L170 radicals, L175 fractions) — all empty when there is no `m:oMath`, so no
+  `literal_structural_glyphs`, `fused_coeff_var`, `unformatted_thai_math`, `redundant_radicand_delimiters`, or
+  `numerator_unary_minus` can be appended. The **only** unconditional failure is `if counts["oMath"] == 0 and not
+  allow_no_math` (L186) — and `allow_no_math=True` suppresses it. Result: `failures == []`. An image only adds a
+  NOTE (L188), never a failure. **So `audit_docx_omml` cannot false-fail on math-free prose — even prose containing
+  `{`, `}`, `√`, or `=`**, because those glyph/relation checks read only `m:t` runs *inside* `m:oMath` (L155–168),
+  which are absent. ✅
+- **The wiring matches:** `qa.py:220` calls `omml_audit.audit_word_roots(..., allow_no_math=not
+  contract["math"].get("required"))` — so `math.required=false` ⇒ `allow_no_math=True`. ✅ And `audit_docx_omml.py`
+  imports **only stdlib** (`re, sys, zipfile, collections, pathlib, typing, xml.etree`) — it pulls in **no** other
+  math module, so letting it load drags nothing else onto the general path. ✅
+- **Conclusion:** Ω2 is **sound** — leaving `audit_docx_omml` to run (vs gating it, Ω1) does not endanger acceptance
+  #1 ("QA PASS on prose"). This is the correct dual of CHG-001: the *scanner* (`audit_docx_math_in_text`) DOES
+  false-fail on prose (`คะแนน = 80`) so it is gated; the *validator* (`audit_docx_omml`) never does, so it runs.
+  **No finding — the assumption holds. Ω1 (gate omml) is not needed.**
+
+### 2. CHG-001 scope on the expanded 16-file suite — still exactly ONE test
+- Re-grepped all of `thai-math-docx/tests/` for `math-in-plain-text` / `math_in_text` / `.scan(`. The only test
+  asserting the `math-in-plain-text` check id **present on a `math.required=False` doc** is still
+  `test_verify_qa.py::test_gate_reports_every_document_check` (L508–525, contract `math.required: False`) — the CHG-001
+  target. The merge's new `test_omml_structural_regressions.py` exercises **`audit_docx_omml` on math docs** (fractions,
+  radicals, literal-glyph fails) and never runs the scan on a math-free doc; `test_relational_maths_in_plain_text_fails_the_gate`
+  (L527) uses `load_contract(None)` ⇒ default `math.required=True` ⇒ scan still runs ⇒ unaffected; `test_setbuilder…`
+  and `test_math_in_text_audit` invoke the scanner **directly** (subprocess / regex), not via the gated QA path.
+  **CHG-001's "one gate-coverage test" scope is accurate on the expanded suite.** ✅
+
+### 3. Coherence (v1.4) — consistent, one glossary lag (R5-F11)
+- **Gating signal at `qa.py:503` is available:** `_audit_omml` runs at L481 and stores `metrics["omml"]` at L483
+  (`oMath_count` set inside `_audit_omml` at L223), *before* the scan at L503; `contract["math"]["required"]` is a
+  parameter. So `if contract["math"]["required"] or metrics["omml"]["oMath_count"]:` is writable there. CHG-001's
+  gate condition ("math.required or oMath_count>0") is feasible exactly as cited. ✅
+- **No-leak set is consistent across every operative surface:** acceptance #3 (L23), DEC-003(b) (L168), DEC-009
+  (L175), §1 The seam (L64–66), Active Contract Index (BLUEPRINT L88 ↔ BUILD-CONTROL L65 mirror), and CONSTRUCTION_PLAN
+  S02/S03 (L72–73, L82, L99) all state no-leak = {`audit_docx_math_in_text`, `thai_math_expr`,
+  `thai_math_source_adapter`}, **`audit_docx_omml` excluded per Ω2**, and each "assert absent" is scoped to an
+  isolated subprocess on a math-free path. DEC-009 explicitly notes it "Supersedes the earlier 'no math/equation
+  module at all' wording" and "Dissolves R4-F9." ✅
+- **Stale-citation sweep clean:** no `qa.py:517`, no "omml import lazy", no "15 tests" survive on the current
+  surfaces (the one "lazy math import" hit is the *builder* row L89 — correct, describing S03's
+  `normalize_math_string` lazy import). A3 (L183) re-verified against `3f978a4` (L19, L214/L481, L503). ✅
+
+#### R5-F11 · [nit] · The Glossary still carries the pre-Ω2 absolute "no math module" framing, now contradicted by DEC-009
+- **Finding:** While every *decision* surface was reconciled to Ω2, the **Glossary** (BLUEPRINT L98–102) still reads
+  in absolutes: "Engine … **not the math/OMML modules**" (L98), "Seam … so the general core has **zero math
+  dependency**" (L99), "The core … **not `audit_docx_omml`**" (L100), and "**No-leak** | thai-docx's general path
+  loads/executes **no math module** (`sys.modules` clean)" (L102). Under DEC-009, `audit_docx_omml` — a math module —
+  **does** load and run on the general path (as the passive `allow_no_math` validator). So the glossary's conceptual
+  definitions now contradict the decisions they summarize.
+- **Why it matters:** Purely terminological — the build follows DEC-009 / DEC-003(b) / S02–S03 (all correct and
+  precise), not the glossary, so it will not misdirect the seam. But a future reader hitting "No-leak = no math
+  module" could read Ω2's running omml as a leak and be tempted to "fix" it by gating omml — i.e. silently undo Ω2.
+  Reconciling the glossary is what fully lands the Ω2 anchor decision.
+- **Evidence:** BLUEPRINT L98/L99/L100/L102 (absolute framing) vs DEC-009 L175 + §1 The seam L64–66 (omml runs,
+  excluded from no-leak).
+- **Suggested change (one clause):** Scope the glossary the same way DEC-009 does — e.g. "No-leak | general path
+  loads/executes no math **authoring/scanner** module (`audit_docx_math_in_text` / `thai_math_expr` /
+  `thai_math_source_adapter`); `audit_docx_omml` is excluded per Ω2/DEC-009 — it runs as a passive validator that is
+  inert on prose"; and soften "zero math dependency" / "not audit_docx_omml" to match.
+- ▶ Author response: **FIXED (v1.5).** Reconciled all four Glossary rows to the Ω2 scope: No-leak now reads
+  "authoring/scanner module … NOT 'no math module at all': `audit_docx_omml` excluded per Ω2/DEC-009 — passive
+  `allow_no_math` validator, inert on prose"; Engine/Seam/The-core softened from "zero math dependency / not
+  audit_docx_omml" to the authoring-module framing. The last place the old absolute wording could mislead a future
+  reader into re-gating omml is gone.
+
+### Anchor check (Ω2 lets a math module run on the general path — drift?)
+Flagged per the task, **not adjudicated** — and it is already consciously owned: DEC-009 records "User approved Ω2
+2026-09-04." My trace supports that call rather than contradicting it: `audit_docx_omml` is a **passive, stdlib-only,
+prose-inert validator** — it authors no OMML, depends on no other math module, and returns empty failures on prose.
+So "reuse minus math" is preserved in substance (no math *authoring/grammar* touches the general path; the single
+math module that loads is a validator that no-ops on prose). The relaxation is a *scoping of the no-leak term*, not a
+drift toward "using math." The only residual is the glossary wording (R5-F11); reconciling it removes the last place
+the old absolute framing could be mistaken for a violation. → the user has already re-confirmed (DEC-009); no reopen.
+
+### Verdict: BUILD-READY — start S01
+**Reason (single biggest):** The three things this round had to prove all hold against the *merged* code, not just
+the plan: Ω2's load-bearing assumption is **true** (`audit_docx_omml` cannot false-fail on math-free prose and pulls
+no other math module), CHG-001's "one test" scope is **accurate** on the expanded 16-file suite, and the v1.4
+surfaces are **internally consistent** (no-leak set, gating signal at qa.py:503, citations all re-cited to `3f978a4`).
+R4-F10's branch/baseline reconciliation is done. The only open item is R5-F11 — a **cosmetic glossary lag** that does
+not misdirect the build. This is the first round with no content blocker: the plan is build-ready.
+
+Routing: **`Approve plan thai-docx-skill — start S01`.** Optionally scrub the glossary (R5-F11) in passing; it needs
+no re-plan and reopens no decision.
+
+### Resolution log — Round 5
+- Ω2 / DEC-009 → VERIFIED SOUND against merged `audit_docx_omml.py`: `audit_word_roots` returns no failures on math-free prose with `allow_no_math=True` (all failure checks scoped inside `.//m:oMath` loops; `oMath==0` failure suppressed by allow_no_math); stdlib-only, no math-module deps. Ω1 not needed — 2026-09-04
+- CHG-001 scope → re-verified ONE test (`test_gate_reports_every_document_check`) on the expanded 16-file suite; new omml-structural tests are math-path only — 2026-09-04
+- R4-F10 → CLOSED: hardening merged (`3f978a4`), plan reconciled to v1.4, citations re-cited (qa.py:19/214/481/503), on the build branch — 2026-09-04
+- R5-F11 → FIXED (v1.5): Glossary No-leak/Seam/Engine/core rows reconciled to the Ω2 authoring/scanner scope; `audit_docx_omml` explicitly noted as an allowed passive validator — 2026-09-04
+- VERDICT round 5 = BUILD-READY; plan → v1.5, no content blockers remain — 2026-09-04
+- Coherence (no-leak set, gating signal, mirror sync, stale-sweep) → re-verified consistent on v1.4 — 2026-09-04

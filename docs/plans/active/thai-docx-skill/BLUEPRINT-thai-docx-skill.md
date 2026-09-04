@@ -1,6 +1,6 @@
 # BLUEPRINT — thai-docx skill
 
-Version: 1.4 (patched after scrutiny rounds 1–4 + engine merge `3f978a4`, 2026-09-04; see `PLAN-SCRUTINY-thai-docx-skill.md`) · Owner: zenithjuno · Status: **Approved design, NOT yet built** — scrutiny verdict: content build-ready
+Version: 1.5 (patched after scrutiny rounds 1–5 + engine merge `3f978a4`, 2026-09-04; see `PLAN-SCRUTINY-thai-docx-skill.md`) · Owner: zenithjuno · Status: **Approved design, NOT yet built** — scrutiny verdict: BUILD-READY (round 5)
 This file is the current task contract and routing source for the `thai-docx` skill build.
 Control: `BUILD-CONTROL-thai-docx-skill.md` (created with the CONSTRUCTION_PLAN).
 Companion plan: `CONSTRUCTION_PLAN-thai-docx-skill.md` (same slug).
@@ -95,11 +95,11 @@ generate / repair Thai docx (prose, tables, header/footer, basic image)
 ## Glossary
 | Term | Means here | Not |
 |---|---|---|
-| Engine | the general (math-free) scripts inside `thai-math-docx/scripts/` that thai-docx reuses | not the whole thai-math-docx skill; not the math/OMML modules |
-| Seam | the minimal boundary drawn inside thai-math-docx so the general core has zero math dependency | not a full refactor of thai-math-docx |
-| The core | the math-free general builder/audit/render/QA surface thai-docx imports | not `thai_math_expr` / `audit_docx_omml` / the OMML builder block |
+| Engine | the general scripts inside `thai-math-docx/scripts/` that thai-docx reuses | not the whole thai-math-docx skill; not the math *authoring* modules (`thai_math_expr`, the OMML builder block) |
+| Seam | the minimal boundary drawn inside thai-math-docx so the general core pulls in no math authoring/scanner module | not a full refactor of thai-math-docx |
+| The core | the general builder/audit/render/QA surface thai-docx imports | not `thai_math_expr` / `thai_math_source_adapter` / the OMML builder block (`audit_docx_omml` is allowed — Ω2) |
 | Normalize (font) | remap a doc's Thai runs to TH Sarabun New via `fix-thai-font` | not installing a system font; not `thai-font-normalize` as an acceptance gate |
-| No-leak | thai-docx's general path loads/executes no math module (`sys.modules` clean) | not "math files deleted"; the files still exist, just unused on this path |
+| No-leak | general path loads/executes no math **authoring/scanner** module (`audit_docx_math_in_text` / `thai_math_expr` / `thai_math_source_adapter`) | NOT "no math module at all": `audit_docx_omml` is excluded per Ω2/DEC-009 — it runs as a passive `allow_no_math` validator that is inert on prose |
 
 ## 2. Trigger & disambiguation (DEC-005)
 Lever = **presence of mathematical notation/equations**.
