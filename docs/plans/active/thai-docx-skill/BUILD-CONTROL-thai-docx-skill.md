@@ -39,10 +39,10 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S06A — VERIFY** (prose font profile; awaiting `Pass S06A`)
-- Completed: S01–S03 (seam), S04 (SKILL.md), S05 (preflight), S06 (generate). Checkpoints S02–S06.
-- Next action: user gate `Pass S06A` → start S07 (repair imported legacy-font doc → New).
-- Active gate: **S06A** (`Pass S06A` / `Fail S06A — reason`)
+- Current stage: **S07 — VERIFY** (repair imported legacy→New; awaiting `Pass S07`)
+- Completed: S01–S06A (seam, skill, preflight, generate, font profile). Checkpoints S02–S06A.
+- Next action: user gate `Pass S07` → start S08 (render + contact_sheet + QA integration).
+- Active gate: **S07** (`Pass S07` / `Fail S07 — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
 - Last change: 2026-09-04 S03 builder lazy import + no-leak test; full suite 141 OK; combined seam proof clean.
 - Uncommitted: S03 edits + doc updates (checkpoint on `Pass S03`/commit).

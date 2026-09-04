@@ -57,10 +57,18 @@ scan is correctly skipped, so ordinary prose relations never false-fail.
 
 ## Font standard
 
-**TH Sarabun New** is the one Thai font standard (matching `thai-font-normalize` and
-`thai-math-docx`). This skill never installs a legacy font. When a document declares an
-older Thai font (TH SarabunPSK, Angsana, …), it is **normalized in the document** to TH
-Sarabun New via `fix-thai-font` — the font is fixed in the file, not added to the machine.
+**TH Sarabun New** is the one Thai font standard. This skill never installs a legacy font.
+
+**Prose font profile (no-math docs).** Documents this skill *authors* use the **prose
+profile**: TH Sarabun New at 16 pt in **every** slot — Latin, hAnsi and Complex Script
+alike (numbers and English render in TH Sarabun New too, not Cambria). Build inside
+`with engine.font_profile("prose"):` so both the docDefaults and every run get it. (The
+engine's default profile stays "math" — Latin Cambria 12 / Complex 16 — for thai-math-docx.)
+
+**Repair (imported docs).** When a document declares an older Thai font (TH SarabunPSK,
+Angsana, …), normalize it **in the document** to TH Sarabun New with `scripts/repair.py`
+(fix-thai-font for the Thai routing + a residual legacy-font sweep) — the fonts are fixed
+in the file, never installed on the machine. See `references/repair.md`.
 
 ## Workflow (hand-off order)
 

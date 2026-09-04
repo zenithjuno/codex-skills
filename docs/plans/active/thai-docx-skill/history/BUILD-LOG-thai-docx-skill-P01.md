@@ -1,11 +1,10 @@
 
 ---
 
-## PRG-S06 (passed) + PRG-S06A — prose font profile (DEC-010)
-- Date: 2026-09-04
-- S06: generate prose+table via engine core — PASSED (see file card). 
-- S06A: added a font profile to the engine builder — `font_profile('math'|'prose')` context + `_profile_fonts`; profile-aware `set_default_run_properties`, `enforce_document_font_defaults`, `configure_document`, `new_document`, `set_thai_body_run`, `set_latin_run`. Default = math → thai-math-docx byte-identical.
-  - `audit_docx_font_defaults.py`: EXPECTED_MATH + EXPECTED_PROSE; `audit_block` auto-detects the profile from the doc's Latin font (Cambria→math, TH Sarabun New→prose). qa._audit_fonts unchanged (delegates to audit_block).
-  - `thai-docx/scripts/engine.py`: re-exports `font_profile`; thai-docx builds inside `with engine.font_profile('prose')`.
-- Proof: prose doc → docDefaults ascii/hAnsi/cs = TH Sarabun New, sz/szCs = 32 (16pt); QA PASS 0 failures; render shows only THSarabunNew (Latin too). thai-math-docx regression 141 OK (math profile unchanged); thai-docx suite 8 OK. .docx sent for Word judgment.
-- Awaiting gate: `Pass S06A`.
+## PRG-S07 — repair imported / legacy-font Thai .docx
+- Date: 2026-09-04 · scope: NEW `thai-docx/scripts/repair.py`, `thai-docx/references/repair.md`, `thai-docx/tests/test_repair_imported.py`; SKILL.md font-policy note
+- repair.py (two passes): (1) shell out to fix-thai-font (Thai cs + theme → New); (2) residual legacy-Thai-font sweep across every word/*.xml part + all slots (ascii/hAnsi/cs/eastAsia) → TH Sarabun New. Genuine Latin fonts (Calibri/Cambria/Times) preserved. Writes .orig.bak.
+- Finding: fix-thai-font alone fixes Thai TEXT (cs) fully (verified: all 1816 Thai runs → New) but leaves legacy fonts in Latin slots (numbers-only runs), which would substitute after PSK removal — hence the sweep.
+- Demo (real TARGET budget doc): 37669 legacy slots → New; ZERO legacy Thai font left; render sanity shows THSarabunNew only, no PSK (renders correctly without any legacy font installed). Times/Calibri preserved. .docx sent for Word judgment.
+- Tests: thai-docx 9 OK (repair converts every legacy slot, keeps real Latin); regression 141 OK.
+- Awaiting gate: `Pass S07`.
