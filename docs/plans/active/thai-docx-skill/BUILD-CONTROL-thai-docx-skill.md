@@ -11,7 +11,7 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 
 - New skill (product): `thai-docx/` — SKILL.md, `references/`, `scripts/`, `tests/`.
 - Engine (seam edits only): `thai-math-docx/scripts/thai_math_docx_qa.py` (gate scan call + CHG-001 test),
-  `thai-math-docx/scripts/thai_math_docx_builder.py` (one lazy import). No new module (SQ1: OMML NOT relocated).
+  `thai-math-docx/scripts/thai_math_docx_builder.py` (lazy import + font profile), `audit_docx_font_defaults.py` (profile auto-detect). No new module (SQ1: OMML NOT relocated).
 - Engine reused read-only (imported/invoked, NOT edited): `thai-math-docx/scripts/thai_math_docx_layout.py`,
   `audit_docx_font_defaults.py`, `audit_docx_insertion_safety.py`, `render_docx.py`, `contact_sheet.py`.
 - Regression net: `thai-math-docx/tests/**` (existing) + new seam tests added there.
@@ -19,7 +19,7 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 - Reference only: `soffice-runtime-fix` (render-env troubleshooting).
 - Working outputs (disposable): session scratchpad + `/tmp`; never committed.
 - Managed globs (builder may change): `thai-docx/**`, `thai-math-docx/scripts/thai_math_docx_qa.py`,
-  `thai-math-docx/scripts/thai_math_docx_builder.py`, `thai-math-docx/tests/**` (new seam tests +
+  `thai-math-docx/scripts/thai_math_docx_builder.py`, `thai-math-docx/scripts/audit_docx_font_defaults.py`, `thai-math-docx/tests/**` (new seam tests +
   the CHG-001 edit to `test_verify_qa.py`), `thai-math-docx/SKILL.md`,
   `docs/plans/active/thai-docx-skill/**`, `AGENTS.md`.
   (SQ1: no `thai_math_omml.py` — the OMML block is NOT relocated.)
@@ -39,10 +39,10 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S06 — VERIFY** (prose+table generate proven; awaiting `Pass S06`)
-- Completed: S01–S03 (seam, 141 OK), S04 (SKILL.md), S05 (preflight). Checkpoints S02–S05.
-- Next action: user gate `Pass S06` → start S07 (repair imported legacy-font doc → New).
-- Active gate: **S06** (`Pass S06` / `Fail S06 — reason`)
+- Current stage: **S06A — VERIFY** (prose font profile; awaiting `Pass S06A`)
+- Completed: S01–S03 (seam), S04 (SKILL.md), S05 (preflight), S06 (generate). Checkpoints S02–S06.
+- Next action: user gate `Pass S06A` → start S07 (repair imported legacy-font doc → New).
+- Active gate: **S06A** (`Pass S06A` / `Fail S06A — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
 - Last change: 2026-09-04 S03 builder lazy import + no-leak test; full suite 141 OK; combined seam proof clean.
 - Uncommitted: S03 edits + doc updates (checkpoint on `Pass S03`/commit).

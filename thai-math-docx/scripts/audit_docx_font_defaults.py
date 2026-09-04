@@ -22,7 +22,10 @@ from xml.etree import ElementTree as ET
 NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 W = NS["w"]
 THAI_RE = re.compile(r"[\u0E00-\u0E7F]")
-EXPECTED = {
+# Two sanctioned house profiles (thai-docx seam / DEC-010):
+#   math  — thai-math-docx: Latin Cambria 12, Complex Thai TH Sarabun New 16.
+#   prose — thai-docx no-math: EVERYTHING TH Sarabun New 16 (Latin and Complex alike).
+EXPECTED_MATH = {
     "ascii": "Cambria",
     "hAnsi": "Cambria",
     "cs": "TH Sarabun New",
@@ -30,6 +33,24 @@ EXPECTED = {
     "szCs": "32",
     "bidi": "th-TH",
 }
+EXPECTED_PROSE = {
+    "ascii": "TH Sarabun New",
+    "hAnsi": "TH Sarabun New",
+    "cs": "TH Sarabun New",
+    "sz": "32",
+    "szCs": "32",
+    "bidi": "th-TH",
+}
+EXPECTED = EXPECTED_MATH  # default / backward-compatible
+
+
+def expected_for_props(props: dict[str, str | None]) -> dict[str, str]:
+    """Auto-select the house profile from the document's own Latin font: a
+    docDefaults whose Latin is TH Sarabun New is validated as the prose profile,
+    otherwise as the math profile. Both are valid; a doc matching neither fails."""
+    if props.get("ascii") == "TH Sarabun New":
+        return EXPECTED_PROSE
+    return EXPECTED_MATH
 
 
 def w_attr(name: str) -> str:
@@ -80,12 +101,15 @@ def extract_run_props(r_pr: ET.Element | None) -> dict[str, str | None]:
     }
 
 
-def audit_block(label: str, props: dict[str, str | None]) -> list[str]:
+def audit_block(label: str, props: dict[str, str | None],
+                expected: dict[str, str] | None = None) -> list[str]:
+    if expected is None:
+        expected = expected_for_props(props)
     failures = []
-    for key, expected in EXPECTED.items():
+    for key, want in expected.items():
         got = props.get(key)
-        if got != expected:
-            failures.append(f"{label}: expected {key}={expected!r}, got {got!r}")
+        if got != want:
+            failures.append(f"{label}: expected {key}={want!r}, got {got!r}")
     return failures
 
 

@@ -27,6 +27,24 @@ if str(_ENGINE) not in sys.path:
 import thai_math_docx_builder as builder  # noqa: E402
 import thai_math_docx_qa as qa  # noqa: E402
 
+# thai-docx builds every document in the "prose" font profile (DEC-010): uniform
+# TH Sarabun New 16 for Latin AND Complex script. Always wrap document creation
+# and paragraph/table building in this context so both the docDefaults and every
+# run get the prose fonts:
+#
+#     with engine.font_profile("prose"):
+#         doc = engine.builder.new_document()
+#         engine.builder.add_paragraph(doc, [...])
+#         engine.builder.save_docx(doc, path)
+#
+font_profile = builder.font_profile
+
+
+def new_prose_document():
+    """A new document already in the prose profile's docDefaults. Build its body
+    inside `with engine.font_profile("prose"):` so the runs match."""
+    return builder.new_document(profile="prose")
+
 
 def math_free_contract(*, layout: str = "standard-a4", media: str = "none",
                        source_mode: str = "generated") -> dict[str, Any]:

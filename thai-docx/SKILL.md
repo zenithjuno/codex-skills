@@ -73,7 +73,15 @@ generate / edit / repair the Thai docx  (prose, tables, headings, header/footer,
 
 For a **repair of an imported document**, start at the normalize step on the imported file,
 then audit and render. For a **new document**, build with the engine core, then normalize,
-then render/QA. Always review the rendered contact sheet before calling a document done.
+then render/QA.
+
+## Visual truth
+
+**Microsoft Word on the user's machine is the visual authority.** The LibreOffice/PyMuPDF
+render (page image or contact sheet) is only an internal **sanity check** to catch gross
+breakage — it substitutes fonts and approximates layout, so it is NOT what the user signs
+off on. When a document needs the user's visual judgment, **deliver the actual `.docx`** for
+them to open in Word; never present a render as the final truth.
 
 ## Dependency + render-env preflight
 

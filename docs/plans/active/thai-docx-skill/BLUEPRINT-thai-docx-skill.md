@@ -88,6 +88,7 @@ generate / repair Thai docx (prose, tables, header/footer, basic image)
 | `thai-docx/SKILL.md` + `references/**` | DEC-004, DEC-005, DEC-007 | §Task contract, §Trigger, §Dependency & routing | review + trigger check |
 | `thai-math-docx/scripts/thai_math_docx_qa.py` (gate scan call L503 + relocate its import L19; omml left as-is per Ω2) | DEC-002, DEC-003, DEC-009, CHG-001 | §1 The seam | regression baseline + gated-call/no-leak test + updated gate-coverage test |
 | `thai-math-docx/scripts/thai_math_docx_builder.py` (lazy math import only — no OMML relocation) | DEC-002, DEC-003 | §1 The seam | regression baseline + subprocess no-leak test |
+| `thai-math-docx/scripts/thai_math_docx_builder.py` + `audit_docx_font_defaults.py` (font profile) | DEC-010 | §Decision Log DEC-010 | regression (math profile) + prose-docDefaults test + audit auto-detect |
 | `thai-math-docx/SKILL.md` (carve-out + version bump) | DEC-005 | §Trigger | trigger disambiguation review |
 | render/QA font behavior | DEC-006 | §Font strategy | preflight fail-loud + render Thai-face gate |
 | cross-skill references | DEC-007 | §Dependency & routing | dependency preflight |
@@ -174,6 +175,7 @@ collapses to one repo + push (via the `skill-release` workflow). Repo: `zenithju
 | DEC-007 | dependency/routing | thai-docx is non-standalone. HARD deps: engine (math-free core) + thai-font-normalize; REF: soffice-runtime-fix; OUT: pdf. Reference by absolute path; import via sys.path bootstrap; no hardcoded codex-runtime python; dependency preflight; SKILL.md Orchestration section. Confirmed by user (map correct, cut pdf). | ACTIVE |
 | DEC-008 | cleanup | Post-approval stages: remove PSK clone faces (one-copy), delete workspace tools/ scripts, update memory to New-normalize. Runs after plan approval, never during grill. | ACTIVE |
 | DEC-009 | no-leak scope (Ω2) | After merging thai-math-docx hardening (`3f978a4`), `_audit_omml` runs unconditionally with `allow_no_math=True` — a passive validator that PASSes trivially on math-free docs and never false-fails. So `audit_docx_omml` is EXCLUDED from the no-leak set; the seam gates ONLY the check that is *wrong* on prose (`math_in_text.scan`). No-leak = {`audit_docx_math_in_text`, `thai_math_expr`, `thai_math_source_adapter`}. Dissolves R4-F9 (no omml lazy-import). User approved Ω2 2026-09-04. Supersedes the earlier "no math/equation module at all" wording in DEC-003(b). | ACTIVE |
+| DEC-010 | font profile | thai-docx (no-math) documents use a **prose font profile**: TH Sarabun New 16 in EVERY slot (Latin, hAnsi, Complex) — not Cambria. thai-math-docx keeps the **math profile** (Latin Cambria 12 / Complex Sarabun 16). Builder gains a `font_profile('math'|'prose')` context (default math → thai-math-docx byte-identical); the font-defaults audit **auto-detects** which sanctioned profile a doc uses (Cambria→math, Sarabun→prose) so nothing existing breaks and no contract field is needed. User approved 2026-09-04 ('ทุกอย่าง TH Sarabun New 16pt'). | ACTIVE |
 
 ## Assumptions
 

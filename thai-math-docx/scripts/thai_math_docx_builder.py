@@ -71,6 +71,49 @@ def contains_thai(text: str) -> bool:
     return any("\u0e00" <= ch <= "\u0e7f" for ch in str(text))
 
 
+import contextlib
+
+# Font profile (thai-docx seam / DEC-010). "math" = the thai-math-docx house style
+# (Latin=Cambria 12, Complex/Thai=TH Sarabun New 16). "prose" = thai-docx house style
+# for no-math documents (EVERYTHING TH Sarabun New 16 — Latin and Complex alike).
+# Default stays "math" so thai-math-docx behavior is byte-identical; thai-docx builds
+# inside `with font_profile("prose"): ...`.
+_FONT_PROFILE = "math"
+
+
+def current_font_profile() -> str:
+    return _FONT_PROFILE
+
+
+def set_font_profile(name: str) -> None:
+    global _FONT_PROFILE
+    if name not in ("math", "prose"):
+        raise ValueError(f"font profile must be 'math' or 'prose', got {name!r}")
+    _FONT_PROFILE = name
+
+
+@contextlib.contextmanager
+def font_profile(name: str):
+    """Temporarily select the font profile; restores the previous one on exit."""
+    global _FONT_PROFILE
+    prev = _FONT_PROFILE
+    set_font_profile(name)
+    try:
+        yield
+    finally:
+        _FONT_PROFILE = prev
+
+
+def _profile_fonts(profile: str | None) -> tuple[str, str, str, str]:
+    """(ascii, cs, sz, szCs) for the given profile (defaults to the current one)."""
+    profile = profile or _FONT_PROFILE
+    if profile == "prose":
+        # uniform TH Sarabun New 16 in every slot
+        return ("TH Sarabun New", "TH Sarabun New", "32", "32")
+    # math house style: Latin Cambria 12, Complex Thai 16
+    return ("Cambria", "TH Sarabun New", "24", "32")
+
+
 def set_run_font(run: Any, ascii_font: str = "Cambria", cs_font: str = "TH Sarabun New", size: int = 12) -> None:
     run.font.name = ascii_font
     run.font.size = Pt(size)
@@ -84,33 +127,54 @@ def set_run_font(run: Any, ascii_font: str = "Cambria", cs_font: str = "TH Sarab
     r_fonts.set(qn("w:cs"), cs_font)
 
 
-def set_default_run_properties(r_pr: Any) -> None:
+def set_default_run_properties(r_pr: Any, profile: str | None = None) -> None:
+    ascii_font, cs_font, sz, sz_cs = _profile_fonts(profile)
     r_fonts = ensure_child(r_pr, "w:rFonts")
     for attr in ("w:asciiTheme", "w:hAnsiTheme", "w:eastAsiaTheme", "w:cstheme"):
         r_fonts.attrib.pop(qn(attr), None)
-    r_fonts.set(qn("w:ascii"), "Cambria")
-    r_fonts.set(qn("w:hAnsi"), "Cambria")
-    r_fonts.set(qn("w:cs"), "TH Sarabun New")
-    ensure_child(r_pr, "w:sz").set(qn("w:val"), "24")
-    ensure_child(r_pr, "w:szCs").set(qn("w:val"), "32")
+    r_fonts.set(qn("w:ascii"), ascii_font)
+    r_fonts.set(qn("w:hAnsi"), ascii_font)
+    r_fonts.set(qn("w:cs"), cs_font)
+    ensure_child(r_pr, "w:sz").set(qn("w:val"), sz)
+    ensure_child(r_pr, "w:szCs").set(qn("w:val"), sz_cs)
     lang = ensure_child(r_pr, "w:lang")
     lang.set(qn("w:val"), "en-US")
     lang.set(qn("w:bidi"), "th-TH")
 
 
-def enforce_document_font_defaults(doc: Document) -> None:
+def enforce_document_font_defaults(doc: Document, profile: str | None = None) -> None:
     styles = doc.styles.element
     doc_defaults = styles.find(qn("w:docDefaults"))
     if doc_defaults is None:
         doc_defaults = OxmlElement("w:docDefaults")
         styles.insert(0, doc_defaults)
     r_pr_default = ensure_child(doc_defaults, "w:rPrDefault")
-    set_default_run_properties(ensure_child(r_pr_default, "w:rPr"))
-    set_default_run_properties(doc.styles["Normal"]._element.get_or_add_rPr())
+    set_default_run_properties(ensure_child(r_pr_default, "w:rPr"), profile)
+    set_default_run_properties(doc.styles["Normal"]._element.get_or_add_rPr(), profile)
 
 
-def set_thai_body_run(run: Any, bold: bool | None = None, size: int = 16) -> None:
-    """Insertion-safe Thai body run: visible Thai 16pt, future Latin 12pt."""
+def set_thai_body_run(run: Any, bold: bool | None = None, size: int = 16,
+                      profile: str | None = None) -> None:
+    """Insertion-safe Thai body run.
+
+    math profile (default): visible Thai 16pt, future-typed Latin 12pt Cambria.
+    prose profile (thai-docx / DEC-010): uniform TH Sarabun New in every slot at
+    `size` pt — Latin and Thai alike — which is_all_slot_thai_label_like already
+    recognizes as insertion-safe at 16pt.
+    """
+    if (profile or _FONT_PROFILE) == "prose":
+        if bold is not None:
+            run.bold = bold
+        set_run_font(run, ascii_font="TH Sarabun New", cs_font="TH Sarabun New", size=size)
+        r_pr = run._r.get_or_add_rPr()
+        ensure_child(r_pr, "w:sz").set(qn("w:val"), str(size * 2))
+        ensure_child(r_pr, "w:szCs").set(qn("w:val"), str(size * 2))
+        if r_pr.find(qn("w:cs")) is None:
+            r_pr.append(OxmlElement("w:cs"))
+        lang = ensure_child(r_pr, "w:lang")
+        lang.set(qn("w:val"), "th-TH")
+        lang.set(qn("w:bidi"), "th-TH")
+        return
     if bold is not None:
         run.bold = bold
     set_run_font(run, ascii_font="Cambria", cs_font="TH Sarabun New", size=12)
@@ -139,7 +203,12 @@ def set_thai_label_run(run: Any, bold: bool | None = None, size: int = 16) -> No
     lang.set(qn("w:bidi"), "th-TH")
 
 
-def set_latin_run(run: Any, bold: bool | None = None, size: int = 12) -> None:
+def set_latin_run(run: Any, bold: bool | None = None, size: int = 12,
+                  profile: str | None = None) -> None:
+    if (profile or _FONT_PROFILE) == "prose":
+        # prose house style: Latin is also TH Sarabun New 16 (uniform look, DEC-010)
+        set_thai_body_run(run, bold=bold, size=16, profile="prose")
+        return
     if bold is not None:
         run.bold = bold
     set_run_font(run, ascii_font="Cambria", cs_font="TH Sarabun New", size=size)
@@ -157,7 +226,7 @@ def configure_paragraph(paragraph: Any, space_after: int = 4) -> None:
     paragraph.paragraph_format.space_after = Pt(space_after)
 
 
-def configure_document(doc: Document) -> None:
+def configure_document(doc: Document, profile: str | None = None) -> None:
     section = doc.sections[0]
     section.page_width = Inches(8.27)
     section.page_height = Inches(11.69)
@@ -165,18 +234,22 @@ def configure_document(doc: Document) -> None:
     section.bottom_margin = Inches(1.0)
     section.left_margin = Inches(1.0)
     section.right_margin = Inches(1.0)
-    enforce_document_font_defaults(doc)
+    enforce_document_font_defaults(doc, profile)
     normal = doc.styles["Normal"]
-    normal.font.name = "Cambria"
-    normal.font.size = Pt(12)
+    if (profile or _FONT_PROFILE) == "prose":
+        normal.font.name = "TH Sarabun New"
+        normal.font.size = Pt(16)
+    else:
+        normal.font.name = "Cambria"
+        normal.font.size = Pt(12)
     normal.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
     normal.paragraph_format.line_spacing = 1.0
     normal.paragraph_format.space_after = Pt(4)
 
 
-def new_document() -> Document:
+def new_document(profile: str | None = None) -> Document:
     doc = Document()
-    configure_document(doc)
+    configure_document(doc, profile)
     return doc
 
 
