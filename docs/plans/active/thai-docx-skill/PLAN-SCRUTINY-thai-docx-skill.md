@@ -445,3 +445,114 @@ force it — but writing it now is the cheaper place, consistent with the whole 
 - R2-F7 → re-verified LANDED; grep clean of stale OMML-split remnants — 2026-09-03
 - Whole-plan coherence (DEC-003a↔gates↔acceptance#2, managed globs, mirror sync) — re-verified consistent; S01 runner needs `-s tests` (heads-up, self-resolves at S01) — 2026-09-03
 - Plan → BLUEPRINT v1.2; verdict build-ready after R2-F6/F7 fixes — 2026-09-03
+
+---
+
+## Round 4 — 2026-09-03 (final closeout)
+Reviewed: BLUEPRINT v1.3 + CONSTRUCTION_PLAN + BUILD-CONTROL + AGENTS.md — **read from the `build/thai-docx-skill`
+branch via `git show`, because the plan bundle is not present on the current `main` checkout (see R4-F10).**
+Scrutinized by: Claude (Opus 4.8), outsider cold-read. Scope: R3-F8 landing, math-path safety of the import moves
+(traced against real code), final coherence. Closed items not reopened.
+
+### Coverage — what this closeout actually did
+- Confirmed R3-F8 landed in the operative build-spec surfaces (§1 The seam + S02 BUILD).
+- **Pressed the R3-F8 fix against the engine code, not the plan:** grepped *every* reference to the two aliases in
+  `qa.py` and read the two use-sites' control flow, to prove relocating the imports is safe on the math path.
+- Verified the S01 runner heads-up landed; checked DEC-003(a) ↔ gates ↔ acceptance #2; no-leak union coverage.
+- Discovered and investigated a repo-state divergence (R4-F10) that gates "start S01 now."
+
+### R3-F8 (relocate the `audit_docx_math_in_text` import) — LANDED, and the move is proven safe
+- **Landed:** BLUEPRINT §1 The seam now says "**Also relocate the top-level `import audit_docx_math_in_text`
+  (qa.py:19) into that gated math branch** (R3-F8: gating only the *call* leaves L19 loading the module…)"; S02 BUILD
+  says the same with "The leak is a *call* **and** an *import*" and "Make `audit_docx_omml` import lazy the same
+  way." **Confirmed across all three surfaces**: §1 The seam (BLUEPRINT L59-60), S02 BUILD, and DEC-003(b)
+  (BLUEPRINT L165: "GATING the call at `qa.py:517` **and relocating both the `audit_docx_math_in_text` (qa.py:19)
+  and `audit_docx_omml` imports into the gated math branch**"). The Round-3 patch landed on every operative surface.
+- **Math-path safety — VERIFIED against `thai_math_docx_qa.py` (the task's key ask):** `grep` of the whole file
+  shows each alias is referenced in exactly two places and nowhere else:
+  - `math_in_text` → **L19 (import)** and **L517 (call)** only.
+  - `omml_audit` → **L21 (import)** and **L234 (call)** only.
+  Both use-sites sit on math-only paths: L517 is the scan being gated on `math.required`/`m:oMath`; L234 is inside
+  `for run in root.findall(".//{M}oMath//{M}r")` — a loop that yields nothing for a math-free doc. There is **no
+  module-scope or always-runs reference** to either alias beyond the imports themselves. Therefore relocating each
+  import to co-locate with its use raises **no `NameError` on the math path** (the name is defined exactly where the
+  math path uses it), and **math-doc behavior is byte-identical** — the only behavioral delta remains the declared
+  math-free path (CHG-001). The import moves are safe. ✅
+
+### R4-F9 · [nit] · The `audit_docx_omml` lazy-import must land at the L234 use-site, not at the top of `_audit_omml` (which runs unconditionally)
+- **Finding:** S02 BUILD says "make `audit_docx_omml` import lazy **the same way**." The safe placement is subtler
+  than for `math_in_text`: `omml_audit` is used only at `qa.py:234`, deep inside the `m:oMath`-run loop, but its
+  enclosing function `_audit_omml` is **called unconditionally** at `qa.py:495` for every readable package. So the
+  idiomatic "lazy import = move it to the top of the function that uses it" would place `import audit_docx_omml` at
+  the top of `_audit_omml` → it loads on **every** doc, math-free included → the no-leak assertion for
+  `audit_docx_omml` fails. The import must go **inside the `m:oMath`-run loop / at the L234 use-site**, so it only
+  executes when an equation run is actually inspected.
+- **Why it matters:** Small, and largely backstopped — v1.3's "the same way" already points at co-locating with the
+  conditional use, and the subprocess no-leak test would catch a mis-placement. But naming it removes the last
+  wrong-turn on the highest-risk stage, consistent with rounds 2–3's precision ethos.
+- **Evidence:** `qa.py:234` (only use, inside the oMath-run loop) vs `qa.py:495` (`_audit_omml` called
+  unconditionally inside `if not package_failures:`).
+- **Suggested change (one clause):** In S02 BUILD add: "place the `audit_docx_omml` import **inside the
+  `m:oMath`-run loop at qa.py:234, not at the top of `_audit_omml`** — that function runs on every doc, so a
+  function-top import would re-leak omml on the math-free path."
+- ▶ Author response: _<blank>_
+
+### R4-F10 · [major — environmental / gating S01] · The v1.3 plan bundle lives only on `build/thai-docx-skill`, while `main` has diverged (thai-math-docx hardening added/expanded the regression net) — the build's start branch + baseline must be reconciled before S01
+- **Finding:** The working tree is on `main`, where **no** part of the plan bundle exists (`docs/plans/...` and the
+  `AGENTS.md` grill block are absent). The v1.3 bundle is committed on the **`build/thai-docx-skill`** branch (commit
+  `8c84d9e "docs: preserve thai-docx build plan"`). Meanwhile `main` has taken unrelated "harden equation editing"
+  work: `git diff --stat build/thai-docx-skill main -- thai-math-docx/scripts/thai_math_docx_qa.py
+  thai-math-docx/tests/` shows **`test_omml_structural_regressions.py` (new, +90)** and **`test_math_insertion_safety.py`
+  (+93)** — i.e. the regression net the plan analyzed has changed (16 test files on `main` vs the 15 the plan cites).
+- **Why it matters:** Three concrete build-time consequences:
+  1. **Start-branch is unresolved.** The docs + `AGENTS.md` build-entry live on `build/thai-docx-skill` (whose engine
+     predates the hardening); the improved engine + larger net live on `main`. Starting S01 from the build branch
+     builds the seam on a stale engine (merge-to-main conflict/regression risk later); starting from `main` means the
+     build-entry docs aren't there and must be carried over first.
+  2. **S01 baseline + A8/A10 are stale.** A10 says "15 test files"; `main` has 16. S01's "green baseline" must be
+     (re)taken against the *current* suite on whichever branch the build runs.
+  3. **An agent on `main` cannot even start** — `AGENTS.md` has no grill block and there's no `BUILD-CONTROL` to read.
+- **What I re-verified so the reconciliation is cheap:** `qa.py` is **unchanged** between the two branches (the diff
+  touched only `tests/`), so every seam citation (`qa.py:19/21/234/517`) is still valid on `main`. And the new
+  `test_omml_structural_regressions.py` is **math-path only** (OMML structure: fractions, radicals, literal-glyph
+  fails; `AUDIT = audit_docx_omml.py`; builds math exprs) — it does **not** run QA on a math-free doc or assert the
+  gate-coverage/`math-in-plain-text` id, so **CHG-001's "one gate-coverage test" scope stays accurate** against the
+  hardened suite, and the lazy-omml seam won't break it (it exercises omml on the math path, where omml still loads).
+- **Evidence:** `git ls-tree build/thai-docx-skill` (bundle present) vs `main` working tree (`docs/` + root
+  `AGENTS.md` absent); `git reflog` ("moving from build/thai-docx-skill to main"; "merge codex/thai-math-docx-hardening";
+  "commit (amend): harden equation editing"); `git diff --stat build/thai-docx-skill main -- …tests/`.
+- **Suggested change (process, not plan content):** Before S01, pick and record the branch strategy — recommended:
+  **rebase/merge the plan bundle onto current `main`** (or branch the build off `main` and cherry-pick `8c84d9e`),
+  then **re-take the S01 baseline against the 16-file suite** and update A8/A10's "15" to the actual count. No plan
+  *content* changes; qa.py citations already re-confirmed valid; CHG-001 scope already re-confirmed. Also re-confirm
+  `thai_math_docx_builder.py` is unchanged on `main` (the diff I ran covered qa.py + tests/ only) before relying on
+  the L26/L370 citations.
+- ▶ Author response: _<blank>_
+
+### Coherence — final pass (all consistent)
+- **R3 S01 heads-up LANDED:** S01 BUILD now carries "`tests/` has no `__init__.py` … use `python -m unittest
+  discover -s tests` … do **not** misread an empty discovery as '0 tests, green'," and TEST adds "A '0 collected'
+  result is a runner error, not a pass." ✅
+- **DEC-003(a) ↔ S02/S03 PASS GATE ↔ acceptance #2:** consistent (unchanged since v1.2's verified state; R3-F8
+  didn't touch these).
+- **No-leak union coverage:** S02 asserts `audit_docx_omml` + `audit_docx_math_in_text`; S03 asserts
+  `thai_math_source_adapter` + `audit_docx_omml` + `thai_math_expr`; union = all four protected modules, each
+  asserted **in an isolated subprocess** and only on math-free paths. ✅
+
+### Verdict: plan CONTENT is build-ready — clear ONE environmental gate (R4-F10) before S01
+**Reason (single biggest):** Every content finding across rounds 1–3 is closed and correctly landed; R3-F8's import
+relocation is present and **proven safe on the math path** by direct code trace; the S01 runner trap is defused. The
+plan's *content* is build-ready. What is **not** ready is the *repo state*: the v1.3 bundle sits on
+`build/thai-docx-skill` while `main` has diverged (hardening grew the regression net to 16 files), so S01's baseline,
+the build's start branch, and the "15 test files" assumptions must be reconciled first (R4-F10). That is a
+repo-reconciliation step, not a re-plan — qa.py citations and CHG-001 scope already re-verified against `main`.
+R4-F9 is a one-clause nit.
+
+Routing: **reconcile branch/baseline (R4-F10), optionally add the R4-F9 clause, then `Approve plan thai-docx-skill
+— start S01`.** No return to grill; no decision reopened.
+
+### Resolution log — Round 4
+- R3-F8 → re-verified LANDED on all three surfaces (§1 The seam L59-60, S02 BUILD, DEC-003(b) L165); import relocation proven safe on the math path (aliases used only at qa.py:19/517 and 21/234) — 2026-09-03
+- R4-F9 → _<blank — author fills>_ (place the `audit_docx_omml` import at the qa.py:234 use-site, not atop `_audit_omml`, which runs unconditionally)
+- R4-F10 → _<blank — author fills>_ (plan bundle on `build/thai-docx-skill`; `main` diverged +1 test file & expanded insertion-safety — pick start branch, re-take S01 baseline vs the 16-file suite, update A8/A10 counts; qa.py + CHG-001 scope already re-confirmed valid)
+- S01 heads-up + DEC-003(a)↔gates↔acceptance#2 + no-leak union — re-verified consistent — 2026-09-03
