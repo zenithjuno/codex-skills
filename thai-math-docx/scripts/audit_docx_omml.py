@@ -37,6 +37,8 @@ LITERAL_STRUCTURAL_GLYPHS = {
     "√": "square root (expected m:rad)",
     "∛": "cube root (expected m:rad with a degree)",
     "⁄": "fraction slash (expected m:f)",
+    "{": "opening set brace (expected one paired m:d)",
+    "}": "closing set brace (expected one paired m:d)",
 }
 
 MATH_TAGS = {
@@ -129,6 +131,8 @@ def main() -> int:
     unformatted_thai_math = []
     fused_coeff_var = []
     literal_structural_glyphs = []
+    redundant_radicand_delimiters = []
+    numerator_unary_minus = []
 
     with zipfile.ZipFile(docx_path) as zf:
         for name, root in iter_word_xml(zf):
@@ -154,6 +158,19 @@ def main() -> int:
                 counts["thai_math_run_count"] += 1
                 if not has_explicit_thai_math_format(math_run):
                     unformatted_thai_math.append((name, text.strip()))
+
+            for radical in root.findall(".//m:oMath//m:rad", NS):
+                radicand = radical.find("m:e", NS)
+                if radicand is not None and len(radicand) == 1 and radicand[0].tag == q("m", "d"):
+                    redundant_radicand_delimiters.append((name, text_content(radicand[0]).strip()))
+
+            for fraction in root.findall(".//m:oMath//m:f", NS):
+                numerator = fraction.find("m:num", NS)
+                if numerator is None or not len(numerator):
+                    continue
+                first = numerator[0]
+                if first.tag == q("m", "r") and text_content(first).strip() == "−":
+                    numerator_unary_minus.append((name, text_content(numerator).strip()))
 
     image_count = counts["word_drawing"] + counts["word_pict"] + counts["vml_image"]
 
@@ -202,6 +219,18 @@ def main() -> int:
         failures.append(
             f"{name}: literal structural glyph {glyph!r} inside m:t; "
             f"{expected}: {snippet!r}",
+        )
+    for name, text in redundant_radicand_delimiters:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        failures.append(
+            f"{name}: entire radicand is wrapped by a redundant delimiter; "
+            f"the radical already owns source scope: {snippet!r}",
+        )
+    for name, text in numerator_unary_minus:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        failures.append(
+            f"{name}: unary minus starts inside fraction numerator; emit the sign "
+            f"before the m:f object: {snippet!r}",
         )
 
     if failures:

@@ -57,6 +57,12 @@ class StructuralTreeTests(unittest.TestCase):
         self.assertEqual("".join(radical.find("m:e", M).itertext()), "−64")
         self.assertNotIn("∛", "".join(root.itertext()))
 
+    def test_set_braces_are_one_native_delimiter(self) -> None:
+        root = omml_root(paren(["−", "3", ",", "4"], beg="{", end="}"))
+        self.assertEqual(len(root.findall("./m:d", M)), 1)
+        self.assertNotIn("{", "".join(root.itertext()))
+        self.assertNotIn("}", "".join(root.itertext()))
+
 
 class LiteralStructuralGlyphAuditTests(unittest.TestCase):
     def audit(self, value: dict) -> subprocess.CompletedProcess[str]:
@@ -84,6 +90,16 @@ class LiteralStructuralGlyphAuditTests(unittest.TestCase):
         result = self.audit(expr(["1", "⁄", "2"]))
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn("literal structural glyph '⁄'", result.stdout)
+
+    def test_redundant_delimiter_around_entire_radicand_fails(self) -> None:
+        result = self.audit({"kind": "rad", "deg": ["3"], "items": [paren(["−", "64"])]})
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("entire radicand is wrapped", result.stdout)
+
+    def test_unary_minus_inside_fraction_numerator_fails(self) -> None:
+        result = self.audit(frac(["−", "1"], "4"))
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("unary minus starts inside fraction numerator", result.stdout)
 
 
 if __name__ == "__main__":

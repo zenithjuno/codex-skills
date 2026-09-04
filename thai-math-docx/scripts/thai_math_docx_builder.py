@@ -234,8 +234,6 @@ def items_fragment(items: list[Any]) -> str:
 
 
 def delim(items: list[Any], beg_chr: str = "(", end_chr: str = ")") -> str:
-    if beg_chr == "{" and end_chr == "}":
-        return mtext("{") + items_fragment(items) + mtext("}")
     return (
         f'<m:d><m:dPr><m:begChr m:val="{escape(beg_chr)}"/><m:endChr m:val="{escape(end_chr)}"/></m:dPr>'
         "<m:e>" + items_fragment(items) + "</m:e></m:d>"

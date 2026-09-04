@@ -1,5 +1,16 @@
 # Thai Math DOCX Changelog
 
+## 2026-09-04 — Semantic grouping and editable set braces
+
+- Radicand scope wrappers are now rejected when they become a redundant visible
+  delimiter around the entire `m:rad` body.
+- Unary negative signs must sit before the fraction object; the audit rejects a
+  direct leading minus inside `m:num`.
+- Finite-set braces now use one paired `m:d` object instead of two independent
+  literal runs, so Word edits the delimiters as a real enclosing structure.
+- Added red-green structural regressions and recorded the limits: meaningful
+  factor/grouping parentheses and explicitly grouped numerators remain intact.
+
 ## 2026-09-04 — Word editing and structural equations
 
 - Replaced disposable empty equation-boundary runs with persistent safe anchors.

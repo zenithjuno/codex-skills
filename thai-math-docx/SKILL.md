@@ -137,6 +137,17 @@ The QA gate also fails a document that left a relational operator in a plain-tex
 run; `scripts/audit_docx_math_in_text.py` runs that check alone when you need to
 isolate it, and its header explains why.
 
+Treat linear-source punctuation as syntax before deciding what Word should show:
+
+- an outer `(...)` or `[...]` used only to mark the full radicand is consumed by
+  the source adapter; the `m:rad` node already owns that scope;
+- in `−1⁄4`, emit the unary minus before the `m:f` object, not as the first item
+  of `m:num`;
+- set braces are one paired `m:d` delimiter object, never two literal brace runs.
+
+Keep delimiters that carry actual mathematics, such as factor parentheses or a
+nested grouped expression inside a radicand.
+
 Use `latin_text` transcript parts for ordinary numeric/comma/Latin sequences that should stay Cambria text, not Thai text. Keep mathematical variables inside those sequences as math tokens when they are conceptual variables.
 
 Default rule: keep Thai prose outside OMML. Allow Thai inside OMML only when it is deliberately part of the equation layout, such as piecewise/cases rows, aligned systems, underbrace labels, or condition text that must stay attached to the math object. Thai inside OMML must use an explicit `thai_text` node and carry Thai Word run properties; accidental Thai inside generic math items should fail before DOCX delivery.

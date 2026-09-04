@@ -412,6 +412,20 @@ For expressions such as `P(A ∪ B)`, prefer OMML delimiters:
 
 This keeps the parentheses semantically part of the equation.
 
+Use the same paired `<m:d>` structure for finite-set braces. Do not emit `{`
+and `}` as separate `<m:r>` runs: Word then edits them independently rather
+than treating the set as one delimited object.
+
+Distinguish source scope from visible mathematics. In linear notation such as
+`∛(−64)`, the outer parentheses may exist only to tell the parser that `−64` is
+the full radicand. Consume that wrapper because `<m:rad>` already supplies the
+scope. Preserve a delimiter only when it groups a genuine subexpression inside
+the radicand, such as a grouped base to which a power applies.
+
+Likewise, parse `−1⁄4` as unary minus followed by `<m:f>1/4</m:f>`. Do not move
+the sign into `<m:num>` merely because it precedes the numerator in linear
+source. An explicitly grouped numerator remains a separate source decision.
+
 For matrices, use editable OMML `<m:m>` wrapped in delimiter `<m:d>` rather than plain text brackets. Transcript nodes can carry rows/cells explicitly, for example a 2×2 matrix as `{"kind":"matrix","rows":[[["1"],["1"]],[["1"],["−1"]]]}`. Each cell should still be built from math items so variables remain italic and numerals/operators remain upright.
 
 ### 6.4 Variables and Upright Text

@@ -51,6 +51,14 @@ these measurements in a generator.
 - Keep binary operators outside neighboring fractions. Preserve parentheses
   that are mathematical factors, but do not render wrappers used only to scope
   a numerator or denominator in linear source.
+- Parentheses or brackets used only to identify the complete radicand in linear
+  source are not visible output. The radical bar is the grouping structure;
+  preserve only delimiters that remain mathematically meaningful inside it.
+- Write a negative fraction such as `−1⁄4` as a unary minus followed by one
+  fraction object. Do not place the minus at the start of the numerator unless
+  the source explicitly makes the signed numerator a separate grouped object.
+- Emit the two braces of a finite set as one paired native OMML delimiter
+  (`m:d`). Never fake a set with independent literal `{` and `}` math runs.
 - In set-builder notation, keep visible spaces around the condition bar:
   `{x ∈ ℕ ∣ x < 5}`.
 - Keep Thai prose outside OMML unless it deliberately belongs inside an equation
