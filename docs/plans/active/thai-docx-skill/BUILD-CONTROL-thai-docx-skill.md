@@ -39,10 +39,10 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S04 — ACTIVE** (thai-docx skeleton + SKILL.md)
+- Current stage: **S05 — ACTIVE** (dependency + render-env preflight)
 - Completed: S01 (baseline 137 OK), S02 (CHG-001; 140 OK), S03 (builder lazy import; 141 OK; SEAM PHASE DONE). Checkpoints S02,S03.
-- Next action: build S04 thai-docx skeleton + SKILL.md → gate `Pass S04`.
-- Active gate: **S04** (`Pass S04` / `Fail S04 — reason`)
+- Next action: build S05 preflight.py + test → gate `Pass S05`.
+- Active gate: **S05** (`Pass S05` / `Fail S05 — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
 - Last change: 2026-09-04 S03 builder lazy import + no-leak test; full suite 141 OK; combined seam proof clean.
 - Uncommitted: S03 edits + doc updates (checkpoint on `Pass S03`/commit).
