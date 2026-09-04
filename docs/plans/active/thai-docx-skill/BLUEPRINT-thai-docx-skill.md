@@ -19,7 +19,7 @@ mature `thai-math-docx` pipeline minus everything math/OMML, without creating dr
 | User value | The teacher (a non-standalone "docx bundle" author) gets correct Thai Word docs for prose/tables/handouts/letters/reports without math ceremony, and an agent triggered on it never reads or executes math code. |
 | Scope | New folder `~/.codex/skills/thai-docx/`; a bounded, test-guarded general/math **seam refactor** inside `~/.codex/skills/thai-math-docx/scripts/`; a one-line carve-out edit to `thai-math-docx` SKILL.md; follow-on cleanup (fonts, workspace tools, memory). |
 | Source of truth | Engine = `~/.codex/skills/thai-math-docx/scripts/` (builder core, layout, `audit_docx_font_defaults.py`, `audit_docx_insertion_safety.py`, `render_docx.py`, `contact_sheet.py`, `thai_math_docx_qa.py`). Font repair = `~/.codex/skills/thai-font-normalize/scripts/fix-thai-font`. Font standard = TH Sarabun New. |
-| Constraints | (a) thai-math-docx routing + behavior must remain provably unchanged; (b) thai-docx's general path must load/execute NO math module; (c) no duplicated engine code (Path 1 reuse by absolute path); (d) font standard = TH Sarabun New only, no PSK font installed; (e) reference siblings by absolute `~/.codex/skills` path, no hardcoded codex-runtime python; (f) bump `SKILL-VERSION` on every skill edit. |
+| Constraints | (a) thai-math-docx routing + behavior must remain provably unchanged (except CHG-001); (b) thai-docx's general path must load/execute no math **authoring/scanner** module (`audit_docx_omml` excluded per Ω2/DEC-009 — passive validator); (c) no duplicated engine code (Path 1 reuse by absolute path); (d) font standard = TH Sarabun New only, no PSK font installed; (e) reference siblings by absolute `~/.codex/skills` path, no hardcoded codex-runtime python; (f) bump `SKILL-VERSION` on every skill edit. |
 | Acceptance criteria | 1) thai-docx generates+repairs+renders a Thai prose/table doc **including prose with numeric relations (e.g. `คะแนน ≥ 80`)**, Thai correct (New), QA gate PASS with `math.required=false`. 2) thai-math-docx baseline tests/QA pass identically before/after the seam **except the one gate-coverage test deliberately updated by CHG-001** (math-in-plain-text present for math docs, legitimately absent for declared math-free). 3) A test proves no math authoring/scanner module loads on the general path (`audit_docx_math_in_text`, `thai_math_expr`, `thai_math_source_adapter` absent from `sys.modules`; `audit_docx_omml` excluded per Ω2) — asserted **in an isolated subprocess / clean interpreter** (not the `unittest discover` process, where sibling tests pre-import those modules — R2-F6). 4) Preflight fails loudly when a dep (engine/font-normalize/LibreOffice/TH Sarabun New) is missing. 5) Triggers are disjoint from thai-math-docx. |
 | Verification | Automated tests (regression baseline diff, no-leak sys.modules assertion, seam lazy-import proof, thai-docx end-to-end render+QA on a fixture), plus a rendered contact sheet reviewed by the teacher. |
 | Out of scope | Full SVG-diagram apparatus (visuals.md); PDF/image→DOCX reconstruction; `pdf` skill integration; the broader thai-math-docx size/grammar refactor (stays parked). |
@@ -38,7 +38,8 @@ Iron rules of this build:
    lifting stays in `thai-math-docx/scripts/`, reached by absolute path (CLI shell-out) or `sys.path`
    bootstrap (Python import), following the repo's existing cross-skill pattern (`generator-template.py`).
 2. **Draw the general/math seam inside thai-math-docx, minimally.** The general engine becomes cleanly
-   importable with **zero math dependency**, so thai-docx rides a math-free core.
+   importable with **no math authoring/scanner dependency** (`audit_docx_omml` may still load as a passive
+   validator — Ω2), so thai-docx rides a core free of math authoring/grammar.
 3. **Never touch the crown jewel unguarded.** Every seam change is covered by a regression baseline of
    thai-math-docx's own tests/QA (red-green): behavior identical before/after for math docs — the sole
    intended change is CHG-001 (a declared math-free doc no longer runs the plain-text-math scan).
@@ -50,9 +51,9 @@ Facts (verified): general/math is already ~90% separated. Clean/math-free alread
 `audit_docx_font_defaults`, `audit_docx_insertion_safety`, `render_docx`, `contact_sheet`,
 `thai_math_docx_layout`. `thai_math_docx_qa.py` is already math-optional via a `math.required` contract
 flag but **hard-imports** the math audit modules at top. `thai_math_docx_builder.py` mixes general funcs
-(L60–180, 476–622) with a **contiguous** OMML block (L181–475) and imports `normalize_math_string`
-(used once, L370, math path only). `append_parts` is the one general→math bridge (dispatches when a part
-is `type:"math"`).
+with a **contiguous** OMML block and imports `normalize_math_string` (used once, math path only).
+`append_parts` is the one general→math bridge (dispatches when a part is `type:"math"`).
+(Line numbers pre-merge; merged-engine `3f978a4` anchors are in Assumption A5 and the seam moves below.)
 
 Minimal seam moves (finalized after scrutiny 2026-09-02; **the leak is a call, not only an import**):
 - `thai_math_docx_qa.py` (line numbers as of merged engine `3f978a4`): **gate the call site at `qa.py:503`
@@ -65,8 +66,8 @@ Minimal seam moves (finalized after scrutiny 2026-09-02; **the leak is a call, n
   `allow_no_math=True` (L481 call) — a passive structural validator that PASSes trivially on a math-free doc and never
   false-fails, so it is NOT gated and NOT in the no-leak set. The seam gates only the check that is *wrong* on prose.
 - `thai_math_docx_builder.py`: make only the single `from thai_math_source_adapter import normalize_math_string`
-  (L26, used once at L370 on the `type:"math"` path) **lazy**. Verified sufficient: importing the general
-  builder then loads zero math modules; the OMML block (L181–474) physically stays put and runs only on the
+  (L26 on `3f978a4`, used once at L368 on the `type:"math"` path) **lazy**. Verified sufficient: importing the
+  general builder then loads no math authoring module; the OMML block physically stays put and runs only on the
   math path via `append_parts`. **Do NOT relocate the OMML block** (SQ1: zero no-leak benefit, that is the
   parked refactor). Preserve the public general API behavior.
 - The general core exposes a math-free surface thai-docx imports. thai-docx must also never `import thai_math_expr`.
