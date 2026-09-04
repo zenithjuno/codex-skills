@@ -47,9 +47,12 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 - Last change: control plane created (design phase)
 
 ## VERSION CONTROL
-- Mode: `git`. Repo root: `~/.codex/skills`. Branch (main): `main` (baseline).
-- Build branch: `build/thai-docx-skill` (created only AFTER plan approval, before S01 edits).
-- Baseline: current `main` tip at approval time (record hash at build start).
+- Mode: `git`. Repo root: `~/.codex/skills`.
+- Build branch: **`build/thai-docx-skill` already exists and holds the plan bundle** (created pre-approval to
+  preserve the design docs). Reconciled 2026-09-04 (R4-F10): **merged `main` into it** (merge commit `3f978a4`) to
+  bring the thai-math-docx hardening (16-file test net) — so the seam is built against the CURRENT engine.
+- Baseline: **`3f978a4`** (the merge tip = main's hardening + plan bundle). At build-startup, `git checkout
+  build/thai-docx-skill` (already there), re-take the S01 green baseline vs the 16-file suite; do NOT create a new branch.
 - Checkpoint rule: one commit per passed stage, managed paths only, message carries stage id (+ CHG ids).
   Stable ref `build/thai-docx-skill/SNN`. Commit only on explicit user ask (per commit rule).
 - Untracked `docs/` (this plan bundle) travels onto the build branch; nothing else absorbed.
@@ -59,7 +62,7 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 |---|---|---|---|
 | `thai-docx/scripts/**` | DEC-002, DEC-007 | BLUEPRINT §1, §4 | test |
 | `thai-docx/SKILL.md` + `references/**` | DEC-004, DEC-005, DEC-007 | BLUEPRINT §Task contract, §2, §4 | review |
-| `thai-math-docx/scripts/thai_math_docx_qa.py` | DEC-002, DEC-003, CHG-001 | BLUEPRINT §1 The seam | test (regression + gated-call/no-leak + updated gate-coverage) |
+| `thai-math-docx/scripts/thai_math_docx_qa.py` (gate scan L503 + relocate import L19; omml as-is per Ω2) | DEC-002, DEC-003, DEC-009, CHG-001 | BLUEPRINT §1 The seam | test (regression + gated-call/no-leak + updated gate-coverage) |
 | `thai-math-docx/scripts/thai_math_docx_builder.py` | DEC-002, DEC-003 | BLUEPRINT §1 The seam | test (regression + no-leak) |
 | `thai-math-docx/SKILL.md` | DEC-005 | BLUEPRINT §2 | review |
 | render/QA font behavior | DEC-006 | BLUEPRINT §3 | test + preflight |

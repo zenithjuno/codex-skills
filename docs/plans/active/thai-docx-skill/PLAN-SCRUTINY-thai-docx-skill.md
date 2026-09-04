@@ -495,7 +495,12 @@ Scrutinized by: Claude (Opus 4.8), outsider cold-read. Scope: R3-F8 landing, mat
 - **Suggested change (one clause):** In S02 BUILD add: "place the `audit_docx_omml` import **inside the
   `m:oMath`-run loop at qa.py:234, not at the top of `_audit_omml`** — that function runs on every doc, so a
   function-top import would re-leak omml on the math-free path."
-- ▶ Author response: _<blank>_
+- ▶ Author response: **DISSOLVED by Ω2/DEC-009 (user approved 2026-09-04).** Your analysis is exactly why: after the
+  merge `_audit_omml` runs unconditionally (`allow_no_math=True`), so making `audit_docx_omml` lazy would need the
+  whole `_audit_omml` call gated — another gate-coverage change, fighting the "every check runs" design. Instead we
+  scope no-leak to the modules that are *wrong or authoring* on prose (`audit_docx_math_in_text` scan + grammar/expr)
+  and **leave `audit_docx_omml` as-is** (passive validator, PASSes trivially, never false-fails). So there is no omml
+  lazy-import to misplace — R4-F9 no longer applies. S02/S03 no-leak sets updated to exclude `audit_docx_omml`.
 
 ### R4-F10 · [major — environmental / gating S01] · The v1.3 plan bundle lives only on `build/thai-docx-skill`, while `main` has diverged (thai-math-docx hardening added/expanded the regression net) — the build's start branch + baseline must be reconciled before S01
 - **Finding:** The working tree is on `main`, where **no** part of the plan bundle exists (`docs/plans/...` and the
@@ -527,7 +532,14 @@ Scrutinized by: Claude (Opus 4.8), outsider cold-read. Scope: R3-F8 landing, mat
   *content* changes; qa.py citations already re-confirmed valid; CHG-001 scope already re-confirmed. Also re-confirm
   `thai_math_docx_builder.py` is unchanged on `main` (the diff I ran covered qa.py + tests/ only) before relying on
   the L26/L370 citations.
-- ▶ Author response: _<blank>_
+- ▶ Author response: **DONE — reconciled + your builder caveat was well-placed.** Merged `main` into
+  `build/thai-docx-skill` (merge commit `3f978a4`, no conflict — docs are new files). Re-anchored against the merged
+  engine and **verified your builder flag: `builder.py` DID change on `main` (+26/−7)** — but the seam anchor held:
+  `normalize_math_string` import still at L26, used L368. **qa.py also changed** (hardening refactored `_audit_omml`);
+  re-anchored: scan L517→**L503**, check id L508, `_audit_omml` L214 now **unconditional** (`allow_no_math`) at L481 —
+  which is what forced the Ω2 decision (see R4-F9). A8/A10 updated to 16 files; BUILD-CONTROL VERSION CONTROL records
+  branch=build/thai-docx-skill, baseline=`3f978a4`. Plan → v1.4. No plan *decisions* reopened except the engine-driven
+  Ω2 (DEC-009), which the user approved.
 
 ### Coherence — final pass (all consistent)
 - **R3 S01 heads-up LANDED:** S01 BUILD now carries "`tests/` has no `__init__.py` … use `python -m unittest
@@ -553,6 +565,7 @@ Routing: **reconcile branch/baseline (R4-F10), optionally add the R4-F9 clause, 
 
 ### Resolution log — Round 4
 - R3-F8 → re-verified LANDED on all three surfaces (§1 The seam L59-60, S02 BUILD, DEC-003(b) L165); import relocation proven safe on the math path (aliases used only at qa.py:19/517 and 21/234) — 2026-09-03
-- R4-F9 → _<blank — author fills>_ (place the `audit_docx_omml` import at the qa.py:234 use-site, not atop `_audit_omml`, which runs unconditionally)
-- R4-F10 → _<blank — author fills>_ (plan bundle on `build/thai-docx-skill`; `main` diverged +1 test file & expanded insertion-safety — pick start branch, re-take S01 baseline vs the 16-file suite, update A8/A10 counts; qa.py + CHG-001 scope already re-confirmed valid)
+- R4-F9 → DISSOLVED by Ω2/DEC-009: `audit_docx_omml` left as-is (unconditional `allow_no_math` validator), so there is no omml lazy-import to misplace; dropped from the no-leak set — 2026-09-04
+- R4-F10 → RECONCILED: merged `main` into `build/thai-docx-skill` (`3f978a4`); re-anchored all citations to the merged engine (scan L503, `_audit_omml` unconditional, builder import L26/use L368 — builder DID change, seam held); A8/A10 → 16 files; baseline recorded. Ω2/DEC-009 taken because the hardening made `_audit_omml` run on every doc — 2026-09-04
+- Plan → BLUEPRINT v1.4; content build-ready; awaiting round-5 closeout or S01 approval — 2026-09-04
 - S01 heads-up + DEC-003(a)↔gates↔acceptance#2 + no-leak union — re-verified consistent — 2026-09-03

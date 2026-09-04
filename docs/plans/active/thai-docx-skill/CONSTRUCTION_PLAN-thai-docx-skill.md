@@ -65,19 +65,21 @@ Full six-part detail exists for `ACTIVE`/foundation stages; later `PLANNED` stag
 ### S02 — qa.py gate the math scan on math context (opens CHG-001)
 📁 SCOPE — modify `thai-math-docx/scripts/thai_math_docx_qa.py`; modify `thai-math-docx/tests/test_verify_qa.py` (the gate-coverage expectation — CHG-001); create `thai-math-docx/tests/test_qa_mathfree_no_leak.py`. Protected: math modules (edit none).
 🔗 CONTRACT — DEC-002, DEC-003(a,b,c), **CHG-001**. Current source: BLUEPRINT §1 The seam, §3. Current truth surfaces: BLUEPRINT (DEC-003/CHG-001), BUILD-CONTROL STATE + OPEN CHANGES.
-🔨 BUILD — **gate the call site**: `qa.py:517` `math_in_text.scan(...)` runs only when math context is present
-  (`math.required` true or `m:oMath` found), not unconditionally. **Also relocate the top-level
-  `import audit_docx_math_in_text` from `qa.py:19` into that gated math branch** (co-located with the conditional
-  scan) — R3-F8: gating only the call leaves L19 importing the module, so on a math-free doc it must be neither
-  imported nor called. Make `audit_docx_omml` import lazy the same way. The leak is a *call* **and** an *import*.
-  Behavior for math docs (math.required true / has oMath) is unchanged.
+🔨 BUILD — **gate the call site**: `qa.py:503` `math_in_text.scan(...)` runs only when math context is present
+  (`math.required` true or `metrics["omml"]["oMath_count"]` > 0 — both available at that point), not unconditionally.
+  **Also relocate the top-level `import audit_docx_math_in_text` from `qa.py:19` into that gated math branch**
+  (co-located with the conditional scan) — R3-F8: gating only the call leaves L19 importing the module. The leak is
+  a *call* **and** an *import*. **`audit_docx_omml` is LEFT AS-IS (Ω2/DEC-009)** — `_audit_omml` (L214) runs
+  unconditionally with `allow_no_math=True` and PASSes trivially on prose, so it is neither gated nor removed;
+  R4-F9 is dissolved. Behavior for math docs is unchanged. (Line numbers as of merged engine `3f978a4`.)
   Then open CHG-001: update `test_verify_qa.py`'s gate-coverage test so the `math-in-plain-text` check id is
   asserted present for a math doc and legitimately absent for a declared `math.required=false` doc.
 🧪 TEST — (focused 1) new no-leak test: run QA on a math-free `math.required=false` fixture **that contains a numeric
   relation in prose (e.g. `นักเรียนที่ได้คะแนน ≥ 80`)** and assert (a) verdict is not FAIL on that account and
-  (b) `audit_docx_omml`/`audit_docx_math_in_text` absent from `sys.modules` **checked in an isolated subprocess**
+  (b) `audit_docx_math_in_text` absent from `sys.modules` **checked in an isolated subprocess**
   (`subprocess.run([sys.executable, "-c", ...])` that runs `qa.audit_docx` on the fixture) — NOT an in-process
-  assertion, which false-fails under `unittest discover` because sibling tests pre-import those modules (R2-F6).
+  assertion, which false-fails under `unittest discover` because sibling tests pre-import it (R2-F6).
+  **Do NOT assert `audit_docx_omml` absent** — per Ω2 it legitimately loads/runs as the `allow_no_math` validator.
   (focused 2) the updated gate-coverage test
   passes both ways. (regression) full suite green vs S01 baseline except that one intentionally-updated test.
 👁️ YOU SEE — a small before/after: a prose doc with `คะแนน ≥ 80` → **before**: QA FAIL "fused into one run"; **after**:
@@ -88,12 +90,13 @@ Full six-part detail exists for `ACTIVE`/foundation stages; later `PLANNED` stag
 📁 SCOPE — modify `thai-math-docx/scripts/thai_math_docx_builder.py` (one import); create `thai-math-docx/tests/test_builder_mathfree_no_leak.py`. **No new module, no OMML relocation** (SQ1 dropped: zero no-leak benefit, = the parked refactor). Protected: math audit modules + the OMML block (stays in place).
 🔗 CONTRACT — DEC-002, DEC-003(b). Current source: BLUEPRINT §1 The seam. Current truth surfaces: BUILD-CONTROL STATE.
 🔨 BUILD — make only `from thai_math_source_adapter import normalize_math_string` (L26) **lazy** — import inside the
-  `type:"math"` call path (L370). The OMML block (L181–474) stays put and runs only via `append_parts` on math parts.
-  General builder API (`set_thai_body_run`, `add_paragraph`, `add_table`, `add_heading`, `save_docx`, font helpers) unchanged.
+  `type:"math"` call path (used at L368). The OMML block stays put and runs only via `append_parts` on math parts.
+  General builder API (`set_thai_body_run`, `add_paragraph`, `add_table`, `add_heading`, `save_docx`, font helpers)
+  unchanged. (Line numbers as of merged engine `3f978a4`.)
 🧪 TEST — (focused) new no-leak test **in an isolated subprocess** (`subprocess.run([sys.executable, "-c", ...])`):
-  import ONLY the general builder API + build a prose+table doc, then assert `thai_math_source_adapter`,
-  `audit_docx_omml`, `thai_math_expr` are absent from that clean interpreter's `sys.modules` — an in-process check
-  false-fails under `unittest discover` (R2-F6). (regression) full suite green vs baseline.
+  import ONLY the general builder API + build a prose+table doc, then assert `thai_math_source_adapter` and
+  `thai_math_expr` are absent from that clean interpreter's `sys.modules` — an in-process check false-fails under
+  `unittest discover` (R2-F6). (**Not `audit_docx_omml` — Ω2.**) (regression) full suite green vs baseline.
 👁️ YOU SEE — "สร้างเอกสาร prose+ตารางผ่าน builder = ไม่โหลด grammar/โมดูล math (ผ่าน) ; ชุดเทสต์เดิมผ่าน N/N".
 ✅ PASS GATE — no-leak test passes AND regression identical to baseline. `Pass S03` / `Fail S03 — เหตุผล`.
 
