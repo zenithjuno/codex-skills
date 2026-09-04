@@ -7,9 +7,12 @@ description: >
   Cambria 12 pt, editable Word Equation/OMML for math-ish tokens, insertion-safe
   Thai body runs, Thai-style question labels, TH Sarabun New 12 pt footers,
   robust docDefaults/Normal style defaults that survive Clear Formatting, and
-  mandatory font/OMML audits. Use for Thai math exams, handouts, answer keys,
-  PDF/image-to-DOCX reconstruction, imported DOCX repair, and any task where
-  Thai text plus mathematical notation must remain editable and Word-compatible.
+  mandatory font/OMML audits. Use for Thai math exams, math handouts and answer keys,
+  PDF/image-to-DOCX reconstruction of mathematical documents, and repair of imported Thai
+  DOCX that contain equations — any task where Thai text plus mathematical notation must
+  remain editable and Word-compatible. For a Thai .docx with NO mathematical notation
+  (plain prose, letters, memos, reports, forms, plain handouts, or repairing an imported
+  document that has no equations), use the `thai-docx` skill instead.
 ---
 
 <!-- SKILL-VERSION: 2026.09.04 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
