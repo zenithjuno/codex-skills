@@ -45,7 +45,9 @@ class ParagraphEndTests(unittest.TestCase):
         paragraph = builder.add_paragraph(doc, MATH_PARAGRAPH)
         tail = list(paragraph._p)[-1]
         self.assertEqual(tail.tag, f"{{{builder.W_NS}}}r")
-        self.assertEqual(tail.find(f"{{{builder.W_NS}}}t"), None)
+        text = tail.find(f"{{{builder.W_NS}}}t")
+        self.assertIsNotNone(text)
+        self.assertEqual(text.text, builder.INSERTION_ANCHOR_TEXT)
         rpr = tail.find(f"{{{builder.W_NS}}}rPr")
         szcs = rpr.find(f"{{{builder.W_NS}}}szCs")
         self.assertEqual(szcs.get(f"{{{builder.W_NS}}}val"), "32")
@@ -55,6 +57,21 @@ class ParagraphEndTests(unittest.TestCase):
         paragraph = builder.add_paragraph(doc, THAI_PARAGRAPH)
         runs = [child for child in paragraph._p if child.tag == f"{{{builder.W_NS}}}r"]
         self.assertEqual(len(runs), 1)
+
+    def test_label_before_math_gets_a_leading_and_trailing_anchor(self) -> None:
+        doc = builder.new_document()
+        paragraph = builder.add_paragraph(
+            doc,
+            [
+                {"type": "label", "text": "ก. ", "bold": False},
+                {"type": "math", "expr": expr(["x", "+", "1"])},
+            ],
+        )
+        children = list(paragraph._p)
+        self.assertEqual(children[1].find(f"{{{builder.W_NS}}}t").text, "ก.")
+        self.assertEqual(children[2].find(f"{{{builder.W_NS}}}t").text, builder.INSERTION_ANCHOR_TEXT)
+        self.assertEqual(children[3].tag, f"{{{builder.M_NS}}}oMath")
+        self.assertEqual(children[4].find(f"{{{builder.W_NS}}}t").text, builder.INSERTION_ANCHOR_TEXT)
 
 
 class AuditTests(unittest.TestCase):
@@ -78,6 +95,80 @@ class AuditTests(unittest.TestCase):
             "<m:t>a</m:t></m:r></m:oMath></w:p>"
         )
         self.assertTrue(any("ends on an equation" in issue for issue in issues), issues)
+
+    def test_empty_run_after_math_is_not_a_persistent_anchor(self) -> None:
+        issues = self._audit_xml(
+            '<w:p><m:oMath><m:r><w:rPr><w:sz w:val="24"/>'
+            '<w:szCs w:val="32"/></w:rPr><m:t>x</m:t></m:r></m:oMath>'
+            "<w:r><w:rPr><w:sz w:val=\"24\"/><w:szCs w:val=\"32\"/>"
+            "</w:rPr></w:r></w:p>"
+        )
+        self.assertTrue(any("empty run that Word removes" in issue for issue in issues), issues)
+
+    def test_persistent_anchor_with_thai_font_in_latin_slot_is_flagged(self) -> None:
+        issues = self._audit_xml(
+            '<w:p><m:oMath><m:r><w:rPr><w:sz w:val="24"/>'
+            '<w:szCs w:val="32"/></w:rPr><m:t>x</m:t></m:r></m:oMath>'
+            '<w:r><w:rPr><w:rFonts w:ascii="TH Sarabun New" '
+            'w:hAnsi="TH Sarabun New" w:cs="TH Sarabun New"/>'
+            '<w:sz w:val="32"/><w:szCs w:val="32"/></w:rPr>'
+            '<w:t xml:space="preserve">\u00a0\u00a0</w:t></w:r></w:p>'
+        )
+        self.assertTrue(any("unsafe font routing" in issue for issue in issues), issues)
+
+    def test_ordinary_trailing_spaces_are_not_a_persistent_anchor(self) -> None:
+        issues = self._audit_xml(
+            '<w:p><m:oMath><m:r><w:rPr><w:sz w:val="24"/>'
+            '<w:szCs w:val="32"/></w:rPr><m:t>x</m:t></m:r></m:oMath>'
+            '<w:r><w:rPr><w:rFonts w:ascii="Cambria" w:hAnsi="Cambria" '
+            'w:cs="TH Sarabun New"/><w:sz w:val="24"/>'
+            '<w:szCs w:val="32"/></w:rPr>'
+            '<w:t xml:space="preserve">  </w:t></w:r></w:p>'
+        )
+        self.assertTrue(any("ordinary whitespace" in issue for issue in issues), issues)
+
+    def test_anchor_may_inherit_safe_properties_after_word_save(self) -> None:
+        from xml.etree import ElementTree as ET
+
+        anchor = ET.fromstring(
+            f'<w:r xmlns:w="{builder.W_NS}"><w:t xml:space="preserve">\u00a0\u00a0</w:t></w:r>'
+        )
+        defaults = {
+            "ascii": "Cambria",
+            "hAnsi": "Cambria",
+            "cs": "TH Sarabun New",
+            "sz": "24",
+            "szCs": "32",
+        }
+        self.assertIsNone(audit.persistent_anchor_issue(anchor, defaults))
+
+    def test_unsafe_inherited_defaults_are_flagged(self) -> None:
+        from xml.etree import ElementTree as ET
+
+        anchor = ET.fromstring(
+            f'<w:r xmlns:w="{builder.W_NS}"><w:t xml:space="preserve">\u00a0\u00a0</w:t></w:r>'
+        )
+        defaults = {
+            "ascii": "TH Sarabun New",
+            "hAnsi": "TH Sarabun New",
+            "cs": "TH Sarabun New",
+            "sz": "32",
+            "szCs": "32",
+        }
+        self.assertIn("unsafe font routing", audit.persistent_anchor_issue(anchor, defaults))
+
+    def test_equation_immediately_after_all_slot_label_is_flagged(self) -> None:
+        issues = self._audit_xml(
+            '<w:p><w:r><w:rPr><w:rFonts w:ascii="TH Sarabun New" '
+            'w:hAnsi="TH Sarabun New" w:cs="TH Sarabun New"/>'
+            '<w:sz w:val="32"/><w:szCs w:val="32"/></w:rPr><w:t>ก.</w:t></w:r>'
+            '<m:oMath><m:r><w:rPr><w:sz w:val="24"/><w:szCs w:val="32"/>'
+            '</w:rPr><m:t>x</m:t></m:r></m:oMath>'
+            '<w:r><w:rPr><w:rFonts w:ascii="Cambria" w:hAnsi="Cambria" '
+            'w:cs="TH Sarabun New"/><w:sz w:val="24"/><w:szCs w:val="32"/>'
+            '</w:rPr><w:t>\u00a0\u00a0</w:t></w:r></w:p>'
+        )
+        self.assertTrue(any("all-slot Thai label" in issue for issue in issues), issues)
 
     def _audit_xml(self, body: str) -> list[str]:
         from xml.etree import ElementTree as ET

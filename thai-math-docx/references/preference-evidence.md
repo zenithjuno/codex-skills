@@ -215,6 +215,70 @@ matching active card, then append evidence using the template at the end.
   mixed-role tables, and layouts not explicitly requested as two columns still
   need their own width allocation.
 
+### PREF-20260904-016 — Persistent equation-boundary font anchor
+
+- Status: confirmed
+- Tags: Word, equations, insertion-safety, font-routing, manual-editing
+- Source: teacher Microsoft Word test of `/Users/chutpong/Downloads/type test.docx`
+  and the repaired real-number quiz, 2026-09-04
+- Evidence: an empty insertion-safe run existed in generated OOXML but Word
+  removed it on open/save. A project repair placed a non-empty `NBSP` anchor
+  between the all-slot Thai choice label and its equation; the teacher confirmed
+  that deleting/retyping the pure-math choice and typing outside another
+  equation preserved the intended font and size. A later shared-builder spike
+  using only a trailing anchor failed: selecting/deleting the equation removed
+  that anchor too, and the replacement equation inherited 16 pt from the label.
+  In the saved result Word retained an untouched `NBSP` anchor elsewhere but
+  removed its redundant direct properties; the safe values remained in
+  document defaults.
+- Decision: an all-slot Thai label followed by an equation needs a non-empty
+  persistent safe anchor before the equation, and a paragraph-ending equation
+  needs one after it. The leading anchor owns delete/retype behavior; the
+  trailing anchor owns typing outside the equation. Audit empty runs and a label
+  touching math as failures. When Word normalizes an anchor, resolve effective
+  values through document defaults instead of requiring redundant direct
+  properties. Use a real Microsoft Word edit test when this strategy changes.
+- Non-inference: this does not prove that every invisible Unicode character is
+  retained by every Word version, nor that LibreOffice rendering can substitute
+  for the Microsoft Word cursor/edit test.
+
+### PREF-20260904-017 — Native structural roots and fractions
+
+- Status: confirmed
+- Tags: equations, OMML, radicals, fractions, delimiters, source-parsing
+- Source: teacher Microsoft Word review of the repaired real-number quiz,
+  2026-09-04
+- Evidence: literal radical/fraction notation and incorrectly scoped linear
+  parsing produced roots that did not cover their radicands, binary subtraction
+  swallowed into a numerator, partial product numerators, and source-only
+  wrappers rendered as parentheses. The teacher confirmed the repaired native
+  OMML roots and fractions, with corrected factor parentheses, looked right.
+- Decision: represent roots and stacked fractions as `m:rad` and `m:f`; reject
+  literal `√`, `∛`, and `⁄` inside `m:t`. Linear-source adapters must test tree
+  shape for binary operators between fractions, full product numerators,
+  equation operators outside fractions, and mathematical versus source-only
+  delimiters.
+- Non-inference: an audit cannot infer from the final XML whether every visible
+  parenthesis was pedagogically intended; source adapters still need item-level
+  tests and teacher review.
+
+### PREF-20260904-018 — Semantic equation grouping and paired set braces
+
+- Status: confirmed
+- Tags: equations, OMML, radicals, fractions, delimiters, sets, Word-editing
+- Source: teacher Microsoft Word review of the real-number quiz, 2026-09-04
+- Evidence: the outer parentheses in `∛(−64)` were only linear-source scope but
+  rendered visibly inside the radical; `−1⁄4` placed the sign inside `m:num`;
+  and finite-set braces were emitted as independent literal runs, so deleting
+  the left brace left the right brace behind in Word.
+- Decision: consume a wrapper used only to scope the complete radicand; emit a
+  unary negative sign before the fraction object; and represent finite-set
+  braces as one paired native `m:d`. Enforce these shapes in the OMML audit and
+  structural regression tests.
+- Non-inference: factor parentheses, nested mathematical grouping inside a
+  radicand, and an explicitly grouped signed numerator remain meaningful and
+  must not be removed mechanically.
+
 ## Entry template
 
 Copy this block to the end of **Evidence log** for each new discovery. Update the

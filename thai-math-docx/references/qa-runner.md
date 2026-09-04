@@ -38,9 +38,14 @@ diagram semantics and pedagogy remain outside this generic runner.
 ## Mandatory facts
 
 The runner checks ZIP/XML integrity; required package parts; Thai
-docDefaults/Normal/theme; insertion safety; editable OMML; Thai leaking into
-generic math; media inventory, image-relationship targets and contract; A4/native-column/custom geometry;
+docDefaults/Normal/theme; insertion safety; the full editable-OMML structure
+audit; Thai leaking into generic math; media inventory, image-relationship targets and contract; A4/native-column/custom geometry;
 fixed table grid/cell/content shape; and source/artifact mutation provenance.
+
+The OMML check calls the same structured audit core as
+`audit_docx_omml.py`. Adding a failure rule to that core therefore extends both
+the focused command and the unified production gate without a second wiring
+step.
 
 The individual audit scripts remain available for focused diagnosis, but do not
 substitute a hand-assembled subset for this unified gate.

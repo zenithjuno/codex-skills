@@ -37,6 +37,25 @@ if __name__ == "__main__":
     build()
 '''
 
+BAD_OMML = '''
+import sys
+from pathlib import Path
+sys.path.insert(0, {scripts!r})
+from thai_math_docx_builder import add_paragraph, new_document, save_docx
+
+OUT = Path(__file__).resolve().parent / "bad-omml.docx"
+
+
+def build():
+    doc = new_document()
+    add_paragraph(doc, [{{"type": "math", "expr": ["√", "18"]}}])
+    return save_docx(doc, OUT)
+
+
+if __name__ == "__main__":
+    build()
+'''
+
 CRASHES = '''
 import sys
 sys.exit(3)
@@ -90,6 +109,13 @@ class ProduceTests(unittest.TestCase):
         code, out = run(str(gen), "--report-dir", str(self.reports))
         self.assertEqual(0, code, out)
         self.assertIn("sheet.docx", out)
+
+    def test_structurally_invalid_omml_fails_the_normal_production_path(self) -> None:
+        gen = self.write("build_bad_omml.py", BAD_OMML)
+        code, out = run(str(gen), "--report-dir", str(self.reports))
+        self.assertEqual(1, code, out)
+        self.assertIn("FAIL  qa:", out)
+        self.assertIn("literal structural glyph '√'", out)
 
     def test_audit_failure_stops_before_building(self) -> None:
         gen = self.write("build_legacy.py", HAND_ROLLED)
