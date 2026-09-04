@@ -39,10 +39,10 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S07 — VERIFY** (repair imported legacy→New; awaiting `Pass S07`)
-- Completed: S01–S06A (seam, skill, preflight, generate, font profile). Checkpoints S02–S06A.
-- Next action: user gate `Pass S07` → start S08 (render + contact_sheet + QA integration).
-- Active gate: **S07** (`Pass S07` / `Fail S07 — reason`)
+- Current stage: **S08 — VERIFY** (render+contact-sheet+QA integration; awaiting `Pass S08`)
+- Completed: S01–S07 (…+ font profile, repair). Checkpoints S02–S07.
+- Next action: user gate `Pass S08` → start S09 (thai-math-docx description carve-out + qualify nouns).
+- Active gate: **S08** (`Pass S08` / `Fail S08 — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
 - Last change: 2026-09-04 S07 repair.py (fix-thai-font + legacy sweep); TARGET fully New; thai-docx 9 OK, regression 141 OK. All checkpoints committed through S07.
 
