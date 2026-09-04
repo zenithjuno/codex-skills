@@ -39,10 +39,10 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S10 — VERIFY** (acceptance sweep, all 5 criteria met; awaiting `Pass S10`)
-- Completed: S01–S09 (product complete). Checkpoints S02–S09.
-- Next action: user gate `Pass S10` → S11 cleanup (CONFIRM before removing PSK clone fonts).
-- Active gate: **S10** (`Pass S10` / `Fail S10 — reason`)
+- Current stage: **S11 — VERIFY** (cleanup done: PSK clone removed, render confirmed; awaiting `Pass S11`)
+- Completed: S01–S10 (product complete + acceptance sweep). Checkpoints S02–S10.
+- Next action: user gate `Pass S11` → STATE COMPLETE, move bundle to completed/, remove AGENTS block, offer skill-release.
+- Active gate: **S11** (`Pass S11` / `Fail S11 — reason`) → then completion protocol
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
 - Last change: 2026-09-04 S07 repair.py (fix-thai-font + legacy sweep); TARGET fully New; thai-docx 9 OK, regression 141 OK. All checkpoints committed through S07.
 
