@@ -28,3 +28,19 @@ Immutable chronological evidence. Current authority lives in BLUEPRINT / CONSTRU
   baseline regressions — only CHG-001's test changed by design).
 - Demo (before/after): prose "…คะแนน ≥ 80 … ราคา < 100 บาท" → scanner-if-run flags 1 (false-positive); gated QA verdict=PASS, 0 fused, check absent.
 - **PASSED 2026-09-04 (`Pass S02`).** Checkpoint `build/thai-docx-skill/S02`.
+
+---
+
+## PRG-S03 — builder: make the single math-grammar import lazy
+- Date: 2026-09-04 · scope: `thai_math_docx_builder.py`, new `tests/test_builder_mathfree_no_leak.py`
+- Change: removed top-level `from thai_math_source_adapter import normalize_math_string` (was builder L26);
+  imported it lazily inside `compact_item_to_omml_fragment` (its only use-site, the `type:"math"` path).
+  No OMML relocation (SQ1). General builder API behavior unchanged.
+- New guard: `test_builder_mathfree_no_leak.py` (subprocess) — importing builder + producing a prose+table
+  doc loads neither `thai_math_source_adapter` nor `thai_math_expr`.
+- Tests: builder no-leak PASS; full suite **141 OK** (140 + 1); zero regressions.
+- COMBINED SEAM PROOF (acceptance #3): a clean interpreter that imports builder AND runs QA on a math-free
+  prose doc loads none of {audit_docx_math_in_text, thai_math_source_adapter, thai_math_expr}; only
+  `audit_docx_omml` (allowed validator, Ω2) loads; QA verdict = PASS. The math-free general path is proven clean.
+- Seam phase (S01–S03) complete: thai-math-docx crown-jewel edits done; all math-doc behavior unchanged.
+- **PASSED 2026-09-04 (`Pass S03`).** Checkpoint `build/thai-docx-skill/S03`. Seam phase (S01–S03) complete.

@@ -39,12 +39,13 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | thai-math-docx triggering | `thai-math-docx/SKILL.md` (description) | S09 carve-out edit | trigger review |
 
 ## STATE
-- Current stage: **S03 — ACTIVE** (builder lazy `normalize_math_string` import)
-- Completed: S01 (baseline 137 OK), S02 (qa scan gated + CHG-001; suite 140 OK; checkpoint `build/thai-docx-skill/S02`)
-- Next action: finish S03 builder edit + builder no-leak test → gate `Pass S03`.
-- Active gate: **S03** (`Pass S03` / `Fail S03 — reason`)
+- Current stage: **S04 — ACTIVE** (thai-docx skeleton + SKILL.md)
+- Completed: S01 (baseline 137 OK), S02 (CHG-001; 140 OK), S03 (builder lazy import; 141 OK; SEAM PHASE DONE). Checkpoints S02,S03.
+- Next action: build S04 thai-docx skeleton + SKILL.md → gate `Pass S04`.
+- Active gate: **S04** (`Pass S04` / `Fail S04 — reason`)
 - Active history log: `history/BUILD-LOG-thai-docx-skill-P01.md`
-- Last change: 2026-09-04 S02 committed; starting S03.
+- Last change: 2026-09-04 S03 builder lazy import + no-leak test; full suite 141 OK; combined seam proof clean.
+- Uncommitted: S03 edits + doc updates (checkpoint on `Pass S03`/commit).
 
 ## VERSION CONTROL
 - Mode: `git`. Repo root: `~/.codex/skills`.
@@ -70,7 +71,7 @@ Project root: `~/.codex/skills` (relative root from this control home: `../../..
 | follow-on cleanup | DEC-006, DEC-008 | BLUEPRINT §5 | plan stage (post-approval) |
 
 ## OPEN CHANGES
-- CHG-001 (planned, opens at S02) — gate `math_in_text.scan` on math context + update `test_verify_qa.py` gate-coverage expectation. Pre-approved via scrutiny F1/F2 (user 2026-09-03). See BLUEPRINT Decision Log.
+- (none open) — CHG-001 LANDED at S02 (2026-09-04): scan gated + gate-coverage test updated. See PRG-S02.
 
 ## HISTORY INDEX
-(none yet — P01 created at build start)
+- `history/BUILD-LOG-thai-docx-skill-P01.md` — PRG-S01 (baseline), PRG-S02 (CHG-001 scan gate), PRG-S03 (builder lazy import). Query by id; do not bulk-read.

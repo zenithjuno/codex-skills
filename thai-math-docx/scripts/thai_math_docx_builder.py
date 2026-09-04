@@ -23,7 +23,9 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 from thai_math_docx_layout import get_current_layout_profile, set_table_fixed_widths_cm
-from thai_math_source_adapter import normalize_math_string
+# `normalize_math_string` (thai_math_source_adapter) is imported lazily inside the one
+# math-path function that uses it (compact_item_to_omml_fragment), so importing this
+# builder for a prose/table document pulls in no math grammar module (thai-docx seam, S03).
 
 
 M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -365,6 +367,7 @@ def item_to_omml_fragment(item: Any) -> str:
 
 
 def compact_item_to_omml_fragment(value: str) -> str:
+    from thai_math_source_adapter import normalize_math_string  # lazy: math path only (S03 seam)
     tokens = normalize_math_string(value)
     if tokens != [value]:
         # grammar split it (e.g. "3x" -> ["3","x"], "x_1" -> [sub-dict]); render each
