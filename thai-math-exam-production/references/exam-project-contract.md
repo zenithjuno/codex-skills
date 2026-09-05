@@ -32,7 +32,8 @@ diagram code or correctness solvers.
 
 Required fields:
 
-- `schema_version: "1.0.0"`
+- `schema_version: "1.1.0"` (current). Legacy `"1.0.0"` projects remain valid and
+  are never migrated only to gain new fields.
 - `document_type: "thai-math-exam-project"`
 - `exam_id: "EXM-<slug>"`, `slug`, `title`, `chapter`
 - `current_stage`
@@ -42,6 +43,22 @@ Required fields:
 - `approvals`: format, taxonomy, blueprint, item map, questions, working
   solutions, paper review, blind audit, export
 - `routes`: exact owner names
+
+Fields added in `1.1.0`:
+
+- `production_mode`: `"original"` | `"parallel"`. **Absent means `original`**, so a
+  `1.0.0` project reads unchanged.
+- `parallel` (object): **required only when `production_mode = "parallel"`**. Fields:
+  `source_exam_id`, `source_exam_path`, `difficulty_relation`
+  (`iso-difficulty` | `near` | `step-up` | `step-down`), `reference_frozen: true`.
+
+## Schema versions and compatibility
+
+A project's four state documents share one `schema_version`; the validator reads
+`1.0.0` and `1.1.0` and rejects a project that mixes versions across its files.
+`production_mode`, the `parallel` block, and per-item `anchor` are the `1.1.0`
+additions; none is required in `original` mode, and closed `1.0.0` projects are
+left as they are.
 
 Stages in order: `scaffold`, `taxonomy`, `blueprint`, `item-map`, `drafting`,
 `solutions`, `paper-review`, `blind-audit`, `export`, `closed`.

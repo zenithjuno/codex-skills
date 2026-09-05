@@ -12,7 +12,10 @@ import sys
 from typing import Any, Mapping
 
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
+SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "1.1.0"}
+PRODUCTION_MODES = {"original", "parallel"}
+DIFFICULTY_RELATIONS = {"iso-difficulty", "near", "step-up", "step-down"}
 STAGES = (
     "scaffold",
     "taxonomy",
@@ -106,9 +109,23 @@ def _validate_roots(state: Mapping[str, Mapping[str, Any]], issues: list[str]) -
         "item_map": "thai-math-exam-item-map",
         "variants": "thai-math-exam-item-variants",
     }
+    # Backward-compatible schema gate: accept 1.0.0 (legacy) and 1.1.0. The
+    # project document declares the authoritative version; every sibling document
+    # must match it, so a project cannot mix schema versions across its files.
+    project_version = project.get("schema_version")
+    _require(
+        project_version in SUPPORTED_SCHEMA_VERSIONS,
+        f"project.schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}",
+        issues,
+    )
     for key, document in state.items():
-        _require(document.get("schema_version") == SCHEMA_VERSION, f"{key}.schema_version must be {SCHEMA_VERSION}", issues)
+        _require(document.get("schema_version") == project_version, f"{key}.schema_version must match project ({project_version})", issues)
         _require(document.get("document_type") == expected_types[key], f"{key}.document_type is invalid", issues)
+    # production_mode is optional; an absent value means the legacy 'original' mode
+    # so 1.0.0 projects validate unchanged. Mode-specific structure (the parallel
+    # reference block, per-item anchors) is enforced at its gate, not here.
+    mode = project.get("production_mode", "original")
+    _require(mode in PRODUCTION_MODES, f"project.production_mode must be one of {sorted(PRODUCTION_MODES)}", issues)
     exam_id = project.get("exam_id")
     _require(isinstance(exam_id, str) and re.fullmatch(r"EXM-[a-z0-9][a-z0-9-]*", exam_id) is not None, "project.exam_id is invalid", issues)
     for key, document in state.items():
@@ -121,6 +138,29 @@ def _validate_roots(state: Mapping[str, Mapping[str, Any]], issues: list[str]) -
     if _nonempty(project.get("slug")):
         _require(exam_id == f"EXM-{project['slug']}", "project.exam_id must match project.slug", issues)
     return str(exam_id)
+
+
+def _validate_parallel(project: Mapping[str, Any], mode: str, issues: list[str]) -> None:
+    """Structure of the parallel reference block (DEC-004). Only what the machine
+    can prove: the block exists, its source fields are populated, the relation is a
+    known value, and the reference is frozen. Actual difficulty equivalence stays a
+    human/working-solution/blind-audit judgement, never asserted here. Per-item
+    anchors are checked in _validate_items where items are validated."""
+    if mode != "parallel":
+        _require("parallel" not in project, "project.parallel is only allowed when production_mode is 'parallel'", issues)
+        return
+    block = project.get("parallel")
+    if not isinstance(block, Mapping):
+        issues.append("parallel mode requires a project.parallel object")
+        return
+    _require(_nonempty(block.get("source_exam_id")), "parallel.source_exam_id is required", issues)
+    _require(_nonempty(block.get("source_exam_path")), "parallel.source_exam_path is required", issues)
+    _require(
+        block.get("difficulty_relation") in DIFFICULTY_RELATIONS,
+        f"parallel.difficulty_relation must be one of {sorted(DIFFICULTY_RELATIONS)}",
+        issues,
+    )
+    _require(block.get("reference_frozen") is True, "parallel.reference_frozen must be true before drafting a parallel set", issues)
 
 
 def _validate_format(project: Mapping[str, Any], issues: list[str]) -> int:
@@ -289,6 +329,7 @@ def _validate_items(
             _require(_nonempty(variant.get(field)), f"variant {variant_id}.{field} is required", issues)
         _require(isinstance(variant.get("config_snapshot"), Mapping), f"variant {variant_id}.config_snapshot must be an object", issues)
 
+    mode = project.get("production_mode", "original")
     topic_counts: Counter[str] = Counter()
     difficulty_counts: Counter[str] = Counter()
     section_positions: dict[str, set[int]] = {"objective": set(), "written": set()}
@@ -296,6 +337,8 @@ def _validate_items(
         if not isinstance(item, Mapping):
             continue
         item_id = item.get("item_id")
+        if mode == "parallel":
+            _require(_nonempty(item.get("anchor")), f"item {item_id}.anchor is required in parallel mode", issues)
         section = item.get("section")
         _require(section in {"objective", "written"}, f"item {item_id}.section is invalid", issues)
         position = item.get("position")
@@ -346,6 +389,8 @@ def validate_exam_state(root: str | Path, *, gate: str | None = None) -> dict[st
     issues: list[str] = []
     project = state["project"]
     _validate_roots(state, issues)
+    mode = project.get("production_mode", "original")
+    _validate_parallel(project, mode if mode in PRODUCTION_MODES else "original", issues)
     total_items = _validate_format(project, issues)
     approvals = _validate_approvals(project, issues)
     _require(

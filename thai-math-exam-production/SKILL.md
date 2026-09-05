@@ -5,13 +5,15 @@ description: >
   teacher-approved workflow. Use when creating or adapting an exam, locking
   format/scoring and a chapter-specific difficulty taxonomy, planning topic and
   difficulty distributions, maintaining an item map and immutable item variants,
-  drafting misconception-aware choices, reviewing whole-paper balance, creating
-  practice variants, or preparing approved exam content for blind correctness
-  audit and Thai DOCX production. Do not use for generic worksheets, direct Word
-  formatting, or answer-key checking by itself.
+  drafting misconception-aware choices, reviewing whole-paper balance, keeping a
+  teacher-readable current design note (EXAM-DESIGN.md), producing an equivalent
+  parallel exam set from an approved one, creating practice variants, or preparing
+  approved exam content for blind correctness audit and Thai DOCX production. Do
+  not use for generic worksheets, direct Word formatting, or answer-key checking
+  by itself.
 ---
 
-<!-- SKILL-VERSION: 2026.08.25 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.05 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
 
 # Thai Math Exam Production
 
@@ -49,12 +51,33 @@ for teaching examples, not exam items.
 Read `references/exam-project-contract.md` and
 `references/exam-production-workflow.md`.
 
-For a new project, run:
+For a new original project, run:
 
 ```bash
 python scripts/init_exam_project.py <project-root> \
   --slug <slug> --title <title> --chapter <chapter> \
   --objective-count <n> --written-count <n>
+```
+
+For a parallel set built from an approved exam, add the reference and relation:
+
+```bash
+python scripts/init_exam_project.py <project-root> \
+  --slug <slug> --title <title> --chapter <chapter> \
+  --objective-count <n> --written-count <n> \
+  --production-mode parallel \
+  --source-exam-id EXM-<source-slug> \
+  --source-exam-path <relative-path-to-source> \
+  --difficulty-relation iso-difficulty
+```
+
+The initializer writes `exam-state/EXAM-DESIGN.md` (the teacher-readable current
+design note) from `assets/EXAM-DESIGN.template.md`. Keep it current, not
+cumulative; validate its sections with:
+
+```bash
+python scripts/check_exam_design.py <project-root>/exam-state/EXAM-DESIGN.md
+python scripts/check_exam_design.py <batch-proposal>.md --batch
 ```
 
 For existing work, validate state before discussion:
@@ -66,6 +89,21 @@ python scripts/item_meta.py <project-root> --item Q01
 
 Never infer current state from chat memory when the config files exist.
 
+## Production modes
+
+- `original` — ออกข้อสอบใหม่จากขอบเขตและแหล่งเนื้อหา (ค่าเริ่มต้น).
+- `parallel` — สร้างชุดใหม่โดยอ้างอิงข้อสอบที่อนุมัติแล้ว ภายใต้ parallel contract.
+
+Parallel mode rules (details in `references/exam-production-workflow.md §Parallel
+Mode Overlay`, contract in `EXAM-DESIGN.md`):
+
+- **Freeze** ข้อสอบอ้างอิงก่อนออกข้อใหม่ (`parallel.reference_frozen = true`); ห้ามแก้ชุดต้นฉบับระหว่างผลิต.
+- `EXAM-DESIGN.md` ต้องมีตาราง **preserve / transform / avoid** ที่ครูตรวจได้ + `### Equivalence diagnosis` (5 มิติ).
+- ทุกข้อระบุ **item anchor** และอธิบายทั้งสิ่งที่คงไว้กับสิ่งที่เปลี่ยน.
+- **แก้ทุกข้อใหม่จากศูนย์** ห้ามนำคำตอบเดิมมาแปลงตามตัวเลข.
+- จัด batch ด้วย **workload units** (Easy 1 · Medium 2 · Hard 3; เป้า 3–4/ batch) ไม่ใช่จำนวนข้ออย่างเดียว.
+- ก่อนส่ง DOCX ต้องผ่าน pair-level review, whole-paper review และ blind answer audit.
+
 ## Workflow gates
 
 1. Analyze the reference exam and classroom conventions as evidence.
@@ -73,8 +111,9 @@ Never infer current state from chat memory when the config files exist.
 3. Lock the teacher's chapter-specific easy/medium/hard taxonomy before item map.
 4. Approve topic/difficulty roll-ups and reuse actions before drafting.
 5. Build the exact item map. Hard, written and paired/proof items are config-first.
-6. Draft small batches, normally three items. Silence or partial discussion is not
-   approval. Preserve unchanged fields during surgical revision.
+6. Draft small batches by **workload units** (Easy 1 · Medium 2 · Hard 3; target
+   3–4 units per batch), not a fixed item count. Silence or partial discussion is
+   not approval. Preserve unchanged fields during surgical revision.
 7. Assign immutable variant ids: letters for materially different designs,
    numeric suffixes for tuning within one design family. Never reuse a rejected id.
 8. Draft working solutions before whole-paper difficulty review.
@@ -90,7 +129,14 @@ Never infer current state from chat memory when the config files exist.
     product.
 
 Validate the relevant gate whenever state advances. Do not approve a later gate
-while an earlier prerequisite remains pending.
+while an earlier prerequisite remains pending. The full gate procedure (and its
+per-gate `GATE-N` proposal docs) lives in `references/exam-production-workflow.md`
+— keep it there, not duplicated into each project. In `parallel` mode each gate
+carries an extra contract from that file's **Parallel Mode Overlay**.
+
+At every gate, keep two surfaces in step: `exam-state/*.json` (machine facts the
+validator reads) and `EXAM-DESIGN.md` (the teacher-readable reasoning). The design
+note **points at** the JSON; it does not copy its tables.
 
 ## Config-first item rule
 
