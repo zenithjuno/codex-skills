@@ -29,13 +29,12 @@ Project root: `~/.codex/skills` (worktree `~/Documents/chatgpt-math-doc-generato
 | Skill triggering/routing | `thai-math-exam-production/SKILL.md` | S08 parallel-overlay edit | review |
 
 ## STATE
-- Current stage: **COMPLETE (build stages S01–S10 all PASS) — awaiting release authorization**
-- Completed: S01–S10 (PRG-001..010)
-- Next action: user-gated release — commit on `feat/exam-parallel-workflow`, then `skill-release` (mirror → push → install), then archive plan bundle to `completed/` + remove AGENTS owned block. Nothing committed yet.
-- Active gate: release authorization (commit only on explicit user ask)
+- Current stage: **COMPLETE — released as `6db922a`, bundle archived to `docs/plans/completed/`**
+- Completed: S01–S10 (PRG-001..010); released + installed (SKILL-VERSION 2026.09.05)
+- Next action: none — build closed.
+- Active gate: none
 - Active history log: `history/BUILD-LOG-exam-parallel-workflow-P01.md`
-- Last change: S10 — full verification green (33/33, lints ×3, real 1.0.0 PASS, 0 thai-math-docx); acceptance 1–6 met (PRG-010)
-- Canonical test command: `cd thai-math-exam-production && python3 tests/test_exam_state.py -v`
+- Last change: S11 close — archive bundle, remove AGENTS block
 
 ## VERSION CONTROL
 - Mode: `git`. Repo root: `~/.codex/skills`. Worktree: `~/Documents/chatgpt-math-doc-generator/work/exam-parallel-workflow`.
