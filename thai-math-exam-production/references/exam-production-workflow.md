@@ -2,12 +2,14 @@
 
 ## Foundation
 
-1. Root, authority, routes and long-project control are declared — from the
+1. Root, authority, routes and the exam-state boundary are declared — from the
    project's `AGENTS.md` where it exists, otherwise by parent preflight. The
    project's current design reasoning lives in one teacher-readable
    `exam-state/EXAM-DESIGN.md` (from `assets/EXAM-DESIGN.template.md`); keep it
    current, not cumulative, and point it at the JSON state rather than copying it.
    Per-gate proposals are `GATE-N` markdown docs, archived once approved.
+   Existing project control is reused; multiple sessions alone do not require
+   another MATERIAL-CONTROL when exam state already supplies the boundary.
 2. Analyze the reference exam item by item: topic, skill, intended trap,
    difficulty, ambiguity and keep/adapt/rebuild/merge/replace decision.
 3. Lock objective/written counts, points, total, passing threshold, book policy,
@@ -54,7 +56,9 @@ Separate must-fix defects from optional teacher preferences.
 ## Independent audit and export
 
 Regenerate a questions-only snapshot from current approved state and route it to
-`blind-answer-key-audit`. The independent solver must not see the supplied key.
+`blind-answer-key-audit`. Use a fresh checker context with only questions, choices, figures and necessary
+conventions. It must not inherit producer history, working solutions, reference
+keys or item metadata. Save independent solutions before revealing the key.
 Any disagreement is adjudicated; never anchor on or silently replace the key.
 
 After audit approval, route structured exam content to `thai-math-docx`. The core

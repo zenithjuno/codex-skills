@@ -57,6 +57,8 @@ its scaffolding contract, and `design-only` produces no DOCX.
 ## Progression map
 
 ลำดับของชุด และหน้าที่ของแต่ละข้อในลำดับนั้น เขียนก่อนร่างโจทย์จริง
+เมื่อครูอนุมัติข้อเสนอ ต้องปรับตารางนี้ให้ตรงกับ Approved content ทั้งเลขข้อ
+คำตอบ และ Support; ข้อเสนอที่ตัดสินแล้วเหลือเหตุผลสั้น ๆ ไม่เก็บสองลำดับแข่งกัน
 
 | # | Item | Answer (teacher) | Job of this item |
 |---|---|---|---|

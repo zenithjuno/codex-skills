@@ -78,10 +78,18 @@ three ways — and it is a definition, not something a script can enforce.
 |---|---|---|
 | **Source observations** | per-item strengths/risks of the source | the fix or move → `Recommended revision`; the whole-set pattern → `Diagnosis` |
 | **Diagnosis** | the one systemic weakness of the set | per-item notes → `Source observations`; the fix → `Recommended revision` |
-| **Progression map** | the *current* sequence + whether difficulty climbs | the *proposed* new sequence → `Recommended revision` |
+| **Progression map** | the current sequence being judged; after approval, the exact sequence in Approved content | pending alternative sequences → `Recommended revision`; original-source inventory → `Source observations` |
 | **Anticipated errors** | misconception inventory + `สถานะ` coverage (covered / gap / new) | how to close a gap → `Recommended revision` |
 | **Recommended revision** | the proposal: new order, inserts, cuts, rationale, alternative | raw observation → `Source observations` |
 | **Decision needed** | the teacher's choice framed neutrally (A vs B) | a recommendation of which to pick (that is the proposal above) |
+
+## On approval
+
+เมื่อครูยอมรับข้อเสนอ ให้ปรับ Progression map และ Approved content ให้ตรงกับ
+ชุดที่อนุมัติในครั้งเดียวกัน ตรวจเลขข้อ คำตอบ และ Support ให้ตรงกัน ข้อเสนอที่
+ตัดสินแล้วใน Recommended revision เหลือเหตุผลปัจจุบันสั้น ๆ; ลบ Decision needed
+ที่ตอบแล้ว เหตุผลเก่าที่จำเป็นย้ายไป DESIGN-LOG โดยเหลือ pointer เดียว
+อย่าเก็บลำดับเดิมและลำดับใหม่เป็นคู่แข่งกันในโน้ตที่อนุมัติแล้ว
 
 ## Conditional — on by default, delete when it does not apply
 

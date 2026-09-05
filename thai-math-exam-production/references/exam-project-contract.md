@@ -16,6 +16,7 @@ handoff remain with their named skills.
     difficulty-taxonomy.json
     item-map.json
     item-variants.json
+    EXAM-DESIGN.md
     EXAM-DRAFT.md
     WORKING-SOLUTIONS.md
   source/
@@ -105,3 +106,20 @@ Run `validate_exam_state.py <root> [--gate <stage>]`. Exit `0` means the request
 gate is structurally satisfied, `1` means invalid exam state, and `2` means the
 state cannot be read. Validation never approves content; it only proves internal
 consistency.
+
+## Initialize a project
+
+Run from the workspace using the installed script's absolute path:
+
+```bash
+python3 ~/.codex/skills/thai-math-exam-production/scripts/init_exam_project.py <project-root> \
+  --slug <slug> --title <title> --chapter <chapter> \
+  --objective-count <n> --written-count <n>
+```
+
+For a parallel set, add `--production-mode parallel`,
+`--source-exam-id EXM-<source-slug>`,
+`--source-exam-path <relative-path-to-source>` and
+`--difficulty-relation iso-difficulty` (or the teacher's declared relation).
+The initializer creates EXAM-DESIGN from the bundled template; inspect and fill
+its current reasoning rather than creating a second material-design note.

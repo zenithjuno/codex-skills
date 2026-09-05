@@ -6,7 +6,9 @@ is migrating away from. Repair brings the document to the **TH Sarabun New** sta
 
 ## Steps
 
-1. **Repair the fonts** with `scripts/repair.py` (two passes):
+1. **Repair the fonts** with `scripts/repair.py` (two passes). It mutates the
+   supplied path and creates a backup; work on an output copy unless in-place
+   repair is authorized:
 
    ```bash
    python3 ~/.codex/skills/thai-docx/scripts/repair.py "<file>.docx"
@@ -23,26 +25,31 @@ is migrating away from. Repair brings the document to the **TH Sarabun New** sta
      document part to TH Sarabun New. Genuine Latin fonts (Calibri, Cambria, Arial, Times
      New Roman) are **preserved** — repair fixes Thai fonts, it does not restyle Latin.
 
-   The result renders entirely in TH Sarabun New with **no legacy font installed**.
+   Legacy Thai font declarations become TH Sarabun New; genuine Latin fonts
+   remain as authored. No legacy font installation is needed.
    `repair()` writes a `.orig.bak` beside the file.
 
-2. **Audit** the result with the engine's math-free QA:
+2. **Audit** the result with the engine's math-free QA. Use the bootstrap in
+   [engine-reuse.md](engine-reuse.md); declare teacher-master, layout and media
+   when applicable:
 
    ```python
    import engine  # thai-docx/scripts/engine.py
-   engine.audit_prose("<file>.docx")   # math.required=false
+   result = engine.audit_prose("<file>.docx", source_mode="imported")
+   reports = engine.qa.write_reports(result, report_dir="qa-reports")
+   print(result["verdict"], result["needs_word_review"], reports)
+   if result["verdict"] != "PASS":
+       raise SystemExit(1)
    ```
 
 3. **Render a sanity preview** (LibreOffice + PyMuPDF) to catch gross breakage —
    but remember: **Microsoft Word is the visual authority** (SKILL.md § Visual truth).
    Deliver the repaired `.docx` for the user to judge in Word.
 
-## What fix-thai-font does and does not touch
+## Repair boundary
 
-- **Does:** the `w:cs` (Thai Complex Script) slot on every run + the theme Thai mapping →
-  TH Sarabun New. This is what makes Thai render correctly.
-- **Does not:** the Latin `w:ascii` / `w:hAnsi` slots. It leaves them as authored, on
-  purpose — thai-math-docx wants Latin to stay Cambria. So a legacy font left in a Latin
-  slot survives repair. That is a **cosmetic** issue (it only affects Latin glyphs, never
-  Thai). If a fully-uniform TH Sarabun New result is wanted (matching the prose profile),
-  that Latin-slot conversion is a separate, opt-in step — confirm with the user first.
+The shared normalizer handles Thai routing and theme/defaults. This skill's
+second pass converts residual legacy Thai fonts in all slots. Genuine Latin
+fonts remain unchanged; converting those too is a separate restyling request.
+An existing explicit request for a uniform prose profile already authorizes that
+restyling; do not ask for the same preference again.

@@ -1,162 +1,106 @@
 ---
 name: thai-math-exam-production
 description: >
-  Design and manage Thai mathematics exam projects through a config-first,
-  teacher-approved workflow. Use when creating or adapting an exam, locking
-  format/scoring and a chapter-specific difficulty taxonomy, planning topic and
-  difficulty distributions, maintaining an item map and immutable item variants,
-  drafting misconception-aware choices, reviewing whole-paper balance, keeping a
-  teacher-readable current design note (EXAM-DESIGN.md), producing an equivalent
-  parallel exam set from an approved one, creating practice variants, or preparing
-  approved exam content for blind correctness audit and Thai DOCX production. Do
-  not use for generic worksheets, direct Word formatting, or answer-key checking
-  by itself.
+  Design and manage Thai mathematics exams and parallel sets from approved exams:
+  teacher-approved format, chapter-specific difficulty, blueprint, item variants,
+  working solutions, and whole-paper review. Keep structured exam state and a
+  teacher-readable EXAM-DESIGN.md; route approved content to blind audit and Thai
+  DOCX production. Not for ordinary worksheets, direct formatting, or standalone
+  answer-key checking.
 ---
 
 <!-- SKILL-VERSION: 2026.09.05 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
 
 # Thai Math Exam Production
 
-Own the exam blueprint, difficulty taxonomy, item map, variants, config-first
-item state and paper-level consistency. The teacher owns pedagogy and content
-approval.
+Own exam structure, difficulty, item variants and paper-level consistency. The
+teacher owns pedagogy and content approval. An exam paper prints questions only
+(`worksheet`); a separate complete key is `answer-key`. Neither uses Scaffolding.
 
-## Required routes
+## Route once
 
-Orient through the parent `math-handout-sandbox`, but follow its current rule
-rather than always running preflight: **when the project has an `AGENTS.md`, that
-is the entrypoint** — take the project map, read boundaries, authority order and
-topic index from it, and do not run preflight. Run
-`math-handout-sandbox` preflight only when the project has no `AGENTS.md`, or
-root, scope, authority or routes are genuinely unclear. Either way the exam needs
-a declared root, an authority order and a material-control boundary before item
-work starts. Announce routes:
+Use the project's `AGENTS.md` for root, authority and read boundaries. If these
+are already clear, do not invoke the parent sandbox merely to rediscover them or
+create another control file. When unclear, use `math-handout-sandbox` Mode B.
+Exam state below supplies the exam's control boundary; obey an existing parent
+control file when the project actually requires one.
 
-- teaching/material design → `math-handout-sandbox`;
-- DOCX/OMML/layout and font-normalization path → `thai-math-docx`;
-- independent answer-key correctness → `blind-answer-key-audit`;
-- set/other diagram semantics → owning material/diagram workflow;
-- session continuity → `handoff`.
+Load child skills only when their work begins: `thai-math-docx` for DOCX;
+`blind-answer-key-audit` for independent correctness; the relevant diagram skill
+for a needed diagram; `handoff` for requested continuity. Ordinary exam authoring
+needs no coding build log.
 
-Do not copy those implementations here. Use coding `build-changelog` only when
-changing an exam generator/tool/skill, not for ordinary exam production.
+## Select the reading scope
 
-An exam paper is a `worksheet` in the parent's `Deliverable` vocabulary — the
-printed paper carries questions only. A separate detailed answer key is its own
-`answer-key` deliverable. `Scaffolding` does not apply to either; that axis is
-for teaching examples, not exam items.
+Read required project conventions once per current context. Reuse unchanged
+material already read; on a fresh session recover current state from files.
 
-## Start or resume
+| Task | Read / run |
+|---|---|
+| New exam | [exam-project-contract.md](references/exam-project-contract.md) for schema/init; [exam-production-workflow.md](references/exam-production-workflow.md) for gates; use the EXAM-DESIGN template |
+| Resume or status | Validate state once; read `exam-project.json` and EXAM-DESIGN's Contract, Approval state and unresolved decisions; then only the current gate's workflow section |
+| Revise one item | `item_meta.py <root> --item Q01 --json`, that item's prompt/solution and applicable taxonomy/config; neighboring items only when reuse, order or dependencies matter |
+| Parallel set | Add the workflow's Parallel Mode Overlay and the approved reference items needed for the current gate; analyze the full reference at the source gate and compare both complete papers at paper review |
+| Whole-paper review / export | Read the complete selected paper and working solutions, blueprint and acceptance criteria; local item excerpts cannot establish paper-level correctness |
 
-Read `references/exam-project-contract.md` and
-`references/exam-production-workflow.md`.
-
-For a new original project, run:
+Scripts live in this skill's `scripts/`; use their absolute paths from a project
+workspace. Useful commands (prefix each script with that directory):
 
 ```bash
-python scripts/init_exam_project.py <project-root> \
-  --slug <slug> --title <title> --chapter <chapter> \
-  --objective-count <n> --written-count <n>
+python3 validate_exam_state.py <project-root>
+python3 item_meta.py <project-root> --item Q01 --json
+python3 check_exam_design.py <project-root>/exam-state/EXAM-DESIGN.md
+python3 check_exam_design.py <batch-proposal>.md --batch
 ```
 
-For a parallel set built from an approved exam, add the reference and relation:
+`item_meta` without `--json` is a compact status row, not the full item config.
+Never use it alone to redesign an item. Metadata can expose solutions and is
+not a questions-only input for a blind checker.
 
-```bash
-python scripts/init_exam_project.py <project-root> \
-  --slug <slug> --title <title> --chapter <chapter> \
-  --objective-count <n> --written-count <n> \
-  --production-mode parallel \
-  --source-exam-id EXM-<source-slug> \
-  --source-exam-path <relative-path-to-source> \
-  --difficulty-relation iso-difficulty
-```
+## State and approval
 
-The initializer writes `exam-state/EXAM-DESIGN.md` (the teacher-readable current
-design note) from `assets/EXAM-DESIGN.template.md`. Keep it current, not
-cumulative; validate its sections with:
+`exam-state/*.json` owns machine facts; `exam-state/EXAM-DESIGN.md` owns current
+teacher-readable reasoning. Keep affected facts and reasoning in step at each
+gate; replace superseded text. Read the contract reference only for schema or
+field questions, not automatically on every follow-up.
 
-```bash
-python scripts/check_exam_design.py <project-root>/exam-state/EXAM-DESIGN.md
-python scripts/check_exam_design.py <batch-proposal>.md --batch
-```
+Preserve the workflow's order: source/format → taxonomy → blueprint → item map
+→ batch drafting → solutions → paper review → blind audit → export. Validate
+when state advances or changes, and before export. Do not repeat validation for
+an unchanged conversational follow-up. A validator PASS does not approve content.
 
-For existing work, validate state before discussion:
+Show the teacher a compact view of the facts needed for the current decision,
+including counts, scores or item details where relevant. Produce that view from
+JSON; a link to JSON alone is not an approval proposal. Avoid maintaining a second
+editable copy of the entire machine tables in EXAM-DESIGN.
 
-```bash
-python scripts/validate_exam_state.py <project-root>
-python scripts/item_meta.py <project-root> --item Q01
-```
+Draft by workload (Easy 1, Medium 2, Hard 3; target 3–4 units per batch), with
+`assets/BATCH-PROPOSAL.template.md`. Preserve explicit batch approval; silence
+or discussion of one item does not approve its neighbors. A surgical revision
+preserves unnamed fields. Follow current teacher authorization without asking
+again for decisions already explicitly made.
 
-Never infer current state from chat memory when the config files exist.
+Before Hard, written, paired or proof items, record the contract's config-first
+fields: role, parts, intended behavior, solution path, structural budget, reuse
+limit, required method and visual clarity. Convert another item to config-first
+if it fails twice. Keep variant ids immutable; never reuse rejected ids.
 
-## Production modes
+## Parallel sets and independent checking
 
-- `original` — ออกข้อสอบใหม่จากขอบเขตและแหล่งเนื้อหา (ค่าเริ่มต้น).
-- `parallel` — สร้างชุดใหม่โดยอ้างอิงข้อสอบที่อนุมัติแล้ว ภายใต้ parallel contract.
+Parallel means an equivalent exam set, not a requirement for parallel agents.
+Freeze the approved reference; record preserve/transform/avoid and item anchors;
+solve every new item from scratch. The workflow overlay owns the full rules,
+including pair-level equivalence, whole-paper review and leakage checks.
 
-Parallel mode rules (details in `references/exam-production-workflow.md §Parallel
-Mode Overlay`, contract in `EXAM-DESIGN.md`):
+For blind audit, use a fresh checker context containing only approved questions,
+choices, figures and necessary conventions. Do not inherit producer history,
+working solutions, reference-exam keys, item configs or revealing metadata.
+Save independent solutions before revealing the key. An existing context that
+has seen the key is not blind merely because its next input omits the key.
+Tie audit results to the reviewed snapshot; changed questions/choices/keys need
+fresh checking for the affected items. Adjudicate disagreements with the teacher.
 
-- **Freeze** ข้อสอบอ้างอิงก่อนออกข้อใหม่ (`parallel.reference_frozen = true`); ห้ามแก้ชุดต้นฉบับระหว่างผลิต.
-- `EXAM-DESIGN.md` ต้องมีตาราง **preserve / transform / avoid** ที่ครูตรวจได้ + `### Equivalence diagnosis` (5 มิติ).
-- ทุกข้อระบุ **item anchor** และอธิบายทั้งสิ่งที่คงไว้กับสิ่งที่เปลี่ยน.
-- **แก้ทุกข้อใหม่จากศูนย์** ห้ามนำคำตอบเดิมมาแปลงตามตัวเลข.
-- จัด batch ด้วย **workload units** (Easy 1 · Medium 2 · Hard 3; เป้า 3–4/ batch) ไม่ใช่จำนวนข้ออย่างเดียว.
-- ก่อนส่ง DOCX ต้องผ่าน pair-level review, whole-paper review และ blind answer audit.
-
-## Workflow gates
-
-1. Analyze the reference exam and classroom conventions as evidence.
-2. Lock format, scoring, book policy and time fit.
-3. Lock the teacher's chapter-specific easy/medium/hard taxonomy before item map.
-4. Approve topic/difficulty roll-ups and reuse actions before drafting.
-5. Build the exact item map. Hard, written and paired/proof items are config-first.
-6. Draft small batches by **workload units** (Easy 1 · Medium 2 · Hard 3; target
-   3–4 units per batch), not a fixed item count. Silence or partial discussion is
-   not approval. Preserve unchanged fields during surgical revision.
-7. Assign immutable variant ids: letters for materially different designs,
-   numeric suffixes for tuning within one design family. Never reuse a rejected id.
-8. Draft working solutions before whole-paper difficulty review.
-9. Review uniqueness of correct choices, ambiguity, distributions, progression,
-   repeated nearby structures, score totals and time fit.
-10. Route a questions-only snapshot to `blind-answer-key-audit`; disagreements
-    require adjudication and never silently rewrite the key.
-11. Export only approved structured content through `thai-math-docx`. Its
-    `produce.py` is the whole production path — audit, build, gate, optional
-    contact sheet — and one gate covers the document; the batch lifecycle is
-    maintenance tooling, not part of ordinary export. The DOCX is a
-    handoff-ready working draft for human finishing, not the unseen final
-    product.
-
-Validate the relevant gate whenever state advances. Do not approve a later gate
-while an earlier prerequisite remains pending. The full gate procedure (and its
-per-gate `GATE-N` proposal docs) lives in `references/exam-production-workflow.md`
-— keep it there, not duplicated into each project. In `parallel` mode each gate
-carries an extra contract from that file's **Parallel Mode Overlay**.
-
-At every gate, keep two surfaces in step: `exam-state/*.json` (machine facts the
-validator reads) and `EXAM-DESIGN.md` (the teacher-readable reasoning). The design
-note **points at** the JSON; it does not copy its tables.
-
-## Config-first item rule
-
-Before writing notation for any Hard, written, paired-argument or proof-style item,
-record:
-
-- paper role and number of parts;
-- intended truth/validity behavior;
-- intended solution path;
-- structural budget and forbidden clutter;
-- reuse limit against nearby items;
-- required solution method;
-- visual-clarity constraint.
-
-If any other item fails twice, convert it to config-first before another rewrite.
-Difficulty should come from reasoning order, not ambiguous notation or symbol count.
-
-## Approval and continuity
-
-Ask only at material gates, current-master mutation, authority expansion or real
-scope change. Keep current exam facts in `exam-state/*.json` and current parent
-state in `MATERIAL-CONTROL`. Use `handoff` at natural boundaries; an unfinished
-handoff checkpoints state without closing the work batch or reviewing knowledge.
+Export approved content through `thai-math-docx` and its unified QA. Keep document
+QA distinct from mathematical correctness and pending Word review. Continue from
+current files at natural handoff boundaries; never recreate gates or control
+files just because the conversation resumed.

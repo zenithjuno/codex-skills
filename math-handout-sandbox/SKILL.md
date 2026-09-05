@@ -10,12 +10,22 @@ description: >
   or worksheet. Do not use for direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.08.29 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.05 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 
 Treat the teacher as curriculum authority. Use the lightest mode that preserves
 the decision at hand.
+
+## Direct routes
+
+Route exam projects to `thai-math-exam-production`; exam state replaces a second
+handout note. If that skill requests Mode B to resolve an unclear root/authority,
+resolve only that orientation and return, without routing in a loop.
+Direct Thai DOCX work without design discussion routes by content: prose without
+math to `thai-docx`, mathematical notation to `thai-math-docx`. Administrative
+numbers and ordinary prose relations alone do not make a document mathematical.
+Return to the modes below only when the user is discussing teaching materials.
 
 ## Mode A — quick review and design discussion
 
@@ -32,51 +42,37 @@ because a conversation is long.
 
 ## Mode B — project-aware discussion, start, or resume
 
-Use when the teacher starts/continues a project, names a folder/current file,
-revises an existing artifact, changes durable scope, or needs unknown convention.
+Use for project start/resume, an existing artifact or a needed convention.
+`AGENTS.md` owns project routes, authority and read boundaries. Use its topic
+index, not folder enumeration; open finished topics only when named.
 
-When the project has an `AGENTS.md`, that is the entrypoint: take the project
-map, read boundaries, authority order and topic index from it, and never
-enumerate or glob the folder to orient yourself. Read only the index rows for the
-active topic; a finished topic is opened only when the teacher names it.
+Read applicable root/topic teaching conventions, then the active note's Contract,
+objective and Progression map. For a local question, add the complete affected
+item/section and its dependencies; for sequence review or production, read the
+complete relevant content and solutions. Follow any stricter project read rule.
+Read a section fully before editing it. Load `DOCX-PREFERENCES.md` when layout or
+DOCX is involved. Reuse unchanged context already read; a fresh session recovers
+current files, not remembered preferences.
 
-Read the project `TEACHING-CONVENTIONS.md`, then the active topic's approved
-`MATERIAL-DESIGN-*.md`. Load `DOCX-PREFERENCES.md` only when the work will
-actually touch DOCX.
-
-A current `AGENTS.md` or topic index already answers root, scope and routes, so
-preflight does not run there. Otherwise run
-[project preflight](references/project-preflight.md) when root, scope, authority,
-or routes are unclear, or the work shows a long-project signal (that reference
-lists them). Record durable accepted decisions in the relevant design note.
-
-When the project's `AGENTS.md` defines an authority order, follow it. Otherwise
-resolve by dimension, not file order: the teacher's current instruction, then the
-approved design (pedagogy/content), then conventions (cross-topic defaults), then
-skill defaults; historical files are evidence, not compatibility targets. Surface
-a real conflict.
+Skip preflight when the project entrypoint/index resolves root, scope and routes.
+Otherwise use [project preflight](references/project-preflight.md) for unresolved
+authority/routes or long-project signals. Record accepted durable decisions in
+the relevant design note. Without project authority rules, current instruction
+wins, approved design owns content, conventions supply defaults, then skills;
+history is evidence, not a compatibility target. Surface real conflicts.
 
 ## Writing a design note
 
-Start a new note from
-[the template](assets/MATERIAL-DESIGN.template.md). Its `Contract` block is not
-decoration. Separate two axes before drafting content:
+Use [the template](assets/MATERIAL-DESIGN.template.md) for a new note. Set
+`Deliverable`: `worksheet` prints prompts, `answer-key` complete solutions,
+`examples` declared support, `design-only` no DOCX. Full solutions stay in the
+note in every mode.
 
-- `Deliverable` (`worksheet` | `answer-key` | `examples` | `design-only`) states
-  the document's instructional role.
-- `Scaffolding` (`worked` | `faded` | `independent` | `mixed`) states how much
-  support learners see. Require it for `examples`; delete it for other modes.
-
-For `examples + mixed`, label every item `Support: worked | faded | independent`.
-`worked` prints the complete method, `faded` prints selected steps and leaves
-target steps for the learner, and `independent` prints only the prompt. A fading
-sequence may move through all three levels while remaining an `examples`
-deliverable. If every item is independent and no instructional example structure
-reaches the DOCX, classify the document as `worksheet` instead.
-
-Solutions always belong in the note. `worksheet` prints prompts only;
-`answer-key` prints complete solutions; `examples` prints the support declared by
-`Scaffolding`; `design-only` produces no DOCX.
+Require `Scaffolding` only for `examples`: `worked` prints full methods, `faded`
+selected steps with named learner steps, `independent` prompts only, `mixed`
+labels each item `Support: worked | faded | independent`. A deliberate fading
+sequence can remain examples; an entirely independent set without instructional
+example structure is a worksheet.
 
 **A design note states what is true now, not how the discussion got there.**
 Replace superseded wording, examples and decisions in place. When the reasoning
@@ -94,17 +90,25 @@ LaTeX. Why, and what counts, live in that script's header and
 
 ## Mode C — approved production
 
-Use only when the teacher both approves content and explicitly asks for an
-artifact. First recover relevant Mode B state, including `DOCX-PREFERENCES.md`
-for a project DOCX, unless this is direct Thai DOCX
-repair or formatting with no material-design discussion; route that case directly
-to `thai-math-docx`.
-
-Route Thai DOCX work to `thai-math-docx` (font/OMML/QA included), exam item maps
-to `thai-math-exam-production`, answer correctness to `blind-answer-key-audit`,
-and continuity to `handoff`. Read set-diagram SVG instructions only for a set
+Begin only after content approval and an artifact request. Recover relevant
+Mode B state and DOCX preferences, then use Direct routes; formatting/repair
+without design discussion needs no Mode B. Load child skills when needed. Route
+answer correctness to `blind-answer-key-audit` with a fresh checker context:
+questions, choices, figures and necessary conventions only, without producer
+history or the note containing solutions. Save independent answers before reveal.
+A context that has already seen the key cannot perform a blind check.
+Use `handoff` for continuity. Read set-diagram SVG instructions only for a set
 diagram; otherwise keep SVG geometry/text editable and verify placement.
 
 Do not begin production merely because it is possible. Ensure approved content is
 in the active design note. If testing reveals a design change, explain it, obtain
 approval, record it, then build.
+
+## Maintaining this skill family
+
+Use small, reasoned upgrades followed by real classroom-document use and targeted
+feedback. Run relevant existing checks and verify changed commands yourself; do
+not require the teacher to run comparative benchmarks or a trial matrix before
+using an upgrade. This maintenance preference does not remove content approvals,
+blind answer checks or document QA. Do not claim measured token savings without
+usage evidence.

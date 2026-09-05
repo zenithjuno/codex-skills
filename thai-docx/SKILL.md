@@ -1,110 +1,74 @@
 ---
 name: thai-docx
 description: >
-  Use when creating, editing, repairing, or auditing a Thai Microsoft Word .docx
-  that is PROSE and contains NO mathematical notation — reports, letters, memos,
-  official/administrative documents, school forms, meeting minutes, handouts, and
-  plain tables. Optimizes for the user's Word workflow: Thai body text in TH Sarabun
-  New with Complex-Script font routing that survives Clear Formatting and PDF export,
-  insertion-safe Thai runs, and robust docDefaults/Normal defaults. Also repairs an
-  imported or legacy Thai .docx (e.g. TH SarabunPSK / Angsana → TH Sarabun New) and
-  renders a page preview for review. NOTE: if the document needs editable equations,
-  OMML, or any mathematical notation, use `thai-math-docx` instead — this skill is
-  for Thai documents WITHOUT math.
+  Create, edit, repair, audit, or preview Thai Word documents without mathematical
+  notation: reports, letters, memos, school forms, minutes, and prose tables.
+  Use TH Sarabun New with editable, insertion-safe Thai text; repair legacy Thai
+  fonts in imported DOCX. For mathematical notation or editable equations, use
+  thai-math-docx instead. Administrative numbers and prose such as คะแนน ≥ 80
+  belong here.
 ---
 
-<!-- SKILL-VERSION: 2026.09.04 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.05 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
 
 # Thai DOCX (no math)
 
-Use this skill to produce, edit, repair, or audit a Thai Word `.docx` whose content is
-**prose and tables with no mathematical notation** — the everyday Thai documents a teacher
-or administrator writes: reports, official letters, memos, forms, minutes, plain handouts.
+Route by content, not the document title: ordinary Thai prose and tables belong
+here; mathematical notation or editable equations belong in `thai-math-docx`.
+Administrative numbers and prose relations (`คะแนน ≥ 80`, `ราคา < 100 บาท`)
+stay ordinary text. If the input's content is unclear, inspect that input first.
 
-**Trigger boundary (read first).** The single lever that separates this skill from its
-sibling is *the presence of mathematical notation*:
+## Start with the requested operation
 
-- **No math → this skill.** Thai prose, tables, headings, headers/footers; repairing an
-  imported Thai document; previewing a Thai document.
-- **Any editable equation / OMML / math notation → `thai-math-docx`.** Exams, answer keys,
-  worksheets with equations, anything where math must stay editable in Word. Do not use
-  `thai-docx` for those; hand off to `thai-math-docx`.
+Recover any applicable project DOCX preferences before editing. Current user
+instructions and explicit project requirements override the defaults below.
+Direct document work needs no material-design discussion or exam workflow.
 
-A relational glyph inside ordinary prose (`คะแนน ≥ 80`, `ราคา < 100 บาท`) is **not** math
-notation for this purpose — it is normal administrative writing and stays plain text.
-
-## This skill is an orchestrator, not a standalone
-
-`thai-docx` deliberately owns almost no engine code. It **reuses the mature, battle-tested
-`thai-math-docx` engine's general (math-free) surface** and the `thai-font-normalize`
-repairer, both by absolute path. It is therefore **not standalone** — the sibling skills
-below must be installed. Run the preflight (next section) before real work; it fails loudly
-with the exact missing path rather than producing a broken document.
-
-### Orchestration / borrowed skills
-
-| Borrowed from | What this skill uses it for | How |
-|---|---|---|
-| `~/.codex/skills/thai-math-docx/scripts/` | Thai run/table/heading insertion (builder **core**), font-default & insertion-safety audits, page render + contact sheet, the unified QA gate | Python import via a `sys.path` bootstrap; CLIs by absolute path |
-| `~/.codex/skills/thai-font-normalize/scripts/fix-thai-font` | normalize a document's Thai fonts (incl. legacy TH SarabunPSK / Angsana) → **TH Sarabun New** | shell out by absolute path |
-| `~/.codex/skills/soffice-runtime-fix` | reference only — consult if the render environment (LibreOffice) is broken | not a runtime dependency |
-
-**Never** import or invoke `thai-math-docx`'s math modules (`audit_docx_omml`,
-`audit_docx_math_in_text`, `thai_math_expr`, `thai_math_source_adapter`, the OMML builder
-functions). This skill's whole point is a Thai-document path that touches no math authoring
-code. The engine's QA is run with `math.required = false`, under which the plain-text-math
-scan is correctly skipped, so ordinary prose relations never false-fail.
-
-## Font standard
-
-**TH Sarabun New** is the one Thai font standard. This skill never installs a legacy font.
-
-**Prose font profile (no-math docs).** Documents this skill *authors* use the **prose
-profile**: TH Sarabun New at 16 pt in **every** slot — Latin, hAnsi and Complex Script
-alike (numbers and English render in TH Sarabun New too, not Cambria). Build inside
-`with engine.font_profile("prose"):` so both the docDefaults and every run get it. (The
-engine's default profile stays "math" — Latin Cambria 12 / Complex 16 — for thai-math-docx.)
-
-**Repair (imported docs).** When a document declares an older Thai font (TH SarabunPSK,
-Angsana, …), normalize it **in the document** to TH Sarabun New with `scripts/repair.py`
-(fix-thai-font for the Thai routing + a residual legacy-font sweep) — the fonts are fixed
-in the file, never installed on the machine. See `references/repair.md`.
-
-## Workflow (hand-off order)
-
-```
-generate / edit / repair the Thai docx  (prose, tables, headings, header/footer, basic image)
-  → thai-math-docx ENGINE: builder CORE + font-default & insertion-safety audits
-  → thai-font-normalize (fix-thai-font): any legacy/PSK Thai font → TH Sarabun New
-  → thai-math-docx ENGINE: render_docx (+ contact_sheet) + unified QA gate (math.required = false)
-```
-
-For a **repair of an imported document**, start at the normalize step on the imported file,
-then audit and render. For a **new document**, build with the engine core, then normalize,
-then render/QA.
-
-## Visual truth
-
-**Microsoft Word on the user's machine is the visual authority.** The LibreOffice/PyMuPDF
-render (page image or contact sheet) is only an internal **sanity check** to catch gross
-breakage — it substitutes fonts and approximates layout, so it is NOT what the user signs
-off on. When a document needs the user's visual judgment, **deliver the actual `.docx`** for
-them to open in Word; never present a render as the final truth.
-
-## Dependency + render-env preflight
-
-Run `scripts/preflight.py` before real work (added in build stage S05). It verifies the
-sibling engine + `fix-thai-font` exist, and that the render environment is present
-(LibreOffice + TH Sarabun New), failing with a precise remediation message if anything is
-missing. It resolves the Python interpreter portably (`sys.executable`) — never a hardcoded
-runtime path.
-
-## Reference — load on demand
-
-| Read | When |
+| Operation | Read / run |
 |---|---|
-| `references/engine-reuse.md` | you need the exact `sys.path` bootstrap and the engine functions/CLIs this skill is allowed to call |
-| `references/repair.md` | repairing an imported / legacy-font Thai document |
+| Create or edit prose | [engine-reuse.md](references/engine-reuse.md): supported builder calls and a complete build/QA example |
+| Repair an imported or legacy-font DOCX | [repair.md](references/repair.md); the repair command mutates its input, so use a working copy unless in-place repair is authorized |
+| Audit only | The QA section of `engine-reuse.md`; auditing never repairs the input |
+| Preview only | The preview section of `engine-reuse.md`; do not rebuild or normalize just to preview |
 
-Open an engine script's source only when its behavior is unclear; do not copy engine code
-into this skill.
+Run `python3 ~/.codex/skills/thai-docx/scripts/preflight.py` once before the first
+operation in an environment; repeat only after an environment change or a
+dependency failure. It checks the sibling engine, font repairer, LibreOffice,
+TH Sarabun New and PyMuPDF. Report failures precisely; consult
+`soffice-runtime-fix` only for an actual LibreOffice runtime failure.
+
+## Engine boundary
+
+Use `scripts/engine.py`, which resolves the sibling engine relative to the
+installed skill. This skill requires `thai-math-docx` and `thai-font-normalize`;
+borrowing their code does not require loading their full skill instructions.
+Read a deeper engine reference only for a specific unsupported operation.
+
+Use the builder's prose surface and `engine.audit_prose`. Do not call math
+authoring functions or enable the math scan for administrative prose. The
+wrapper supplies `math.required = false`; declare source, layout and media
+accurately rather than using a math-production default contract.
+
+## Font and repair invariants
+
+New prose documents use **TH Sarabun New 16 pt in all font slots**, including
+Latin/numbers, with matching docDefaults and Normal. Keep document creation,
+body/table building and saving inside `with engine.font_profile("prose"):`.
+The sibling engine's default is the math profile and is not this default.
+
+`builder.save_docx` already normalizes the theme. A generated document that
+passes `engine.audit_prose` needs no second `fix-thai-font` pass. Repairs use
+`scripts/repair.py` to convert legacy Thai fonts in all slots while preserving
+genuine Latin fonts; repair is not an instruction to restyle the whole input.
+
+## Verify and deliver
+
+Build or repair → run the unified prose QA gate → render a fresh sanity preview
+for generated or repaired output. Do not repeat standalone font audits after a
+passing unified gate. On failure, inspect only the reported check and its evidence.
+Keep `needs_word_review` separate from the automated verdict.
+
+**Microsoft Word on the user's machine is the visual authority.** A contact
+sheet catches gross omissions and broken tables, not exact Word layout. Deliver
+the actual DOCX and report QA plus any pending Word review; do not claim final
+visual approval from a LibreOffice preview.
