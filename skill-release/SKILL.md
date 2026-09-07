@@ -3,6 +3,8 @@ name: skill-release
 description: Publish any update, addition, repair, rename, or removal of a user-managed Codex/Claude skill from the local `~/.codex/skills` source checkout to its GitHub mirror. Use whenever an agent changes a skill folder or asks to commit, push, install, sync, release, or make a skill available to other sessions. Enforce scoped preflight, verification, commit/push, and clean local-mirror proof through the shared release helper.
 ---
 
+<!-- SKILL-VERSION: 2026.09.07 | name: skill-release | canonical: ~/.codex/skills/skill-release | bump this date on every edit -->
+
 # Skill Release
 
 Treat every change to a user-managed skill as a release. The local checkout is
@@ -43,6 +45,32 @@ clone, or manual `git pull`/`push` instead of the helper.
 5. Call the release complete only when the helper reports `DEPLOYED`. This proves
    a clean local `HEAD` equals `origin/main`. `PUBLISH_PENDING` and `BLOCKED`
    are not completion; preserve evidence and request resolution.
+
+## Claude symlink guard
+
+Codex reads `~/.codex/skills` directly, but Claude only sees a skill once it is
+symlinked into `~/.claude/skills`. A skill you build but forget to link is
+invisible to Claude — the whole effort is wasted until the link exists.
+
+To make that impossible to forget, every successful `release` and `publish`
+**automatically** re-checks all source skills and creates or repairs any missing
+or broken `~/.claude/skills` link, then reports the result under
+`claude_symlinks` in the JSON output. It sweeps the whole skill set, not just the
+one you released, so a link missed on an earlier release is caught too. On a
+machine with no `~/.claude/skills` (e.g. Codex-only) it is a silent no-op
+(`"status": "SKIPPED"`). It never deletes a real directory: if a real folder
+occupies a skill's name it reports `CONFLICT` for you to resolve by hand.
+
+Read `claude_symlinks` in the release output. `OK` or `FIXED` is healthy;
+`CONFLICT` needs manual attention.
+
+Run the same check on its own at any time (independent of git):
+
+```bash
+cd ~/.codex/skills
+python3 tools/skill_release.py symlinks          # create/repair links, then report
+python3 tools/skill_release.py symlinks --check  # report only; change nothing
+```
 
 ## Scope exceptions
 

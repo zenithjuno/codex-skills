@@ -21,6 +21,7 @@ from typing import Iterable, Optional
 
 
 DEFAULT_ROOT = Path.home() / ".codex" / "skills"
+CLAUDE_SKILLS_DIR = Path.home() / ".claude" / "skills"
 IGNORED_NAMES = {".DS_Store", "__pycache__"}
 
 
@@ -147,6 +148,107 @@ def synchronize(root: Path, branch: str) -> dict[str, object]:
     if final["status"] != "MIRRORED" or final["dirty_paths"]:
         raise ReleaseError("local source did not become a clean GitHub mirror")
     return {"status": "SYNCED", "head": final["head"], "origin_head": final["origin_head"]}
+
+
+def source_skill_names(root: Path) -> list[str]:
+    """Top-level folders in the source checkout that are real skills (have SKILL.md)."""
+    names: list[str] = []
+    for entry in sorted(root.iterdir()):
+        if entry.name.startswith(".") or entry.is_symlink() or not entry.is_dir():
+            continue
+        if (entry / "SKILL.md").is_file():
+            names.append(entry.name)
+    return names
+
+
+def sync_claude_symlinks(
+    root: Path,
+    claude_dir: Optional[Path] = None,
+    *,
+    apply: bool = True,
+) -> dict[str, object]:
+    """Ensure every source skill has a matching symlink in the Claude skills dir.
+
+    Codex reads ~/.codex/skills directly, but Claude only sees a skill once it is
+    symlinked into ~/.claude/skills. A skill built but never linked is invisible
+    to Claude — the failure this guards against. On a machine without a Claude
+    skills dir (e.g. Codex-only) this is a silent no-op.
+
+    - MISSING  (no entry at all)            -> create the symlink
+    - BROKEN/WRONG (a symlink, but off)     -> replace it (safe: only ever a link)
+    - stale broken link into our root       -> remove it (skill renamed/removed)
+    - CONFLICT (a real file/dir, not a link) -> report only; never delete data
+
+    With apply=False it only reports what it would do (report-only / --check).
+    """
+    if claude_dir is None:
+        claude_dir = CLAUDE_SKILLS_DIR
+    if not claude_dir.is_dir():
+        return {"status": "SKIPPED", "reason": f"no {claude_dir}"}
+
+    root_real = root.resolve()
+    created: list[str] = []
+    repaired: list[str] = []
+    removed_broken: list[str] = []
+    conflicts: list[str] = []
+    ok = 0
+    source_names = set(source_skill_names(root))
+
+    for name in sorted(source_names):
+        link = claude_dir / name
+        expected = root / name
+        if not link.is_symlink() and not link.exists():
+            if apply:
+                link.symlink_to(expected)
+            created.append(name)
+        elif link.is_symlink():
+            resolves = (
+                link.exists()
+                and os.path.realpath(link) == os.path.realpath(expected)
+                and (link / "SKILL.md").is_file()
+            )
+            if resolves:
+                ok += 1
+            else:
+                if apply:
+                    link.unlink()
+                    link.symlink_to(expected)
+                repaired.append(name)
+        else:
+            conflicts.append(name)
+
+    # Sweep stale, dangling symlinks that point into our source root but no longer
+    # name a live skill (a rename or removal left the old link behind).
+    for entry in sorted(claude_dir.iterdir()):
+        if not entry.is_symlink() or entry.name in source_names or entry.exists():
+            continue
+        try:
+            raw = Path(os.readlink(entry))
+            target = raw if raw.is_absolute() else (claude_dir / raw)
+            into_root = str(target.resolve()).startswith(str(root_real) + os.sep)
+        except OSError:
+            into_root = False
+        if into_root:
+            if apply:
+                entry.unlink()
+            removed_broken.append(entry.name)
+
+    if conflicts:
+        status_word = "CONFLICT"
+    elif not (created or repaired or removed_broken):
+        status_word = "OK"
+    else:
+        status_word = "FIXED" if apply else "NEEDS_FIX"
+
+    return {
+        "status": status_word,
+        "claude_dir": str(claude_dir),
+        "created": created,
+        "repaired": repaired,
+        "removed_broken": removed_broken,
+        "conflicts": conflicts,
+        "ok_count": ok,
+    }
 
 
 def ignored(path: Path) -> bool:
@@ -308,7 +410,12 @@ def publish(root: Path, branch: str) -> dict[str, object]:
     final = status(root, branch)
     if final["status"] != "MIRRORED" or final["dirty_paths"]:
         raise ReleaseError("push completed but local source is not a clean mirror afterwards")
-    return {"status": "DEPLOYED", "head": final["head"], "published_commits": pending}
+    return {
+        "status": "DEPLOYED",
+        "head": final["head"],
+        "published_commits": pending,
+        "claude_symlinks": sync_claude_symlinks(root),
+    }
 
 
 def release(args: argparse.Namespace) -> dict[str, object]:
@@ -377,6 +484,7 @@ def release(args: argparse.Namespace) -> dict[str, object]:
         "origin_head": final["origin_head"],
         "scope": scope,
         "adopted_digests": adopted_digests,
+        "claude_symlinks": sync_claude_symlinks(root),
     }
 
 
@@ -394,6 +502,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     commands.add_parser("publish", help="push commits that already exist locally")
 
+    symlinks_command = commands.add_parser(
+        "symlinks", help="ensure ~/.claude/skills mirrors the source skills (create/repair links)"
+    )
+    symlinks_command.add_argument(
+        "--check", action="store_true", help="report only; do not create, repair, or remove links"
+    )
+    symlinks_command.add_argument(
+        "--claude-dir", default=str(CLAUDE_SKILLS_DIR), help="Claude skills dir (default: ~/.claude/skills)"
+    )
+
     release_command = commands.add_parser("release")
     release_command.add_argument("--skill", action="append", default=[], help="top-level skill folder; repeatable")
     release_command.add_argument("--path", action="append", default=[], help="extra tracked path; repeatable")
@@ -405,6 +523,16 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command == "symlinks":
+            # Pure filesystem check — decoupled from git so it can run anywhere.
+            symlink_root = Path(args.root).expanduser().resolve()
+            if not symlink_root.is_dir():
+                raise ReleaseError(f"skills root does not exist: {symlink_root}")
+            result = sync_claude_symlinks(
+                symlink_root, Path(args.claude_dir).expanduser(), apply=not args.check
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0 if result["status"] in {"OK", "FIXED", "SKIPPED"} else 4
         root = resolve_root(args.root)
         if args.command == "status":
             result = status(root, args.branch)

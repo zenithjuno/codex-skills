@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import importlib.util
 from pathlib import Path
@@ -230,6 +231,164 @@ class SkillReleaseTest(unittest.TestCase):
         self.assertIn("old alpha", (self.root / "alpha/SKILL.md").read_text(encoding="utf-8"))
         self.assertIn("old beta", (self.root / "beta/SKILL.md").read_text(encoding="utf-8"))
         self.assertEqual(git(self.root, "status", "--porcelain"), "")
+
+
+class ClaudeSymlinkTest(unittest.TestCase):
+    """The symlink guard that keeps ~/.claude/skills in step with the source."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory(prefix="skill-symlink-test-")
+        self.base = Path(self.temp.name)
+        self.root = self.base / "codex-skills"
+        self.claude = self.base / "claude-skills"
+        self.claude.mkdir(parents=True)
+        write_skill(self.root, "alpha", "alpha body")
+        write_skill(self.root, "beta", "beta body")
+        (self.root / ".git").mkdir()  # a dotdir must be ignored, not treated as a skill
+        (self.root / "tools").mkdir()  # a non-skill folder (no SKILL.md) must be ignored
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def sync(self, apply: bool):
+        return release_module.sync_claude_symlinks(self.root, self.claude, apply=apply)
+
+    def test_creates_missing_links_and_reports_fixed(self) -> None:
+        report = self.sync(apply=True)
+        self.assertEqual(report["status"], "FIXED")
+        self.assertEqual(report["created"], ["alpha", "beta"])
+        for name in ("alpha", "beta"):
+            link = self.claude / name
+            self.assertTrue(link.is_symlink())
+            self.assertTrue((link / "SKILL.md").is_file())
+        # Non-skill and dot folders are never linked.
+        self.assertFalse((self.claude / "tools").exists())
+        self.assertFalse((self.claude / ".git").exists())
+
+    def test_check_reports_without_touching_the_filesystem(self) -> None:
+        report = self.sync(apply=False)
+        self.assertEqual(report["status"], "NEEDS_FIX")
+        self.assertEqual(report["created"], ["alpha", "beta"])
+        self.assertFalse((self.claude / "alpha").exists())
+
+    def test_already_linked_is_ok_and_idempotent(self) -> None:
+        self.sync(apply=True)
+        report = self.sync(apply=True)
+        self.assertEqual(report["status"], "OK")
+        self.assertEqual(report["created"], [])
+        self.assertEqual(report["ok_count"], 2)
+
+    def test_broken_link_is_repaired(self) -> None:
+        (self.claude / "alpha").symlink_to(self.base / "nowhere")
+        report = self.sync(apply=True)
+        self.assertIn("alpha", report["repaired"])
+        self.assertTrue((self.claude / "alpha" / "SKILL.md").is_file())
+
+    def test_real_directory_is_a_conflict_and_is_never_deleted(self) -> None:
+        occupied = self.claude / "alpha"
+        occupied.mkdir()
+        (occupied / "keep.txt").write_text("do not delete me", encoding="utf-8")
+        report = self.sync(apply=True)
+        self.assertEqual(report["status"], "CONFLICT")
+        self.assertIn("alpha", report["conflicts"])
+        self.assertTrue((occupied / "keep.txt").is_file())
+        self.assertFalse((self.claude / "alpha").is_symlink())
+
+    def test_stale_dangling_link_into_root_is_removed(self) -> None:
+        # A removed/renamed skill leaves a dangling link pointing into the source.
+        (self.claude / "gamma").symlink_to(self.root / "gamma")
+        report = self.sync(apply=True)
+        self.assertIn("gamma", report["removed_broken"])
+        self.assertFalse((self.claude / "gamma").is_symlink())
+
+    def test_foreign_dangling_link_is_left_alone(self) -> None:
+        # A dangling link that points somewhere else is not ours to clean up.
+        (self.claude / "external").symlink_to(self.base / "some-other-place")
+        report = self.sync(apply=True)
+        self.assertEqual(report["removed_broken"], [])
+        self.assertTrue((self.claude / "external").is_symlink())
+
+    def test_absent_claude_dir_is_a_silent_skip(self) -> None:
+        report = release_module.sync_claude_symlinks(self.root, self.base / "no-such-dir")
+        self.assertEqual(report["status"], "SKIPPED")
+
+    def test_subcommand_check_returns_nonzero_when_links_missing(self) -> None:
+        result = command(
+            sys.executable, str(TOOL), "--root", str(self.root),
+            "symlinks", "--check", "--claude-dir", str(self.claude),
+            check=False,
+        )
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "NEEDS_FIX")
+        self.assertEqual(result.returncode, 4)
+        self.assertFalse((self.claude / "alpha").exists())
+
+    def test_subcommand_creates_links_and_returns_zero(self) -> None:
+        result = command(
+            sys.executable, str(TOOL), "--root", str(self.root),
+            "symlinks", "--claude-dir", str(self.claude),
+            check=False,
+        )
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "FIXED")
+        self.assertEqual(result.returncode, 0)
+        self.assertTrue((self.claude / "alpha" / "SKILL.md").is_file())
+
+
+class ReleaseRunsSymlinkGuardTest(unittest.TestCase):
+    """A successful release must auto-run the symlink guard and report it.
+
+    Run in-process (not via subprocess) so the Claude skills dir can be patched
+    to a temporary location instead of the real ~/.claude/skills.
+    """
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory(prefix="skill-release-symlink-")
+        self.base = Path(self.temp.name)
+        self.remote = self.base / "remote.git"
+        self.root = self.base / "skills"
+        command("git", "init", "--bare", str(self.remote))
+        command("git", "clone", str(self.remote), str(self.root))
+        git(self.root, "config", "user.name", "Test Agent")
+        git(self.root, "config", "user.email", "test@example.invalid")
+        write_skill(self.root, "alpha", "old alpha")
+        write_skill(self.root, "beta", "old beta")
+        git(self.root, "add", "alpha", "beta")
+        git(self.root, "commit", "-m", "initial skills")
+        git(self.root, "branch", "-M", "main")
+        git(self.root, "push", "-u", "origin", "main")
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def release_args(self, **overrides):
+        base = dict(root=str(self.root), branch="main", skill=[], path=[], source_root=None, message="")
+        base.update(overrides)
+        return argparse.Namespace(**base)
+
+    def test_release_payload_includes_claude_symlinks(self) -> None:
+        claude_dir = self.base / "claude-skills"
+        claude_dir.mkdir()
+        write_skill(self.root, "alpha", "edited for release")
+        with mock.patch.object(release_module, "CLAUDE_SKILLS_DIR", claude_dir):
+            report = release_module.release(
+                self.release_args(skill=["alpha"], message="docs: edit alpha")
+            )
+        self.assertEqual(report["status"], "DEPLOYED")
+        self.assertIn("claude_symlinks", report)
+        # The guard links every source skill, not only the one just released.
+        self.assertEqual(report["claude_symlinks"]["status"], "FIXED")
+        self.assertTrue((claude_dir / "alpha" / "SKILL.md").is_file())
+        self.assertTrue((claude_dir / "beta" / "SKILL.md").is_file())
+
+    def test_release_symlinks_skip_when_no_claude_dir(self) -> None:
+        write_skill(self.root, "alpha", "edited without a claude dir")
+        with mock.patch.object(release_module, "CLAUDE_SKILLS_DIR", self.base / "absent"):
+            report = release_module.release(
+                self.release_args(skill=["alpha"], message="docs: edit alpha again")
+            )
+        self.assertEqual(report["status"], "DEPLOYED")
+        self.assertEqual(report["claude_symlinks"]["status"], "SKIPPED")
 
 
 if __name__ == "__main__":
