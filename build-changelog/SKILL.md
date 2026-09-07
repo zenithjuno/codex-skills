@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.08.11.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.07.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -76,11 +76,30 @@ atomic updates to every pointer; outside a build it still requires explicit user
 approval. Add the current Control schema field in place—never move files just to
 add it.
 
-The Project Map is inside BUILD-CONTROL. Never create a separate PROJECT-MAP
-file. There is exactly one BUILD-CONTROL per slug and no files named
+For new staged builds the Project Map is inside BUILD-CONTROL; do not create a
+separate map. An adopted project may retain its existing canonical map/state;
+reference those owners rather than duplicate them. If that convention is not
+supported by this schema, use project-bootstrap generic bindings and report
+limited coverage instead of pretending this helper validated a staged control. There is exactly one BUILD-CONTROL per slug and no files named
 `BUILD-CHANGELOG-*` after legacy migration. Detailed templates and migration
 rules live in `references/build-control-format.md`; read that reference whenever
 creating, repairing, or migrating these files.
+
+## Bounded context-health integration
+
+`project-bootstrap` owns setup/adoption and read-only context-health reports;
+this skill retains stage, contract and cold-log lifecycle. The helper's opt-in
+`validate --read-root ROOT --max-read-bytes N --max-files N [--allow-read PATH]`
+bounds cumulative project-document reads and returns BOUNDED_READ_METRICS. In
+this mode Git coordinates are explicitly UNCHECKED: Git metadata reads cannot be
+accounted by the document reader. Use normal validate for the live Git build gate;
+a bounded structural pass cannot waive it. Legacy
+invocations retain their behavior. Budget exhaustion returns 3; other validation
+errors retain 2. Root limits apply to indirect source pointers as well.
+
+The bootstrap adapter also reuses `stage_lifecycle_diagnostics` on bounded input.
+It does not claim full doctor coverage, which includes separate history and
+filesystem scans. Do not impose a full bootstrap audit on every healthy task.
 
 ## Start and resume without broad reads
 

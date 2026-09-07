@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -72,8 +73,57 @@ class BuildContextError(Exception):
     pass
 
 
+BOUNDED_VALIDATION_VERSION = 1
+_READ_CONTEXT = None
+
+
+class ReadBudgetError(BuildContextError):
+    pass
+
+
+class BoundedReads:
+    def __init__(self, root, allow, max_bytes, max_files):
+        self.roots = [root.resolve()] + [p.resolve() for p in allow]
+        self.max_bytes, self.max_files = max_bytes, max_files
+        self.used = 0
+        self.exhausted = False
+        self.vcs_coverage = "not-applicable"
+        self.cache = {}
+
+    def resolve(self, path):
+        p = path.resolve()
+        if not any(p == root or root in p.parents for root in self.roots):
+            raise BuildContextError(f"READ_BOUNDARY: outside allowed roots: {p}")
+        return p
+
+    def read(self, path):
+        p = self.resolve(path)
+        if p in self.cache:
+            return self.cache[p]
+        if len(self.cache) >= self.max_files:
+            self.exhausted = True
+            raise ReadBudgetError("READ_BUDGET: file count limit reached")
+        if not p.is_file():
+            raise BuildContextError(f"Expected a regular file: {p}")
+        size = p.stat().st_size
+        if size > self.max_bytes - self.used:
+            self.exhausted = True
+            raise ReadBudgetError(f"READ_BUDGET: {p} needs {size} bytes; {self.max_bytes - self.used} remain")
+        with p.open("rb") as f:
+            data = f.read(size)
+        self.used += len(data)
+        if p.stat().st_size != size:
+            self.exhausted = True
+            raise ReadBudgetError("READ_BUDGET: source changed during read")
+        text = data.decode("utf-8")
+        self.cache[p] = text
+        return text
+
+
 def read_text(path: Path) -> str:
     try:
+        if _READ_CONTEXT is not None:
+            return _READ_CONTEXT.read(path)
         return path.read_text(encoding="utf-8")
     except IsADirectoryError as exc:
         raise BuildContextError(f"Expected a regular file but found a directory: {path}") from exc
@@ -81,6 +131,8 @@ def read_text(path: Path) -> str:
         raise BuildContextError(f"File not found: {path}") from exc
     except UnicodeDecodeError as exc:
         raise BuildContextError(f"File is not UTF-8 text: {path}") from exc
+    except OSError as exc:
+        raise BuildContextError(str(exc)) from exc
 
 
 def h2_sections(text: str) -> dict[str, str]:
@@ -89,6 +141,8 @@ def h2_sections(text: str) -> dict[str, str]:
     for index, match in enumerate(matches):
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
         title = match.group(1).strip()
+        if _READ_CONTEXT is not None and any(title.casefold() == old.casefold() for old in sections):
+            raise BuildContextError(f"Ambiguous duplicate H2 section: {title}")
         sections[title] = text[match.start() : end].rstrip() + "\n"
     return sections
 
@@ -113,9 +167,8 @@ def field_value(section: str, label: str) -> Optional[str]:
 
 def resolve_pointer(control: Path, raw_path: str) -> Path:
     candidate = Path(raw_path).expanduser()
-    if candidate.is_absolute():
-        return candidate.resolve()
-    return (control.parent / candidate).resolve()
+    resolved = candidate.resolve() if candidate.is_absolute() else (control.parent / candidate).resolve()
+    return _READ_CONTEXT.resolve(resolved) if _READ_CONTEXT is not None else resolved
 
 
 def split_section_pointer(raw: str) -> tuple[str, Optional[str]]:
@@ -321,6 +374,8 @@ def validate_active_contracts(
 
 
 def git_output(repo: Path, *args: str) -> tuple[int, str]:
+    if _READ_CONTEXT is not None:
+        raise BuildContextError("VCS requires normal unbounded validate; bounded mode checks project documents only")
     result = subprocess.run(
         ["git", "-C", str(repo), *args],
         check=False,
@@ -906,7 +961,11 @@ def command_validate(control: Path, skip_vcs: bool) -> int:
                 errors.append(str(exc))
 
     if not skip_vcs and "VERSION CONTROL" in sections:
-        errors.extend(validate_vcs(control, sections))
+        if _READ_CONTEXT is not None and (field_value(sections["VERSION CONTROL"], "Mode") or "").casefold() == "git":
+            _READ_CONTEXT.vcs_coverage = "unavailable"
+            warnings.append("VCS_NOT_CHECKED: bounded mode validates project documents only; run normal validate for live Git coordinates at the build gate.")
+        else:
+            errors.extend(validate_vcs(control, sections))
 
     for warning in warnings:
         print(f"WARNING: {warning}", file=sys.stderr)
@@ -914,7 +973,8 @@ def command_validate(control: Path, skip_vcs: bool) -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 2
-    print(f"VALID: {control}")
+    label = "STRUCTURE VALID (VCS NOT CHECKED)" if _READ_CONTEXT is not None and _READ_CONTEXT.vcs_coverage == "unavailable" else "VALID"
+    print(f"{label}: {control}")
     return 0
 
 
@@ -992,6 +1052,65 @@ def command_lookup(control: Path, identifier: str) -> int:
     raise BuildContextError(f"Identifier not found in indexed sources: {identifier}")
 
 
+
+def stage_lifecycle_diagnostics(plan_text: str, state_section: str):
+    errors, warnings = [], []
+    stage_id = current_stage_id(state_section)
+    lifecycle = stage_lifecycle_rows(plan_text)
+    duplicate_stages = stage_lifecycle_duplicates(plan_text)
+    if not lifecycle and not duplicate_stages:
+        warnings.append(
+            "the construction plan has no `| Stage | Lifecycle |` map; a stage already "
+            "delivered elsewhere is indistinguishable from future work."
+        )
+    else:
+        for stage in duplicate_stages:
+            errors.append(
+                f"stage {stage} appears more than once in the Stage map lifecycle table; "
+                "a later row can silently hide an earlier contradictory one. Resolve "
+                "before the lifecycle table can be trusted."
+            )
+        for stage, status in sorted(lifecycle.items()):
+            if lifecycle_token(status) not in LIFECYCLE_VOCABULARY:
+                errors.append(
+                    f"stage {stage} has unknown lifecycle `{status}`; use one of "
+                    f"{', '.join(LIFECYCLE_VOCABULARY)}."
+                )
+        live = [
+            stage
+            for stage, status in lifecycle.items()
+            if lifecycle_token(status) in LIFECYCLE_CURRENT
+        ]
+        if stage_id:
+            if stage_id not in lifecycle:
+                errors.append(
+                    f"STATE current stage {stage_id} is absent from the plan's Stage map lifecycle table"
+                )
+            elif lifecycle_token(lifecycle[stage_id]) not in LIFECYCLE_CURRENT:
+                errors.append(
+                    f"STATE current stage {stage_id} is marked `{lifecycle[stage_id]}` in the "
+                    f"Stage map; a current stage must be {' or '.join(LIFECYCLE_CURRENT)}."
+                )
+        elif live:
+            errors.append(
+                f"stage(s) {', '.join(sorted(live))} are ACTIVE/VERIFY in the Stage map, but "
+                "STATE has no parseable current stage (`Current stage: SNN`) to reconcile "
+                "against."
+            )
+        marker = declared_state_marker(state_section)
+        if marker and live:
+            errors.append(
+                f"STATE declares `{marker}` but the Stage map has live stage(s) "
+                f"{', '.join(sorted(live))} (ACTIVE/VERIFY); a build cannot be both "
+                f"`{marker}` and have a stage in progress."
+            )
+        if len(live) > 1 and not parallel_stages_allowed(plan_text):
+            errors.append(
+                f"{len(live)} stages are ACTIVE/VERIFY ({', '.join(sorted(live))}) but the plan "
+                "does not declare `Parallel stages: allowed`."
+            )
+    return errors, warnings
+
 def command_doctor(control: Path) -> int:
     """Drift diagnostics. `validate` stays the strict structural gate.
 
@@ -1051,59 +1170,9 @@ def command_doctor(control: Path) -> int:
         plan_path = resolve_pointer(control, plan_raw)
         if plan_path.exists():
             plan_text = read_text(plan_path)
-            lifecycle = stage_lifecycle_rows(plan_text)
-            duplicate_stages = stage_lifecycle_duplicates(plan_text)
-            if not lifecycle and not duplicate_stages:
-                warnings.append(
-                    "the construction plan has no `| Stage | Lifecycle |` map; a stage already "
-                    "delivered elsewhere is indistinguishable from future work."
-                )
-            else:
-                for stage in duplicate_stages:
-                    errors.append(
-                        f"stage {stage} appears more than once in the Stage map lifecycle table; "
-                        "a later row can silently hide an earlier contradictory one. Resolve "
-                        "before the lifecycle table can be trusted."
-                    )
-                for stage, status in sorted(lifecycle.items()):
-                    if lifecycle_token(status) not in LIFECYCLE_VOCABULARY:
-                        errors.append(
-                            f"stage {stage} has unknown lifecycle `{status}`; use one of "
-                            f"{', '.join(LIFECYCLE_VOCABULARY)}."
-                        )
-                live = [
-                    stage
-                    for stage, status in lifecycle.items()
-                    if lifecycle_token(status) in LIFECYCLE_CURRENT
-                ]
-                if stage_id:
-                    if stage_id not in lifecycle:
-                        errors.append(
-                            f"STATE current stage {stage_id} is absent from the plan's Stage map lifecycle table"
-                        )
-                    elif lifecycle_token(lifecycle[stage_id]) not in LIFECYCLE_CURRENT:
-                        errors.append(
-                            f"STATE current stage {stage_id} is marked `{lifecycle[stage_id]}` in the "
-                            f"Stage map; a current stage must be {' or '.join(LIFECYCLE_CURRENT)}."
-                        )
-                elif live:
-                    errors.append(
-                        f"stage(s) {', '.join(sorted(live))} are ACTIVE/VERIFY in the Stage map, but "
-                        "STATE has no parseable current stage (`Current stage: SNN`) to reconcile "
-                        "against."
-                    )
-                marker = declared_state_marker(sections.get("STATE", ""))
-                if marker and live:
-                    errors.append(
-                        f"STATE declares `{marker}` but the Stage map has live stage(s) "
-                        f"{', '.join(sorted(live))} (ACTIVE/VERIFY); a build cannot be both "
-                        f"`{marker}` and have a stage in progress."
-                    )
-                if len(live) > 1 and not parallel_stages_allowed(plan_text):
-                    errors.append(
-                        f"{len(live)} stages are ACTIVE/VERIFY ({', '.join(sorted(live))}) but the plan "
-                        "does not declare `Parallel stages: allowed`."
-                    )
+            lifecycle_errors, lifecycle_warnings = stage_lifecycle_diagnostics(plan_text, sections.get("STATE", ""))
+            errors.extend(lifecycle_errors)
+            warnings.extend(lifecycle_warnings)
 
     open_changes = sections.get("OPEN CHANGES", "")
     for line in open_changes.splitlines():
@@ -1448,6 +1517,10 @@ def parser() -> argparse.ArgumentParser:
         subparser = subparsers.add_parser(name)
         subparser.add_argument("control", type=Path)
         if name == "validate":
+            subparser.add_argument("--read-root", type=Path)
+            subparser.add_argument("--allow-read", type=Path, action="append", default=[])
+            subparser.add_argument("--max-read-bytes", type=int, default=131072)
+            subparser.add_argument("--max-files", type=int, default=32)
             subparser.add_argument(
                 "--skip-vcs",
                 action="store_true",
@@ -1489,11 +1562,17 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    global _READ_CONTEXT
     args = parser().parse_args()
     control = args.control.expanduser().resolve()
     try:
         if args.command == "validate":
-            return command_validate(control, args.skip_vcs)
+            if args.read_root is not None:
+                if min(args.max_read_bytes, args.max_files) <= 0:
+                    raise BuildContextError("Read limits must be positive")
+                _READ_CONTEXT = BoundedReads(args.read_root, args.allow_read, args.max_read_bytes, args.max_files)
+            result = command_validate(control, args.skip_vcs)
+            return 3 if _READ_CONTEXT is not None and _READ_CONTEXT.exhausted else result
         if args.command == "status":
             return command_status(control)
         if args.command == "doctor":
@@ -1507,9 +1586,16 @@ def main() -> int:
         if args.command == "check-scope":
             return command_check_scope(control, args.paths)
         raise BuildContextError(f"Unknown command: {args.command}")
+    except ReadBudgetError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 3
     except BuildContextError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
+    finally:
+        if _READ_CONTEXT is not None:
+            print("BOUNDED_READ_METRICS " + json.dumps({"version": 1, "bytes": _READ_CONTEXT.used, "files": len(_READ_CONTEXT.cache), "vcs_coverage": _READ_CONTEXT.vcs_coverage}), file=sys.stderr)
+            _READ_CONTEXT = None
 
 
 if __name__ == "__main__":

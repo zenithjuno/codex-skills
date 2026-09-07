@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Bootstrap"
+  short_description: "Bootstrap projects and inspect context health"
+  default_prompt: "Use $project-bootstrap to establish or inspect this project's context routes with bounded reads."

@@ -79,8 +79,11 @@ Follow the repository's existing plan convention. If none exists, use:
     └── completed/
 ```
 
-Keep BUILD-CONTROL beside the two contract artifacts. The Project Map is a
-section inside BUILD-CONTROL, never a separate file. `Project root` records the
+Keep BUILD-CONTROL beside the two contract artifacts. For a new staged build, the Project Map is a
+section inside BUILD-CONTROL, not a separate file. During adoption, preserve a
+functioning existing map/state owner and reference it. Use project-bootstrap
+generic bindings if that convention is unsupported by this staged schema; generic
+checks do not establish full staged validity. Never create a competing owner. `Project root` records the
 exact relative path back to the repository root. Existing source, test, and
 output directories remain where the repository expects them; never move files
 merely to fit this example.

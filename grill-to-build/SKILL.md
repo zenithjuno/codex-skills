@@ -2,7 +2,7 @@
 name: grill-to-build
 description: 'A rigorous, coding-first design-before-build process for Mode L substantial, high-risk, ambiguous, multi-system, or multi-session work. The agent grills the user with recommendation-backed questions, locks decisions in a live ledger, produces a BLUEPRINT (what) and CONSTRUCTION_PLAN (how and tests), and refuses to build before explicit approval. For coding it establishes bounded-context BUILD-CONTROL, exact path scopes, current contract indexes, AGENTS.md routing, checkpoints, and cold audit logs. Use when task-scoping routes work to L, when costly product decisions remain, or when the user explicitly asks "grill me", "plan this first", "spec this", "grill-to-build", or "deep-grill-to-build". Do not impose the full artifact set on clear one-session S/M coding tasks.'
 ---
-<!-- SKILL-VERSION: 2026.08.06.8 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.07.1 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
 
 # Grill to Build
 
@@ -48,11 +48,16 @@ decision surface, blast radius, reversibility, or continuity needs justify L.
    produce `BLUEPRINT-<short-slug>.md`, `CONSTRUCTION_PLAN-<short-slug>.md`, and
    bounded `BUILD-CONTROL-<short-slug>.md` with one stable slug. Confirm the
    **project root**, control home, source/test/output roles, and VCS strategy after
-   locking the problem. Follow an existing repository plan convention; otherwise
+   locking the problem. For a new root or explicit onboarding/context-health task,
+   use `project-bootstrap` to inspect and seed/adopt the minimum routes; an existing
+   usable entrypoint does not need another full bootstrap audit. Follow an existing repository plan convention; otherwise
    default coding control home to `docs/plans/active/<slug>/`, with cold history
    under its `history/` directory. Keep the three files together there and point
    to the exact control path from root/subtree `AGENTS.md`. Never create a separate
-   PROJECT-MAP or competing hot controls. On formal completion, move the intact
+   PROJECT-MAP or competing hot controls for a new staged build. Adoption exception:
+   retain a functioning existing project map/state owner and point to it; use
+   project-bootstrap generic bindings if the staged helper cannot support it.
+   Never duplicate state or claim generic checking proves full staged validity. On formal completion, move the intact
    bundle to the matching `completed/<slug>/` location and remove the active
    AGENTS block. For non-coding, add control only when continuity justifies it.
 
@@ -125,6 +130,16 @@ Both artifacts must survive a fresh session with zero chat context. Put task-loc
 facts in them and use exact paths/sections for stable project facts that already
 have an authoritative home. Spell out schemas, names, formats, edge cases, and
 rationale only where the build cannot retrieve them from that named source.
+
+## Bootstrap integration
+
+When root/role discovery needs setup, use `project-bootstrap` without recursively
+restarting the grill. Once the Blueprint and plan exist, enrich existing routes
+with their exact contract and verification sources. At completion, retain
+project knowledge and retire only this work object's active pointer. A health
+check is read-only; generic bindings can adopt existing STATE/PROJECT_MAP owners
+without moving files. Preserve S/M workflow size and prior user authorization.
+Load only the bootstrap reference relevant to this step, not every mode.
 
 ## After approval
 
