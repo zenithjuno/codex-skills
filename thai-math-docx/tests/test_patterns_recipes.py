@@ -36,6 +36,61 @@ def table_text(document) -> str:
 
 
 class MaterialPatternTests(unittest.TestCase):
+    def test_synthetic_division_uses_editable_math_and_traditional_borders(self) -> None:
+        document = Document()
+        table = patterns.add_synthetic_division(
+            document,
+            root="2",
+            coefficients=["1", "0", "−19", "−6", "72"],
+            products=["2", "4", "−30", "−72"],
+            results=["1", "2", "−15", "−36", "0"],
+        )
+
+        self.assertEqual(3, len(table.rows))
+        self.assertEqual(6, len(table.columns))
+        self.assertEqual(15, table._tbl.xml.count("<m:oMath"))
+
+        def border_value(row: int, column: int, edge: str) -> str | None:
+            node = table.cell(row, column)._tc.find(
+                f"./w:tcPr/w:tcBorders/w:{edge}",
+                {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"},
+            )
+            return None if node is None else node.get(qn("w:val"))
+
+        self.assertEqual("single", border_value(0, 0, "right"))
+        self.assertEqual("single", border_value(1, 0, "right"))
+        self.assertEqual("nil", border_value(2, 0, "right"))
+        self.assertTrue(all(border_value(2, column, "top") == "single" for column in range(1, 6)))
+        self.assertEqual("nil", border_value(1, 1, "top"))
+
+    def test_synthetic_division_aligns_products_after_the_brought_down_value(self) -> None:
+        document = Document()
+        table = patterns.add_synthetic_division(
+            document,
+            root="−3",
+            coefficients=["1", "2", "−15", "−36"],
+            products=["−3", "3", "36"],
+            results=["1", "−1", "−12", "0"],
+            total_width_cm=8.0,
+            root_width_cm=1.0,
+        )
+        self.assertNotIn("<m:oMath", table.cell(1, 1)._tc.xml)
+        self.assertIn("−3", table.cell(1, 2)._tc.xml)
+        grid = table._tbl.find(qn("w:tblGrid"))
+        widths = [int(column.get(qn("w:w"))) for column in grid.findall(qn("w:gridCol"))]
+        self.assertEqual(round(1.0 / 2.54 * 1440), widths[0])
+        self.assertEqual(round(7.0 / 4 / 2.54 * 1440), widths[1])
+
+    def test_synthetic_division_rejects_inconsistent_rows(self) -> None:
+        with self.assertRaisesRegex(ValueError, "products must contain"):
+            patterns.add_synthetic_division(
+                Document(), root="2", coefficients=["1", "0", "3"], products=["2"], results=["1", "2", "7"]
+            )
+        with self.assertRaisesRegex(ValueError, "results must contain"):
+            patterns.add_synthetic_division(
+                Document(), root="2", coefficients=["1", "0", "3"], products=["2", "4"], results=["1", "2"]
+            )
+
     def test_question_grid_is_row_major_and_uses_explicit_two_column_profile(self) -> None:
         document = Document()
         table = patterns.add_question_grid(

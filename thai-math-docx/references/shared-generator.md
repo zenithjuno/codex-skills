@@ -9,7 +9,7 @@ The current standard has six explicit layers:
 - **Source adapter / normalizer:** converts OCR JSON, database rows, Markdown-ish text, or direct Python source into builder-ready parts. Use `scripts/thai_math_source_adapter.py` when the source contains compact math-ish strings or legacy aliases.
 - **Builder / insertion layer:** inserts Thai text, Latin text, labels, tables, and OMML into Word. This is `scripts/thai_math_docx_builder.py`.
 - **Layout layer:** applies current named profiles and emits fixed widths, margins, borders, shading, repeat headers, dotted response lines, native columns, and section transitions. This is `scripts/thai_math_docx_layout.py` with `references/layout-profiles.json`.
-- **Material pattern layer:** assembles question grids, worked examples, response areas and reviewed media blocks. This is `scripts/thai_math_docx_patterns.py`.
+- **Material pattern layer:** assembles question grids, worked examples, editable synthetic division, response areas and reviewed media blocks. This is `scripts/thai_math_docx_patterns.py`.
 - **Thin family recipe layer:** assembles handouts, exam papers and answer keys without owning raw OOXML. This is `scripts/thai_math_docx_recipes.py`.
 - **Post-build normalizer and audits:** runs `thai-font-normalize`, font-default audit, insertion-safety audit, OMML audit, and render checks.
 
@@ -51,6 +51,20 @@ need must raise `UnsupportedCapabilityError`, retain its candidate payload and
 enter work-batch review. Raw OOXML is private to the shared core; the only
 exception is `ReviewedExpertExtension`, which requires a review reference and
 candidate id and always marks the result for QA review.
+
+### Editable synthetic division
+
+Use `thai_math_docx_patterns.add_synthetic_division` whenever a worked solution
+shows synthetic division. It emits the approved traditional layout: no box grid,
+a vertical rule to the right of the root for the first two rows, and a horizontal
+rule above the result row. Every supplied root, coefficient, product, and result
+is editable OMML rather than picture content.
+
+Pass `products` without the intentionally empty slot below the brought-down
+leading coefficient. For example, coefficients `1, 0, −19, −6, 72` with root
+`2` use products `2, 4, −30, −72` and results `1, 2, −15, −36, 0`.
+See `references/synthetic-division.md` for the row contract and
+`assets/synthetic-division-example.py` for a runnable reference.
 
 ## Separation Of Concerns
 

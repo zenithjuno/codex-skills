@@ -2,7 +2,7 @@
 name: grill-to-build
 description: 'A rigorous, coding-first design-before-build process for Mode L substantial, high-risk, ambiguous, multi-system, or multi-session work. The agent grills the user with recommendation-backed questions, locks decisions in a live ledger, produces a BLUEPRINT (what) and CONSTRUCTION_PLAN (how and tests), and refuses to build before explicit approval. For coding it establishes bounded-context BUILD-CONTROL, exact path scopes, current contract indexes, AGENTS.md routing, checkpoints, and cold audit logs. Use when task-scoping routes work to L, when costly product decisions remain, or when the user explicitly asks "grill me", "plan this first", "spec this", "grill-to-build", or "deep-grill-to-build". Do not impose the full artifact set on clear one-session S/M coding tasks.'
 ---
-<!-- SKILL-VERSION: 2026.09.07.1 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.12 | name: grill-to-build | canonical: ~/.codex/skills/grill-to-build | bump this date on every edit -->
 
 # Grill to Build
 
@@ -60,6 +60,14 @@ decision surface, blast radius, reversibility, or continuity needs justify L.
    Never duplicate state or claim generic checking proves full staged validity. On formal completion, move the intact
    bundle to the matching `completed/<slug>/` location and remove the active
    AGENTS block. For non-coding, add control only when continuity justifies it.
+
+   **Runtime-managed skills-checkout exception.** If the project root is the
+   Codex skills checkout (for example `~/.codex/skills`), never put plan bundles
+   in a non-skill top-level folder there: runtime maintenance can evict it. Use
+   `~/Documents/skill department/work/<slug>/docs/plans/active/<slug>/` as the
+   control home and archive to the sibling `completed/<slug>/`; store the skills
+   checkout itself as the absolute Project root. If that external workspace is
+   unavailable, stop and confirm another durable location outside the checkout.
 
    **One canonical owner per current truth.** The BLUEPRINT owns the current
    product contract, the canonical Active Contract Index, and Decision Log

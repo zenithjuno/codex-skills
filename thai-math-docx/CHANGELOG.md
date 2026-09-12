@@ -1,5 +1,14 @@
 # Thai Math DOCX Changelog
 
+## 2026-09-12 — Editable synthetic-division pattern
+
+- Added `patterns.add_synthetic_division` for the teacher-approved traditional
+  layout: selective vertical and horizontal rules with no full table grid.
+- Roots, coefficients, product row, and result row remain editable Word
+  equations; validation rejects misaligned row lengths.
+- Added a runnable asset, usage reference, regression coverage, and shared-API
+  protection so generators cannot silently fork the pattern.
+
 ## 2026-09-04 — Full OMML audit in the unified gate
 
 - Unified QA and the standalone OMML command now consume one structured audit

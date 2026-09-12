@@ -111,6 +111,11 @@ role lines rather than inventing directories. Keep every canonical path relative
 to Project root unless an external input/output genuinely requires an absolute
 path. Keep Blueprint, plan, control, and history together under the existing
 repository plan convention; otherwise default to `docs/plans/active/<slug>/`.
+If Project root is the runtime-managed Codex skills checkout, instead use
+`~/Documents/skill department/work/<slug>/docs/plans/active/<slug>/` and record
+the checkout as an absolute Project root. Archive to the sibling
+`completed/<slug>/`; never create or restore non-skill plan folders in the
+skills checkout because runtime maintenance may evict them.
 If a BUILD-CONTROL already validates in another repository convention, that
 location remains canonical. Never relocate it merely to match this default;
 handle an approved-build relocation as a CHG and update all pointers atomically.

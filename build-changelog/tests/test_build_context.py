@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import re
 import sys
 import tempfile
 import unittest
@@ -69,6 +70,16 @@ class ActiveSourceSectionTests(unittest.TestCase):
         self.assertIn("§1. Core model / approach", reference)
         self.assertIn("full H2 heading", reference)
         self.assertNotIn("BLUEPRINT-<slug>.md §1`", reference)
+
+
+class RuntimeManagedSkillsCheckoutDocumentationTests(unittest.TestCase):
+    def test_plan_bundle_is_routed_outside_runtime_managed_skills_checkout(self) -> None:
+        instructions = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        reference = (SKILL_ROOT / "references" / "build-control-format.md").read_text(encoding="utf-8")
+        for content in (instructions, reference):
+            self.assertIn("skill department/work/<slug>/docs/plans/active/<slug>/", content)
+            self.assertIn("runtime maintenance", content.lower())
+            self.assertRegex(content.lower(), r"absolute\s+project\s+root")
 
 
 def active_index_with_source(cell: str) -> dict[str, str]:

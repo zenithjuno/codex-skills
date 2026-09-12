@@ -12,7 +12,7 @@ description: >
   staged work. Triggers include "start/resume the build", "build log", "build control",
   "record this stage/change", "บันทึก build", and "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.09.07.1 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.12 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 
@@ -68,6 +68,13 @@ One build uses:
 Follow an existing repository convention; otherwise use
 `docs/plans/active/<slug>/`. Clear one-session S/M tasks do not need this file
 set—use `task-scoping` direction instead.
+
+Exception: when the project root is the runtime-managed Codex skills checkout
+(for example `~/.codex/skills`), keep the complete bundle outside it at
+`~/Documents/skill department/work/<slug>/docs/plans/active/<slug>/`, then move
+it to the sibling `completed/<slug>/`. Runtime maintenance can evict non-skill
+folders from the checkout. Record the skills checkout as an absolute Project
+root, and never restore an evicted plan bundle inside that checkout.
 
 An existing control home that already passes `validate` is canonical and must
 not be relocated merely to match a newer default layout. Relocation changes

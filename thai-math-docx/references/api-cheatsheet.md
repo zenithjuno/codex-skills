@@ -37,6 +37,7 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 - `get_current_layout_profile(use_case)` — named profile
 
 ## patterns — `thai_math_docx_patterns` (reusable blocks)
+- `add_synthetic_division(container, root=…, coefficients=…, products=…, results=…, total_width_cm=…, root_width_cm=…, border_size=…)` — editable traditional synthetic-division layout; `products` omits the empty brought-down slot
 - `add_question_grid(document, questions, columns=…, cell_margins_twips=…)`
 - `add_worked_example(document, title, prompt_parts, steps, heading_fill=…)`
 - `add_response_area(container, label=…, line_count=…, dots=…)`

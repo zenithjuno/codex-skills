@@ -79,6 +79,14 @@ Follow the repository's existing plan convention. If none exists, use:
     └── completed/
 ```
 
+When `<project-root>` is the runtime-managed Codex skills checkout (commonly
+`~/.codex/skills`), this default is unsafe because non-skill top-level folders
+may be evicted during runtime maintenance. Put the bundle outside that checkout
+at `~/Documents/skill department/work/<slug>/docs/plans/active/<slug>/` and move
+it to the sibling `completed/<slug>/` on completion. In this exception the
+control records the skills checkout as an absolute Project root. Do not restore
+evicted plan bundles back under the skills checkout.
+
 Keep BUILD-CONTROL beside the two contract artifacts. For a new staged build, the Project Map is a
 section inside BUILD-CONTROL, not a separate file. During adoption, preserve a
 functioning existing map/state owner and reference it. Use project-bootstrap
@@ -315,7 +323,8 @@ After the final addressed pass:
 5. Remove the active slug block from AGENTS.md.
 6. Move the intact bundle from `active/<slug>/` to the matching
    `completed/<slug>/` convention. Same-depth default locations preserve the
-   relative Project-root pointer.
+   relative Project-root pointer; an external skills-checkout control keeps its
+   absolute Project-root pointer unchanged.
 7. For Mode L, use fresh-context or independent final verification when practical.
 
 Report Outcome, Changed, Verified, Remaining risk, and Human action.

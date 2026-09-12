@@ -15,7 +15,7 @@ description: >
   document that has no equations), use the `thai-docx` skill instead.
 ---
 
-<!-- SKILL-VERSION: 2026.09.04 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.12 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -52,6 +52,7 @@ relevant script. Read anything below only when its condition is actually met.
 |---|---|
 | `api-cheatsheet.md` | the shared-API audit fails, you are writing a new generator, or you are adding a structure you have not used before — it is the inventory of every shared function by layer plus the part-type and expression-kind vocabularies |
 | `shared-generator.md` | you need a worked example or a notation rule — vector accent, piecewise/cases, native integral/limit |
+| `synthetic-division.md` | a solution uses synthetic division; use the approved editable traditional table rather than prose, tabs, a picture, or a local table implementation |
 | `qa-runner.md` | you need the contract schema, the full list of facts the runner checks, or the rendered-page tooling |
 | `visuals.md` | an image is on the table, and only after the teacher has confirmed it |
 | `thai-math-docx-text.md` | unfamiliar OOXML, an OMML edge case, font-routing debugging, a fragile transcript or copy/paste behaviour, a repair failure, low-level package/XML work, generator-internal changes, new DOCX capability work, or a conflict with historical design rationale |
@@ -228,6 +229,8 @@ For generated or substantially repaired files:
 7. Assemble recurring material through shared patterns/recipes. If a capability
    is unsupported, fail visibly and record its candidate payload; do not
    approximate it.
+   Synthetic division always uses `patterns.add_synthetic_division`; do not
+   describe the row arithmetic only in prose when the computation is shown.
 8. **Repair path only:** run `thai-font-normalize` on an imported or
    teacher-master DOCX, which repairs theme, docDefaults and Thai run routing.
    A document this toolchain generated does not need it — `save_docx` already

@@ -169,6 +169,67 @@ def _validate_parts(parts: Sequence[Mapping[str, Any]], field: str) -> None:
             raise ValueError(f"{field} cannot contain a nested table part")
 
 
+def add_synthetic_division(
+    container: Any,
+    *,
+    root: Any,
+    coefficients: Sequence[Any],
+    products: Sequence[Any],
+    results: Sequence[Any],
+    total_width_cm: float = 16.0,
+    root_width_cm: float = 1.65,
+    border_size: int = 12,
+) -> Any:
+    """Add editable synthetic division in the approved traditional layout.
+
+    The products omit the empty slot beneath the brought-down leading
+    coefficient. All supplied values are emitted as editable Word equations.
+    """
+    coefficient_count = len(coefficients)
+    if coefficient_count < 2:
+        raise ValueError("coefficients must contain at least two values")
+    if len(products) != coefficient_count - 1:
+        raise ValueError(f"products must contain {coefficient_count - 1} values")
+    if len(results) != coefficient_count:
+        raise ValueError(f"results must contain {coefficient_count} values")
+    if total_width_cm <= 0 or root_width_cm <= 0 or root_width_cm >= total_width_cm:
+        raise ValueError("widths must satisfy 0 < root_width_cm < total_width_cm")
+    if border_size <= 0:
+        raise ValueError("border_size must be greater than zero")
+
+    table = container.add_table(rows=3, cols=coefficient_count + 1)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.autofit = False
+    value_width = (total_width_cm - root_width_cm) / coefficient_count
+    layout.set_table_fixed_widths_cm(table, [root_width_cm] + [value_width] * coefficient_count)
+
+    for row in table.rows:
+        for cell in row.cells:
+            cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            layout.clear_cell_borders(cell)
+            layout.set_cell_margins(cell, top=30, start=45, bottom=30, end=45)
+            paragraph = cell.paragraphs[0]
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            builder.configure_paragraph(paragraph, space_after=0)
+
+    def append_editable_value(row: int, column: int, value: Any) -> None:
+        builder.append_parts(table.cell(row, column).paragraphs[0], [{"type": "math", "expr": value}])
+
+    append_editable_value(0, 0, root)
+    for column, value in enumerate(coefficients, start=1):
+        append_editable_value(0, column, value)
+    for column, value in enumerate(products, start=2):
+        append_editable_value(1, column, value)
+    for column, value in enumerate(results, start=1):
+        append_editable_value(2, column, value)
+
+    for row in (0, 1):
+        layout.set_cell_borders(table.cell(row, 0), right={"size": border_size})
+    for column in range(1, coefficient_count + 1):
+        layout.set_cell_borders(table.cell(2, column), top={"size": border_size})
+    return table
+
+
 def add_question_grid(
     document: Any,
     questions: Sequence[Mapping[str, Any]],
