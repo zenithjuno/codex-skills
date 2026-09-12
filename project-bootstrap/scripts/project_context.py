@@ -27,22 +27,45 @@ def fingerprint(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def headings(lines):
+    """Yield (index, level, title) for ATX headings outside fenced code blocks."""
+    fence = None
+    for i, line in enumerate(lines):
+        f = re.match(r'^(`{3,}|~{3,})', line)
+        if f:
+            if fence is None:
+                fence = f[1][0]
+            elif line.startswith(fence * 3):
+                fence = None
+            continue
+        if fence:
+            continue
+        m = re.match(r'^(#{1,6}) (.+?)(?:\s+#+)?\s*$', line)
+        if m:
+            yield i, len(m[1]), m[2]
+
+
 def select_section(text, section):
     if section is None:
         return text, 1, len(text.splitlines())
     lines = text.splitlines(keepends=True)
-    matches = [(i, len(m[1])) for i, line in enumerate(lines)
-               if (m := re.match(r'^(#{2,3}) (.+?)\s*$', line)) and m[2] == section]
+    found = list(headings(lines))
+    matches = [(i, level) for i, level, title in found if 2 <= level <= 4 and title == section]
     if len(matches) != 1:
         raise InputError(f'section {section!r}: {len(matches)} matches (expected one)')
     start, level = matches[0]
-    end = len(lines)
-    for i in range(start + 1, len(lines)):
-        m = re.match(r'^(#{1,6}) ', lines[i])
-        if m and len(m[1]) <= level:
-            end = i
-            break
+    end = next((i for i, lvl, _ in found if i > start and lvl <= level), len(lines))
     return ''.join(lines[start:end]), start + 1, end
+
+
+def select_marker(text, marker):
+    """Select an owned block between project-bootstrap:<marker>:start/end comments."""
+    lines = text.splitlines(keepends=True)
+    starts = [i for i, l in enumerate(lines) if l.strip() == f'<!-- project-bootstrap:{marker}:start -->']
+    ends = [i for i, l in enumerate(lines) if l.strip() == f'<!-- project-bootstrap:{marker}:end -->']
+    if len(starts) != 1 or len(ends) != 1 or ends[0] <= starts[0]:
+        raise InputError(f'marker {marker!r}: {len(starts)} start/{len(ends)} end markers (expected one pair)')
+    return ''.join(lines[starts[0] + 1:ends[0]]), starts[0] + 2, ends[0]
 
 
 class Reader:
@@ -84,10 +107,19 @@ class Reader:
         self.cache[p] = text
         return p, text
 
-    def selected(self, path, section=None):
+    def exists(self, path):
+        p = self.resolve(path)
+        if not p.is_file():
+            raise InputError(f'missing regular source file: {p}')
+        return p
+
+    def selected(self, path, section=None, marker=None):
         p, full = self.load(path)
-        text, start, end = select_section(full, section)
-        return dict(path=str(p), section=section, line_start=start, line_end=end,
+        if marker is not None:
+            text, start, end = select_marker(full, marker)
+        else:
+            text, start, end = select_section(full, section)
+        return dict(path=str(p), section=section, marker=marker, line_start=start, line_end=end,
                     text=text, sha256=fingerprint(full.encode()))
 
 
@@ -120,17 +152,27 @@ class Audit:
         self.report['coverage'] = 'partial'
         self.report['next_reads'].append(dict(path=str(path), section=section, reason=str(reason)))
 
-    def read(self, path, section=None, emit=False):
+    def read(self, path, section=None, emit=False, marker=None, stat_only=False):
+        selector = marker if marker is not None else section
         try:
-            source = self.reader.selected(path, section)
-            if emit and not any((s['path'], s['section']) == (source['path'], section) for s in self.report['sources']):
+            if stat_only:
+                # Whole-file pointer under check: existence is the structural fact; content is not needed.
+                self.reader.exists(path)
+                return dict(path=path, section=None, marker=None, text='')
+            source = self.reader.selected(path, section, marker)
+            if emit and not any((s['path'], s['section'], s.get('marker')) == (source['path'], section, marker) for s in self.report['sources']):
                 self.report['sources'].append(source)
             return source
         except Partial as e:
-            self.incomplete(path, section, e)
+            self.incomplete(path, selector, e)
         except InputError as e:
-            self.finding('source', f'{path}#{section}', str(e), 'error')
+            self.finding('source', f'{path}#{selector}', str(e), 'error')
         return None
+
+    def read_pointer(self, item, emit=False, stat_only=False):
+        whole = item.get('section') is None and item.get('marker') is None
+        return self.read(item['path'], item.get('section'), emit=emit, marker=item.get('marker'),
+                         stat_only=stat_only and whole)
 
     def load_json(self, path):
         source = self.read(path)
@@ -192,6 +234,10 @@ class Audit:
             raise InputError('pointer requires nonempty path')
         if item.get('section') is not None and not isinstance(item['section'], str):
             raise InputError('section must be exact heading text or null')
+        if item.get('marker') is not None and not isinstance(item['marker'], str):
+            raise InputError('marker must be an owned-block scope name or null')
+        if item.get('section') is not None and item.get('marker') is not None:
+            raise InputError('pointer takes section or marker, not both')
 
     def validate_binding(self, b):
         self.validate_pointer(b)
@@ -223,21 +269,22 @@ class Audit:
             else:
                 self.finding('verification-unknown', route['id'], 'No verification route declared; do not invent a command.', 'info')
             for item in required:
-                self.read(item['path'], item.get('section'), emit=True)
+                self.read_pointer(item, emit=True)
             return
         self.report['checked_scopes'] = sorted({k[0] for k in bindings})
         self.read(config['entrypoint'], emit=self.args.command == 'inspect')
         if self.args.command == 'inspect':
             return
-        for b in bindings.values():
-            self.read(b['path'], b.get('section'))
+        mirrored = {(m['scope'], m['role']) for m in config.get('mirrors', [])}
+        for key, b in bindings.items():
+            self.read_pointer(b, stat_only=key not in mirrored)
         for route in routes.values():
             for item in route['reads']:
-                self.read(item['path'], item.get('section'))
+                self.read_pointer(item, stat_only=True)
         for mirror in config.get('mirrors', []):
             owner = bindings[(mirror['scope'], mirror['role'])]
-            a = self.read(owner['path'], owner.get('section'))
-            b = self.read(mirror['path'], mirror.get('section'))
+            a = self.read_pointer(owner)
+            b = self.read_pointer(mirror)
             normalize = lambda text: '\n'.join(line.rstrip() for line in text.splitlines()).strip()
             if a and b and normalize(a['text']) != normalize(b['text']):
                 self.finding('mirror-drift', f"{mirror['scope']}/{mirror['role']}", 'Update declared mirror from its owner.', 'error', evidence=[self.location(a), self.location(b)])
@@ -533,8 +580,31 @@ def bounded_process(command, cap, timeout):
         process.stdout.close()
 
 
+def render_markdown(report):
+    out = [f"# {report.get('command', 'report')} · coverage: {report.get('coverage')} · {report.get('coverage_by_dimension')}"]
+    if report.get('error'):
+        out.append(f"ERROR: {report['error']}")
+    if report.get('routes'):
+        out.append('Routes: ' + ', '.join(f"{r['id']} ({r['scope']}: {r['purpose']})" for r in report['routes']))
+    for f in report.get('findings', []):
+        where = '; '.join(f"{e.get('path')}" + (f" §{e['section']}" if e.get('section') else '') for e in f.get('evidence', []))
+        out.append(f"- [{f['severity']}] {f['check']}: {f['impact']} ({where})")
+    for n in report.get('next_reads', []):
+        sel = n.get('section')
+        out.append(f"- NEXT READ: {n['path']}" + (f" §{sel}" if sel else '') + f" — {n['reason']}")
+    for s in report.get('sources', []):
+        sel = s.get('marker') and f" [marker {s['marker']}]" or (s.get('section') and f" §{s['section']}") or ''
+        out.append(f"\n## {s['path']}{sel} (L{s['line_start']}–{s['line_end']})\n\n{s['text'].rstrip()}")
+    m = report.get('metrics', {})
+    if m:
+        out.append(f"\nmetrics: {json.dumps(m, ensure_ascii=False)}")
+    return '\n'.join(out) + '\n'
+
+
 def encode(report, fmt):
     # Text mode uses the same complete evidence representation, readable indentation.
+    if fmt == 'md':
+        return render_markdown(report).encode('utf-8')
     return (json.dumps(report, ensure_ascii=False, indent=2 if fmt == 'text' else None) + '\n').encode('utf-8')
 
 
@@ -599,10 +669,11 @@ def parser():
     p.add_argument('--trace', type=Path)
     p.add_argument('--allow-read', type=Path, action='append', default=[])
     p.add_argument('--max-read-bytes', type=int, default=131072)
-    p.add_argument('--max-output-bytes', type=int, default=16384)
+    p.add_argument('--max-output-bytes', type=int, default=None,
+                   help='default 65536 for context (one route payload), 16384 for inspect/check')
     p.add_argument('--max-files', type=int, default=32)
     p.add_argument('--timeout', type=float, default=10)
-    p.add_argument('--format', choices=('json','text'), default='json')
+    p.add_argument('--format', choices=('json','text','md'), default='json')
     p.add_argument('--report', type=Path)
     return p
 
@@ -626,6 +697,8 @@ def main():
         sys.stdout.buffer.write(data)
         return 2
     args.root = args.root.resolve()
+    if args.max_output_bytes is None:
+        args.max_output_bytes = 65536 if args.command == 'context' else 16384
     audit = Audit(args)
     try:
         if not math.isfinite(args.timeout) or min(args.max_read_bytes, args.max_output_bytes, args.max_files, args.timeout) <= 0:

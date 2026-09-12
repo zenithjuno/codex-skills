@@ -1,53 +1,44 @@
 # Context health
 
-Run a narrow structural check first. Report the checked scope, exact evidence,
-impact and smallest useful correction. Audit is read-only; do not apply semantic
-repairs or reorganize a repository merely because a check reports a concern.
+`check` is read-only and structural. Report checked scope, exact evidence,
+impact and the smallest correction. A report never authorizes a repair; a long
+file alone is not a defect.
 
-Structural coverage: declared missing/ambiguous sources, same-scope ownership,
-mirror drift, thin redirect cycles, read limits and supported staged validation.
-Arbitrary prose contradictions, stale numerical claims and unregistered file
-ownership need targeted human/agent review; the helper does not infer all meaning.
-A long file by itself is not a defect. With no usable configuration, return
-entrypoint-only inspection and partial health coverage; don't claim the project
-healthy from its directory existing.
+## What check covers
 
-When session evidence is supplied, use normalized schema.md events. Distinguish
-unchanged rereads from changed files, checkpoints and justified verification.
-Repeated failures need observed status. Missing trace means unknown session
-health; never scan every session directory to fill this gap. Unexpected input
-format requires a real sample and a separately scoped adapter.
+- Every declared pointer resolves: file exists; a named section or marker
+  matches exactly once. Whole-file pointers (section and marker both null) are
+  only stat-checked, so a large history binding no longer consumes the budget.
+- One owner per scope+role; duplicate routes; missing verification bindings.
+- Declared mirrors match their owner after trailing-space/line-ending normalization.
+- Thin redirect-only entrypoint cycles.
+- With `--control`, the bounded BUILD-CONTROL subset (see integration.md).
+- With `--trace`, session events (see trace.md). Otherwise session is `unavailable`.
+
+Not covered: prose contradictions, stale numbers, unregistered files, and
+duplicate owned blocks that were never declared as mirrors. Those need agent
+review. With no configuration, check returns entrypoint-only partial coverage;
+that is not a health verdict.
 
 ## Reading budget
 
-Defaults are starting limits: 131072 source bytes, 16384 stdout bytes, 32 files,
-10-second delegated timeout. Exact source reads and indirect delegated reads
-count cumulatively. On a budget limit, show partial coverage and the next exact
-read. No automatic broadening. Whole oversized files may be rejected before
-reading; a targeted external section read can resolve the gap without loading
-that file into the model. Complete JSON/UTF-8 and honest exit status matter more
-than fitting a fake green summary.
+Defaults: 131072 source bytes, 32 files, 16384 stdout bytes for inspect/check,
+65536 for context, 10-second delegated timeout. On a limit the report is
+`partial` with exact `next_reads`. Take the named next read or pass one
+explicit larger budget; do not raise every limit or reread the repository.
+Complete UTF-8/JSON and an honest exit status matter more than a green summary.
 
-## Diagnosis and remedy
+## Diagnosis → remedy
 
-- Broken pointer → locate the named target narrowly, repair only its owner/pointer.
-- Competing same-scope state → show both sources; resolve authority before edits.
-- Needed history to know current behavior → refresh the current contract/state;
-  keep history immutable and searchable by ID.
-- Large tool payload / repeated unsuccessful reads → state next hypothesis,
-  request relevant sections, keep raw evidence outside working context.
-- Repeated source without new evidence → inspect reason; compaction, concurrent
-  change or final verification may justify it. Don't label every reread waste.
+- Broken pointer → repair the pointer or its owner; prefer a `marker` pointer
+  over heading text when the heading is edited often.
+- Competing same-scope owners → show both; resolve authority before any edit.
+- History needed to know current state → refresh the current owner; history stays immutable.
+- Same fact in several owned blocks → declare mirrors or reduce to one owner plus pointers.
+- Repeated partial results → the route is too wide; split it or narrow sections.
 
-Summarize the highest-impact findings; keep the full bounded report at an explicit
-path if needed. Do not add a health score, mandatory scan every turn or automatic
-monitoring. Recheck affected routes on topology/state changes; unchanged healthy
-work should not pay for a full audit repeatedly.
-
-## Demonstrate improvement
-
-Compare the same task and required facts before/after. Count admitted tool/skill
-text, unique reads, rereads, truncations and rework; include setup/audit overhead.
-Use real observed token fields only when available and with accounting semantics.
-File bytes are not runtime token totals. If a smaller context misses a required
-constraint or verification, that run fails regardless of byte savings.
+Rerun check after topology changes, at stage close, and before a handoff.
+Unchanged healthy work does not need a full audit each turn. When comparing
+before/after, count admitted bytes, unique reads, rereads and rework, and
+include setup overhead; bytes are not tokens and a run that misses a required
+constraint fails regardless of size.

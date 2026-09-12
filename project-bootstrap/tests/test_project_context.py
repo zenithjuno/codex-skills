@@ -223,6 +223,48 @@ class CoreTests(unittest.TestCase):
         code,r,_=self.cli('check','--max-files','1');self.assertEqual(code,3)
         self.assertEqual(r['metrics']['source_files'],1)
 
+    def test_T31_check_stats_whole_file_pointers(self):
+        (self.root/'HISTORY.md').write_text('# History\n'+'old'*200000)
+        self.edit(lambda d:d['bindings'].append(dict(scope='app',role='history',path='HISTORY.md',section=None)))
+        code,r,_=self.cli('check');self.assertEqual(code,0,r)
+        self.assertLess(r['metrics']['source_read_bytes'],10000)
+        (self.root/'HISTORY.md').unlink()
+        code,r,_=self.cli('check');self.assertEqual(code,1);self.assertIn('source',self.checks(r))
+
+    def test_T31_context_still_reads_whole_file_pointer(self):
+        (self.root/'NOTES.md').write_text('whole file body\n')
+        self.edit(lambda d:d['routes'][0]['reads'].append(dict(path='NOTES.md',section=None)))
+        code,r,_=self.cli('context','--route','resume');self.assertEqual(code,0)
+        self.assertIn('whole file body',''.join(s['text'] for s in r['sources']))
+
+    def test_T32_marker_pointer(self):
+        (self.root/'CURRENT.md').write_text('# Current\n## Goal\nImprove paired checker.\n<!-- project-bootstrap:state:start -->\nApproved: checker only.\n<!-- project-bootstrap:state:end -->\n## Contract\nc\n## Verify\nv\n## Task\nt\n')
+        self.edit(lambda d:d['bindings'][1].update(section=None,marker='state'))
+        code,r,_=self.cli('context','--route','resume');self.assertEqual(code,0,r)
+        src=[s for s in r['sources'] if s.get('marker')=='state'][0]
+        self.assertEqual(src['text'],'Approved: checker only.\n');self.assertEqual(src['line_start'],5)
+        self.edit(lambda d:d['bindings'][1].update(marker='absent'))
+        self.assertEqual(self.cli('check')[0],1)
+        self.edit(lambda d:d['bindings'][1].update(section='State',marker='state'))
+        self.assertEqual(self.cli('check')[0],2)
+
+    def test_T33_section_ignores_fenced_headings(self):
+        (self.root/'CURRENT.md').write_text('# Current\n## Goal\nrun:\n```sh\n# comment\nnpm test\n```\nImprove paired checker.\n## State ##\nApproved: checker only. Next: compare both checkers.\n## Contract\nc\n## Verify\nv\n## Task\nt\n')
+        code,r,_=self.cli('context','--route','resume');self.assertEqual(code,0,r)
+        goal=[s for s in r['sources'] if s['section']=='Goal'][0]['text']
+        self.assertIn('Improve paired checker',goal);self.assertNotIn('Approved',goal)
+
+    def test_T34_markdown_format(self):
+        r=subprocess.run([sys.executable,str(CLI),'context','--root',str(self.root),'--route','resume','--format','md'],capture_output=True,text=True)
+        self.assertEqual(r.returncode,0,r.stdout)
+        self.assertIn('## ',r.stdout);self.assertIn('Improve paired checker.',r.stdout);self.assertNotIn('"sha256"',r.stdout)
+
+    def test_T35_default_output_budget_per_command(self):
+        r=subprocess.run([sys.executable,str(CLI),'context','--root',str(self.root),'--route','resume'],capture_output=True)
+        self.assertLessEqual(len(r.stdout),65536)
+        r=subprocess.run([sys.executable,str(CLI),'check','--root',str(self.root)],capture_output=True)
+        self.assertLessEqual(len(r.stdout),16384)
+
 
 if __name__ == '__main__':
     unittest.main()

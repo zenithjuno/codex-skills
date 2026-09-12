@@ -24,6 +24,8 @@ may be 'continue design'. Grill owns its decision ledger once the problem locks.
 Do not create project-context.json just to complete a checklist. Add it once
 concrete roles/routes need machine checking and no supported adapter already owns
 that routing. Schema is in schema.md. Its values are pointers, not copied state.
+Point at owned marker blocks rather than heading text wherever the file is edited
+often; a renamed heading breaks a section pointer silently.
 
 ## Existing project
 
@@ -47,6 +49,9 @@ against the new text; never restore the old full file. Preserve line endings,
 unowned lines, unrelated dirty content and existing authority. Do not delete an
 existing file or rewrite a user's convention to make the helper pass.
 
+One fact, one owned block. When the same current claim would appear in several
+files, keep one owner and make the others pointers or declared mirrors; undeclared
+copies drift and check cannot see them.
 Missing/malformed/duplicate markers are an ambiguity: report the exact block and
 repair only with a concrete scoped interpretation. For an interrupted first run,
 inspect what landed, validate existing targets, and finish only missing steps.
