@@ -10,6 +10,7 @@ synthetic-division computation in a Thai mathematics DOCX.
 - No full cell grid.
 - A vertical rule appears to the right of the root in the first two rows only.
 - A horizontal rule appears above every result cell, beginning after the root.
+- The three rows stay together across page breaks; rows must not split.
 - All numeric and algebraic entries are editable OMML.
 - A short prose interpretation may follow the table, but prose does not replace
   the actual computation.

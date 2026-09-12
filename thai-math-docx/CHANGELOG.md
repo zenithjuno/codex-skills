@@ -6,6 +6,8 @@
   layout: selective vertical and horizontal rules with no full table grid.
 - Roots, coefficients, product row, and result row remain editable Word
   equations; validation rejects misaligned row lengths.
+- The three rows are kept together across page breaks after rendered QA exposed
+  a first-row orphan at the foot of a page.
 - Added a runnable asset, usage reference, regression coverage, and shared-API
   protection so generators cannot silently fork the pattern.
 

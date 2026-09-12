@@ -62,6 +62,8 @@ class MaterialPatternTests(unittest.TestCase):
         self.assertEqual("nil", border_value(2, 0, "right"))
         self.assertTrue(all(border_value(2, column, "top") == "single" for column in range(1, 6)))
         self.assertEqual("nil", border_value(1, 1, "top"))
+        self.assertTrue(all(row._tr.find("./w:trPr/w:cantSplit", {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}) is not None for row in table.rows))
+        self.assertTrue(all(cell.paragraphs[0].paragraph_format.keep_with_next is True for row in table.rows[:2] for cell in row.cells))
 
     def test_synthetic_division_aligns_products_after_the_brought_down_value(self) -> None:
         document = Document()

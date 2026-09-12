@@ -15,7 +15,7 @@ description: >
   document that has no equations), use the `thai-docx` skill instead.
 ---
 
-<!-- SKILL-VERSION: 2026.09.12 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.12.1 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 

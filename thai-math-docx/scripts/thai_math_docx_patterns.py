@@ -203,7 +203,10 @@ def add_synthetic_division(
     value_width = (total_width_cm - root_width_cm) / coefficient_count
     layout.set_table_fixed_widths_cm(table, [root_width_cm] + [value_width] * coefficient_count)
 
-    for row in table.rows:
+    for row_index, row in enumerate(table.rows):
+        row_properties = row._tr.get_or_add_trPr()
+        if row_properties.find(qn("w:cantSplit")) is None:
+            row_properties.append(parse_xml('<w:cantSplit xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
         for cell in row.cells:
             cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
             layout.clear_cell_borders(cell)
@@ -211,6 +214,7 @@ def add_synthetic_division(
             paragraph = cell.paragraphs[0]
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             builder.configure_paragraph(paragraph, space_after=0)
+            paragraph.paragraph_format.keep_with_next = row_index < 2
 
     def append_editable_value(row: int, column: int, value: Any) -> None:
         builder.append_parts(table.cell(row, column).paragraphs[0], [{"type": "math", "expr": value}])
