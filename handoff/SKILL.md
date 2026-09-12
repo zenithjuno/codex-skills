@@ -13,7 +13,7 @@ description: >
   routes while capturing conversation-only state, exact workspace paths,
   completed checks, settled decisions, and the immediate next action.
 ---
-<!-- SKILL-VERSION: 2026.07.10 | name: handoff | canonical: ~/.codex/skills/handoff | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.12 | name: handoff | canonical: ~/.codex/skills/handoff | bump this date on every edit -->
 <!-- SKILL-FINGERPRINT: updated_at=2026-07-10T21:40:53+07:00 | updated_by=Codex (GPT-5), at Chutpong's direction | change=repository-aware storage lifecycle and scope-safe routing | basis=HANDOFF-SKILL-UPGRADE-VERDICT-2026-07-10 -->
 
 # Handoff
@@ -69,6 +69,11 @@ Before writing, run this small, read-only discovery in order:
 2. From the workspace root, read `AGENTS.md` and only instruction files it
    directly names when present.
 3. Read a handoff readme/index and existing current pointer(s) when present.
+4. When the root has `project-context.json`, run the project-bootstrap helper
+   `check --root <root> --format md` once. Its `findings` show broken resume
+   pointers or competing owners the resumer would hit; fix or name them in the
+   handoff. Exit 3 (partial) is not a pass. Skip this when no configuration
+   exists; do not create one for the handoff.
 
 Resolve destination and routing policy in this precedence order:
 
@@ -284,7 +289,9 @@ After writing, verify:
 - no dated snapshot was overwritten;
 - any archive action affected only the same scope;
 - an index row changed only when an existing index policy required it; and
-- Git status includes only expected handoff files when Git is available.
+- Git status includes only expected handoff files when Git is available; and
+- when `project-context.json` exists, the resume route the handoff names still
+  resolves (`context --route <id>` exits 0), or the handoff states why not.
 
 In the final response, link the saved snapshot and state its scope, canonical
 location, lifecycle, and current-pointer action. Do not paste the full handoff

@@ -12,12 +12,16 @@ file alone is not a defect.
 - One owner per scope+role; duplicate routes; missing verification bindings.
 - Declared mirrors match their owner after trailing-space/line-ending normalization.
 - Thin redirect-only entrypoint cycles.
+- Owned marker blocks in the files it reads: `malformed-block` (error),
+  `duplicate-block` (same name in two files, warning), `undeclared-block` (info:
+  no pointer or mirror binds it). Add `--path FILE` for files no pointer reaches;
+  `blocks` lists every block with line range and hash.
 - With `--control`, the bounded BUILD-CONTROL subset (see integration.md).
 - With `--trace`, session events (see trace.md). Otherwise session is `unavailable`.
 
 Not covered: prose contradictions, stale numbers, unregistered files, and
-duplicate owned blocks that were never declared as mirrors. Those need agent
-review. With no configuration, check returns entrypoint-only partial coverage;
+blocks whose *content* repeats another block under a different name. Those need
+agent review. With no configuration, check returns entrypoint-only partial coverage;
 that is not a health verdict.
 
 ## Reading budget

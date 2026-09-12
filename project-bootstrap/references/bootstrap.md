@@ -31,7 +31,10 @@ often; a renamed heading breaks a section pointer silently.
 
 Adopt existing owners, including STATE + PROJECT_MAP and document topic indexes.
 Use generic bindings when the existing convention is not supported by the control
-adapter. Preserve project behavior and all unowned text; add only the missing
+adapter. A project that already ships its own context helper (for example a
+`scripts/project_context.py` with `start`/`ticket`/`lookup` commands) keeps that
+helper as its route: bind to the files it reads, do not add a same-named script,
+and do not ask sessions to run both. Preserve project behavior and all unowned text; add only the missing
 entrypoint/bridge or route. An existing map remains canonical. Derived readable
 mirrors must be declared and checked; ordinary links are references, not mirrors.
 
@@ -56,7 +59,8 @@ Missing/malformed/duplicate markers are an ambiguity: report the exact block and
 repair only with a concrete scoped interpretation. For an interrupted first run,
 inspect what landed, validate existing targets, and finish only missing steps.
 Create a referenced target before its pointer. A rerun with unchanged inputs must
-produce no diff, including timestamps. No 'ready' claim until required routes
+produce no diff, including timestamps: record `blocks --root <root>` output before
+and after the rerun and compare the hashes; that table is the idempotence evidence. No 'ready' claim until required routes
 resolve. Keep a recoverable scoped preimage; never snapshot unrelated user data.
 
 ## Phase enrichment

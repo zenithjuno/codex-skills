@@ -265,6 +265,29 @@ class CoreTests(unittest.TestCase):
         r=subprocess.run([sys.executable,str(CLI),'check','--root',str(self.root)],capture_output=True)
         self.assertLessEqual(len(r.stdout),16384)
 
+    def test_T36_blocks_and_undeclared(self):
+        (self.root/'AGENTS.md').write_text('# Router\n<!-- project-bootstrap:route:start -->\nUse project-context.json.\n<!-- project-bootstrap:route:end -->\n')
+        code,r,_=self.cli('blocks');self.assertEqual(code,0,r)
+        self.assertEqual([b['name'] for b in r['blocks']],['route']);self.assertEqual(r['blocks'][0]['line_start'],3)
+        code,r,_=self.cli('check');self.assertEqual(code,0)
+        self.assertIn('undeclared-block',self.checks(r))
+        self.edit(lambda d:d['bindings'].append(dict(scope='app',role='routing',path='AGENTS.md',section=None,marker='route')))
+        code,r,_=self.cli('check');self.assertEqual(code,0);self.assertNotIn('undeclared-block',self.checks(r))
+
+    def test_T36_duplicate_and_malformed_blocks(self):
+        (self.root/'AGENTS.md').write_text('# Router\n<!-- project-bootstrap:now:start -->\nA\n<!-- project-bootstrap:now:end -->\n')
+        (self.root/'OTHER.md').write_text('<!-- project-bootstrap:now:start -->\nB\n<!-- project-bootstrap:now:end -->\n')
+        code,r,_=self.cli('check','--path','OTHER.md');self.assertEqual(code,0)
+        self.assertIn('duplicate-block',self.checks(r))
+        (self.root/'OTHER.md').write_text('<!-- project-bootstrap:now:start -->\nB\n')
+        code,r,_=self.cli('check','--path','OTHER.md');self.assertEqual(code,1);self.assertIn('malformed-block',self.checks(r))
+
+    def test_T36_blocks_hashes_stable_for_idempotence(self):
+        (self.root/'AGENTS.md').write_text('# Router\n<!-- project-bootstrap:route:start -->\nUse it.\n<!-- project-bootstrap:route:end -->\n')
+        a=self.cli('blocks')[1]['blocks'];b=self.cli('blocks')[1]['blocks'];self.assertEqual(a,b)
+        with (self.root/'AGENTS.md').open('a') as f:f.write('unowned line\n')
+        self.assertEqual(self.cli('blocks')[1]['blocks'],a)
+
 
 if __name__ == '__main__':
     unittest.main()

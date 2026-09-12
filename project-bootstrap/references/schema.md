@@ -54,7 +54,8 @@ A pointer is `{path, section}` or `{path, marker}` (never both):
 `--format json` (default), `text` (indented JSON) or `md` (path § selector
 headers followed by the selected text; best for an agent reading the result).
 Report fields: schema_version, command, coverage, coverage_by_dimension,
-checked_scopes, findings, metrics, next_reads, sources, routes. Findings have
+checked_scopes, findings, metrics, next_reads, sources, routes, blocks (owned
+marker blocks: path, name, line range, sha256 of the body). Findings have
 stable IDs, severity, check, evidence, impact, recommendation, confidence and
 repairability. `--report PATH` writes a new file only; it never overwrites.
 Exit 0 complete, 1 health errors, 2 input error, 3 partial coverage.

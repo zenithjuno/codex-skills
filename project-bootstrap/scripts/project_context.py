@@ -68,6 +68,33 @@ def select_marker(text, marker):
     return ''.join(lines[starts[0] + 1:ends[0]]), starts[0] + 2, ends[0]
 
 
+MARK = re.compile(r'^\s*<!-- project-bootstrap:([A-Za-z0-9_.:-]+):(start|end) -->\s*$')
+
+
+def marker_blocks(text):
+    """Return (blocks, errors) for owned blocks in text. Blocks carry name, lines and a hash."""
+    blocks, errors, open_ = [], [], {}
+    lines = text.splitlines(keepends=True)
+    for i, line in enumerate(lines, 1):
+        m = MARK.match(line)
+        if not m:
+            continue
+        name, kind = m[1], m[2]
+        if kind == 'start':
+            if name in open_:
+                errors.append(f'block {name!r}: start at line {open_[name]} repeated at line {i}')
+            open_[name] = i
+        elif name not in open_:
+            errors.append(f'block {name!r}: end at line {i} without start')
+        else:
+            start = open_.pop(name)
+            body = ''.join(lines[start:i - 1])
+            blocks.append(dict(name=name, line_start=start + 1, line_end=i - 1, sha256=fingerprint(body.encode())))
+    for name, start in open_.items():
+        errors.append(f'block {name!r}: start at line {start} without end')
+    return blocks, errors
+
+
 class Reader:
     def __init__(self, root, allow, budget, max_files):
         self.root = root.resolve()
@@ -129,7 +156,7 @@ class Audit:
         self.reader = Reader(args.root, args.allow_read, args.max_read_bytes, args.max_files)
         self.report = dict(schema_version=1, command=args.command, coverage='complete',
                            coverage_by_dimension={'structural': 'complete', 'session': 'unavailable'},
-                           checked_scopes=[], findings=[], metrics={}, next_reads=[], sources=[], routes=[])
+                           checked_scopes=[], findings=[], metrics={}, next_reads=[], sources=[], routes=[], blocks=[])
         self.input_error = False
         self.error_seen = False
         self.partial = False
@@ -173,6 +200,30 @@ class Audit:
         whole = item.get('section') is None and item.get('marker') is None
         return self.read(item['path'], item.get('section'), emit=emit, marker=item.get('marker'),
                          stat_only=stat_only and whole)
+
+    def scan_blocks(self, paths, declared):
+        """List owned marker blocks in already-relevant files; flag undeclared/duplicate/malformed ones."""
+        seen_names = {}
+        for path in dict.fromkeys(paths):
+            source = self.read(path)
+            if not source:
+                continue
+            blocks, errors = marker_blocks(source['text'])
+            for message in errors:
+                self.finding('malformed-block', f'{path}', message, 'error')
+            for b in blocks:
+                entry = dict(path=source['path'], **b)
+                self.report['blocks'].append(entry)
+                key = (source['path'], b['name'])
+                if self.args.command == 'check' and key not in declared:
+                    self.finding('undeclared-block', f"{path}:{b['name']}",
+                                 'Owned block is not bound as a pointer or mirror; bind it, declare it a mirror, or fold it into its owner.',
+                                 'info', evidence=[dict(path=source['path'], section=None, line_start=b['line_start'], line_end=b['line_end'], excerpt='')])
+                seen_names.setdefault(b['name'], []).append(entry)
+        for name, entries in seen_names.items():
+            if len(entries) > 1 and self.args.command == 'check':
+                self.finding('duplicate-block', name, f'Block name {name!r} appears in {len(entries)} files; declare a mirror or rename so one owner is clear.',
+                             'warning', evidence=[dict(path=e['path'], section=None, line_start=e['line_start'], line_end=e['line_end'], excerpt='') for e in entries])
 
     def load_json(self, path):
         source = self.read(path)
@@ -275,6 +326,11 @@ class Audit:
         self.read(config['entrypoint'], emit=self.args.command == 'inspect')
         if self.args.command == 'inspect':
             return
+        if self.args.command == 'blocks':
+            pointers = list(bindings.values()) + [i for r in routes.values() for i in r['reads']] + list(config.get('mirrors', []))
+            files = [config['entrypoint']] + [i['path'] for i in pointers if i.get('section') is not None or i.get('marker') is not None]
+            self.scan_blocks(files + [str(p) for p in self.args.path], set())
+            return
         mirrored = {(m['scope'], m['role']) for m in config.get('mirrors', [])}
         for key, b in bindings.items():
             self.read_pointer(b, stat_only=key not in mirrored)
@@ -289,6 +345,17 @@ class Audit:
             if a and b and normalize(a['text']) != normalize(b['text']):
                 self.finding('mirror-drift', f"{mirror['scope']}/{mirror['role']}", 'Update declared mirror from its owner.', 'error', evidence=[self.location(a), self.location(b)])
         self.redirect_chain(config['entrypoint'], set())
+        if self.args.command in ('check', 'blocks'):
+            pointers = list(bindings.values()) + [i for r in routes.values() for i in r['reads']] + list(config.get('mirrors', []))
+            declared = set()
+            for item in pointers:
+                if item.get('marker') is not None:
+                    try:
+                        declared.add((str(self.reader.resolve(item['path'])), item['marker']))
+                    except InputError:
+                        pass
+            files = [config['entrypoint']] + [i['path'] for i in pointers if i.get('section') is not None or i.get('marker') is not None]
+            self.scan_blocks(files + [str(p) for p in self.args.path], declared)
 
     @staticmethod
     def location(source):
@@ -316,6 +383,8 @@ class Audit:
                 self.read(name, emit=True)
         self.report['entrypoints'] = names
         self.report['checked_scopes'] = ['entrypoint-only']
+        if self.args.command in ('check', 'blocks'):
+            self.scan_blocks(names + [str(p) for p in self.args.path], set())
         if self.args.command == 'check':
             self.incomplete('AGENTS.md', None, 'No supported owner bindings/control. Supply explicit bindings; no whole-project health conclusion.')
         elif self.args.command == 'context':
@@ -527,6 +596,8 @@ class Audit:
         if not self.args.root.is_dir():
             raise InputError('root must be an existing directory')
         if self.args.control:
+            if self.args.command == 'blocks':
+                raise InputError('blocks requires generic bindings or an unconfigured root, not --control')
             self.control(self.args.control)
         else:
             config = self.args.config
@@ -595,6 +666,10 @@ def render_markdown(report):
     for s in report.get('sources', []):
         sel = s.get('marker') and f" [marker {s['marker']}]" or (s.get('section') and f" §{s['section']}") or ''
         out.append(f"\n## {s['path']}{sel} (L{s['line_start']}–{s['line_end']})\n\n{s['text'].rstrip()}")
+    if report.get('blocks'):
+        out.append('\n| block | path | lines | sha256 |\n|---|---|---|---|')
+        for b in report['blocks']:
+            out.append(f"| {b['name']} | {b['path']} | {b['line_start']}–{b['line_end']} | {b['sha256'][:12]} |")
     m = report.get('metrics', {})
     if m:
         out.append(f"\nmetrics: {json.dumps(m, ensure_ascii=False)}")
@@ -636,6 +711,9 @@ def emit(audit):
         elif len(report['next_reads']) > 1:
             report['next_reads'].pop()
             report['metrics']['next_reads_omitted'] = report['metrics'].get('next_reads_omitted', 0) + 1
+        elif report.get('blocks'):
+            report['blocks'].pop()
+            report['metrics']['blocks_omitted'] = report['metrics'].get('blocks_omitted', 0) + 1
         elif report['routes']:
             report['routes'].pop()
             report['metrics']['routes_omitted'] = True
@@ -659,7 +737,7 @@ class CLIParser(argparse.ArgumentParser):
 
 def parser():
     p = CLIParser(description=__doc__)
-    p.add_argument('command', choices=('inspect','context','check'))
+    p.add_argument('command', choices=('inspect','context','check','blocks'))
     p.add_argument('--root', required=True, type=Path)
     group = p.add_mutually_exclusive_group()
     group.add_argument('--config', type=Path)
@@ -667,6 +745,7 @@ def parser():
     p.add_argument('--route')
     p.add_argument('--build-helper', type=Path, help='Explicit trusted companion helper override; never read from project configuration')
     p.add_argument('--trace', type=Path)
+    p.add_argument('--path', type=Path, action='append', default=[], help='blocks/check: extra file (relative to root) to scan for owned blocks')
     p.add_argument('--allow-read', type=Path, action='append', default=[])
     p.add_argument('--max-read-bytes', type=int, default=131072)
     p.add_argument('--max-output-bytes', type=int, default=None,

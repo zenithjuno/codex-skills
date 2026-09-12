@@ -2,7 +2,7 @@
 name: project-bootstrap
 description: Establish or adopt project entrypoints and context routes, or audit project context health and unnecessary reading. Use for new-project setup, project onboarding, broken resume paths, conflicting current sources, or an explicit context/token-efficiency audit. Coding-first with a generic routing core. A supplied snippet or routine edit needs no bootstrap or full audit.
 ---
-<!-- SKILL-VERSION: 2026.09.12.1 | name: project-bootstrap -->
+<!-- SKILL-VERSION: 2026.09.12.2 | name: project-bootstrap -->
 
 # Project Bootstrap
 
@@ -30,7 +30,8 @@ history to get oriented. The newest filename is not authority.
 H=<skill-directory>/scripts/project_context.py
 python3 $H inspect --root <root>                       # entrypoint + route IDs
 python3 $H context --root <root> --route <id> --format md
-python3 $H check   --root <root> [--format md] [--trace FILE]
+python3 $H check   --root <root> [--format md] [--trace FILE] [--path FILE]
+python3 $H blocks  --root <root> [--path FILE]            # owned marker blocks + hashes
 ```
 
 `--config FILE` names explicit bindings (default: `<root>/project-context.json`);
@@ -53,7 +54,12 @@ python3 $H context --root . --route resume-wording --format md
 - Point bindings at owned marker blocks (`<!-- project-bootstrap:NAME:start -->`)
   when the file is edited often; heading-text pointers break silently on rename.
 - The same current claim in two files is either one owner plus a pointer or a
-  declared mirror. Undeclared copies are invisible to `check`.
+  declared mirror. `check` reports `undeclared-block` and `duplicate-block` for
+  owned blocks it can see; pass `--path` for files no pointer reaches.
+- After any owned-block edit, run `blocks` before and after a rerun with the same
+  inputs: identical hashes prove idempotence, no prose argument needed.
+- A project that already has its own context helper keeps it as the route; do
+  not add a second helper or a same-named script beside it.
 - Run `check` at topology change, stage close and before a handoff; refresh
   affected routes and retire displaced current claims.
 - Write next action, acceptance and failed approaches to their owners before a
