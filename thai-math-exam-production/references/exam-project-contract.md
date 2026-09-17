@@ -17,17 +17,32 @@ handoff remain with their named skills.
     item-map.json
     item-variants.json
     EXAM-DESIGN.md
-    EXAM-DRAFT.md
-    WORKING-SOLUTIONS.md
-  source/
+    EXAM-DRAFT.md            questions only
+    WORKING-SOLUTIONS.md     producer reasoning and answer summary
+    ANSWER-KEY.md            teacher-facing self-contained key (added before export)
+    blind-audit/data/        exporter output: questions_/solutions_/manifest_<set>.json
+  source/                    audit parts, e.g. source/audit-parts/A-…md (write-only per assignment)
   assets/
   deliverables/
   qa/
-  archive/
+  archive/                   superseded drafts only
+  GATE-N-*.md                approved proposals stay here as the review trail
+  ITEM-VARIANT-VAULT.md      teacher-readable retired variants (optional)
 ```
 
+The initializer creates the state files, `source/`, `assets/`, `deliverables/`,
+`qa/` and `archive/`. `ANSWER-KEY.md`, the blind-audit data folder, gate
+documents and the vault are produced by the workflow when their gate is reached.
 It does not create README, MATERIAL-CONTROL, DOCX builders, font utilities,
 diagram code or correctness solvers.
+
+### Deliverable layers
+
+| File | Audience | Content |
+|---|---|---|
+| `EXAM-DRAFT.md` | producer, blind checker input | approved stems and choices only |
+| `WORKING-SOLUTIONS.md` | producer, Gate 7 approval | answer summary table, working solutions, rubric drafts |
+| `ANSWER-KEY.md` | teacher, answer-key DOCX source | per item: question + choices + answer + teaching solution + rubric; lint with `check_exam_design.py --answer-key` |
 
 ## `exam-project.json`
 
@@ -88,7 +103,13 @@ Each `item-map.json` record contains:
 Hard, written, paired or proof items require config-first state. Required config
 fields are `paper_role`, `part_count`, `intended_behavior`, `solution_path`,
 `structural_budget`, `nearby_reuse_limit`, `required_method`, and
-`visual_clarity`.
+`visual_clarity`. An algebra item may add an optional `normalized_work_form`
+string (leading coefficient after clearing, candidates before the first root,
+divisions, zero fills, factoring pattern) that whole-paper and parallel reviews
+compare instead of a step count. The validator ignores unknown optional fields.
+
+Parallel items carry `anchor` (`EXM-<source>:Q01`) and a `parallel_design`
+object (`preserve`, `transform`, `avoid`, `equivalence_target`, `leakage_risk`).
 
 ## Variants
 
@@ -106,6 +127,20 @@ Run `validate_exam_state.py <root> [--gate <stage>]`. Exit `0` means the request
 gate is structurally satisfied, `1` means invalid exam state, and `2` means the
 state cannot be read. Validation never approves content; it only proves internal
 consistency.
+
+Companion checks with the same exit convention:
+
+- `check_exam_design.py <EXAM-DESIGN.md>` — Spine sections (parallel adds the
+  source-critique spine).
+- `check_exam_design.py <batch>.md --batch` — batch skeleton, workload
+  arithmetic (Easy 1 · Medium 2 · Hard 3; 3–4 units or an override reason), and
+  embedded Reference A / Proposed B blocks for anchored items.
+- `check_exam_design.py <ANSWER-KEY.md> --answer-key` — every item block is
+  self-contained (question, four choices for objective items, answer, solution,
+  rubric for written items, no “สมการนี้” without a stated equation).
+- `export_blind_audit_snapshot.py <root> [--items …] [--check]` — questions-only
+  snapshot in the blind-audit shape with a SHA-256 manifest; `--check` reports
+  items whose current variant the last audit did not cover.
 
 ## Initialize a project
 

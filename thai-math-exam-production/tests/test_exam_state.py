@@ -708,6 +708,180 @@ class BatchProposalLintTests(unittest.TestCase):
         self.assertEqual(1, result.returncode)
         self.assertIn("Batch review notes", result.stdout)
 
+    def _lint_batch_text(self, text: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "batch.md"
+            path.write_text(text, encoding="utf-8")
+            return self._lint_batch(path)
+
+    def _template_with_workload(self, workload: str, tail: str = "") -> str:
+        text = self.BATCH_TEMPLATE.read_text(encoding="utf-8")
+        return text.replace("`Workload:` `Easy 1 + Easy 1 + Medium 2 = 4`", f"`Workload:` `{workload}`{tail}")
+
+    def test_workload_wrong_weight_fails(self) -> None:
+        """FIX-01 from the parallel-B run: `Hard 4` slipped through the skeleton check."""
+        result = self._lint_batch_text(self._template_with_workload("Hard 4 = 4"))
+        self.assertEqual(1, result.returncode)
+        self.assertIn("Hard 4", result.stdout)
+        self.assertIn("Hard 3", result.stdout)
+
+    def test_workload_arithmetic_mismatch_fails(self) -> None:
+        result = self._lint_batch_text(self._template_with_workload("Easy 1 + Medium 2 = 4"))
+        self.assertEqual(1, result.returncode)
+        self.assertIn("sum to 3", result.stdout)
+
+    def test_workload_outside_band_needs_override_reason(self) -> None:
+        bare = self._lint_batch_text(self._template_with_workload("Medium 2 = 2"))
+        self.assertEqual(1, bare.returncode)
+        self.assertIn("outside 3–4", bare.stdout)
+        excused = self._lint_batch_text(
+            self._template_with_workload("Medium 2 = 2", "\n\nนี่เป็น final-item exception: เหลือเพียง W02 ช่องเดียว")
+        )
+        self.assertEqual(0, excused.returncode, excused.stdout)
+        single_hard = self._lint_batch_text(self._template_with_workload("Hard 3 = 3"))
+        self.assertEqual(0, single_hard.returncode, single_hard.stdout)
+
+    def test_parallel_item_requires_embedded_reference_and_proposed_blocks(self) -> None:
+        """UPG-01: the teacher judges equivalence from one file, so an anchored item
+        must carry both papers with key and solution."""
+        text = self.BATCH_TEMPLATE.read_text(encoding="utf-8")
+        missing_a = self._lint_batch_text(text.replace("### ชุดอ้างอิง A", "### ดูไฟล์ต้นฉบับ"))
+        self.assertEqual(1, missing_a.returncode)
+        self.assertIn("Reference A", missing_a.stdout)
+        missing_b = self._lint_batch_text(text.replace("### ชุดคู่ขนาน B ที่เสนอ", "### ข้อเสนอ"))
+        self.assertEqual(1, missing_b.returncode)
+        self.assertIn("Proposed B", missing_b.stdout)
+        no_key = self._lint_batch_text(text.replace("**เฉลย:** …", "…"))
+        self.assertEqual(1, no_key.returncode)
+        self.assertIn("เฉลย", no_key.stdout)
+        # An original-mode batch (no anchor line) is not asked for A/B blocks.
+        original = text.replace("**Item anchor:**", "**Anchor (unused):**")
+        self.assertEqual(0, self._lint_batch_text(original).returncode)
+
+
+class AnswerKeyLintTests(unittest.TestCase):
+    """UPG-02: ANSWER-KEY.md is a first-class, self-contained teacher deliverable."""
+
+    TEMPLATE = ROOT / "assets" / "ANSWER-KEY.template.md"
+
+    def _lint(self, text: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ANSWER-KEY.md"
+            path.write_text(text, encoding="utf-8")
+            return subprocess.run(
+                [sys.executable, str(SCRIPTS / "check_exam_design.py"), str(path), "--answer-key"],
+                capture_output=True, text=True, check=False,
+            )
+
+    def test_template_passes_and_counts_items(self) -> None:
+        result = self._lint(self.TEMPLATE.read_text(encoding="utf-8"))
+        self.assertEqual(0, result.returncode, result.stdout)
+        self.assertIn("1 objective + 1 written", result.stdout)
+
+    def test_missing_answer_choices_and_rubric_fail(self) -> None:
+        text = self.TEMPLATE.read_text(encoding="utf-8")
+        no_answer = self._lint(text.replace("**คำตอบ:** `ข`", "ข"))
+        self.assertEqual(1, no_answer.returncode)
+        self.assertIn("Q01: missing `**คำตอบ:**`", no_answer.stdout)
+        three_choices = self._lint(text.replace("ง. `…`", ""))
+        self.assertEqual(1, three_choices.returncode)
+        self.assertIn("four choices", three_choices.stdout)
+        no_rubric = self._lint(text.replace("#### Scoring rubric", "#### Notes"))
+        self.assertEqual(1, no_rubric.returncode)
+        self.assertIn("W01: written item needs", no_rubric.stdout)
+
+    def test_inline_choices_are_accepted(self) -> None:
+        text = self.TEMPLATE.read_text(encoding="utf-8")
+        inline = text.replace("ก. `…`\n\nข. `…`\n\nค. `…`\n\nง. `…`", "ก. `1` ข. `2` ค. `3` ง. `4`")
+        self.assertEqual(0, self._lint(inline).returncode)
+
+    def test_equation_reference_without_equals_fails(self) -> None:
+        """Q14 lesson: “สมการนี้” must point at a stated equation."""
+        text = self.TEMPLATE.read_text(encoding="utf-8").replace(
+            "<โจทย์ตามที่อนุมัติ>", "กำหนดให้ x+3 เป็นตัวประกอบของ 3x³−5x²−34x+24 เซตคำตอบของสมการนี้คือข้อใด"
+        )
+        result = self._lint(text)
+        self.assertEqual(1, result.returncode)
+        self.assertIn("สมการนี้", result.stdout)
+        fixed = self._lint(text.replace("ของสมการนี้", "ของสมการ 3x³−5x²−34x+24=0"))
+        self.assertEqual(0, fixed.returncode, fixed.stdout)
+
+
+class BlindAuditExportTests(unittest.TestCase):
+    """DEV-03: exam state → blind-audit JSON must be deterministic, key-free and
+    tied to a snapshot hash so a later edit can be re-audited item by item."""
+
+    def _project(self, root: Path) -> None:
+        state = root / "exam-state"
+        state.mkdir(parents=True)
+        write(state / "exam-project.json", {"slug": "demo-set", "exam_id": "EXM-demo-set"})
+        write(state / "item-map.json", {"items": [
+            {"item_id": "Q01", "section": "objective", "position": 1, "current_variant": "Q01A"},
+            {"item_id": "W01", "section": "written", "position": 1, "current_variant": "W01A"},
+        ]})
+        write(state / "item-variants.json", {"variants": [
+            {"variant_id": "Q01A", "item_id": "Q01", "status": "approved", "stem": "ข้อใดเป็นจำนวนอตรรกยะ",
+             "choices": [{"label": "ก", "text": "√4"}, {"label": "ข", "text": "√5"}],
+             "answer_key": "ข", "answer_reasoning": "√5 ย่อไม่ได้", "distractor_notes": {"ก": "ไม่ย่อ"}},
+            {"variant_id": "W01A", "item_id": "W01", "status": "approved", "stem": "จงแก้สมการ x²=4",
+             "choices": [], "answer_key": "{−2,2}", "answer_reasoning": "x=±2"},
+        ]})
+
+    def _run(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / "export_blind_audit_snapshot.py"), *args],
+            capture_output=True, text=True, check=False,
+        )
+
+    def test_export_writes_keyfree_questions_manifest_and_detects_staleness(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "exam"
+            self._project(root)
+            result = self._run(str(root))
+            self.assertEqual(0, result.returncode, result.stderr)
+            data = root / "exam-state/blind-audit/data"
+            questions = (data / "questions_demo_set.json").read_text(encoding="utf-8")
+            self.assertIn("Q01: ข้อใดเป็นจำนวนอตรรกยะ", questions)
+            for field in ("answer_key", "answer_reasoning", "distractor_notes"):
+                self.assertNotIn(field, questions)
+            solutions = read(data / "solutions_demo_set.json")
+            self.assertEqual(["ข", "{−2,2}"], [s["answer"] for s in solutions["solutions"]])
+            manifest = read(data / "manifest_demo_set.json")
+            self.assertEqual(64, len(manifest["questions_sha256"]))
+            self.assertEqual(["Q01A", "W01A"], [row["variant_id"] for row in manifest["items"]])
+            self.assertEqual(0, self._run(str(root), "--check").returncode)
+
+            # Edit the stem under a new variant id → only that item is stale.
+            variants = read(root / "exam-state/item-variants.json")
+            variants["variants"].append({**variants["variants"][0], "variant_id": "Q01A-1",
+                                         "stem": "ข้อใดเป็นจำนวนตรรกยะ"})
+            write(root / "exam-state/item-variants.json", variants)
+            item_map = read(root / "exam-state/item-map.json")
+            item_map["items"][0]["current_variant"] = "Q01A-1"
+            write(root / "exam-state/item-map.json", item_map)
+            stale = self._run(str(root), "--check")
+            self.assertEqual(1, stale.returncode)
+            self.assertIn("Q01: audited Q01A, current Q01A-1", stale.stdout)
+            self.assertNotIn("W01:", stale.stdout)
+
+            subset = self._run(str(root), "--items", "Q01")
+            self.assertEqual(0, subset.returncode, subset.stderr)
+            self.assertTrue((data / "questions_demo_set_reaudit_q01.json").is_file())
+
+    def test_unapproved_or_unknown_selection_is_refused(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "exam"
+            self._project(root)
+            unknown = self._run(str(root), "--items", "Q09")
+            self.assertEqual(1, unknown.returncode)
+            self.assertIn("unknown item ids: Q09", unknown.stderr)
+            variants = read(root / "exam-state/item-variants.json")
+            variants["variants"][1]["status"] = "proposed"
+            write(root / "exam-state/item-variants.json", variants)
+            refused = self._run(str(root))
+            self.assertEqual(1, refused.returncode)
+            self.assertIn("W01A is 'proposed', not approved", refused.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
