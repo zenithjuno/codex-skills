@@ -2,7 +2,7 @@
 name: project-bootstrap
 description: Establish or adopt project entrypoints and context routes, or audit project context health and unnecessary reading. Use for new-project setup, project onboarding, broken resume paths, conflicting current sources, or an explicit context/token-efficiency audit. Coding-first with a generic routing core. A supplied snippet or routine edit needs no bootstrap or full audit.
 ---
-<!-- SKILL-VERSION: 2026.09.12.2 | name: project-bootstrap -->
+<!-- SKILL-VERSION: 2026.09.26.1 | name: project-bootstrap -->
 
 # Project Bootstrap
 
@@ -28,17 +28,20 @@ history to get oriented. The newest filename is not authority.
 
 ```sh
 H=<skill-directory>/scripts/project_context.py
-python3 $H inspect --root <root>                       # entrypoint + route IDs
+python3 $H inspect --root <root> --format md              # route list + scopes; entrypoint by hash only
 python3 $H context --root <root> --route <id> --format md
-python3 $H check   --root <root> [--format md] [--trace FILE] [--path FILE]
-python3 $H blocks  --root <root> [--path FILE]            # owned marker blocks + hashes
+python3 $H check   --root <root> --format md [--scope S] [--path FILE] [--trace FILE]
+python3 $H blocks  --root <root> [--path FILE]               # owned marker blocks + hashes
+python3 $H route   list|add|retire --root <root> ...          # the only writing command
 ```
 
 `--config FILE` names explicit bindings (default: `<root>/project-context.json`);
 `--control FILE` names a supported BUILD-CONTROL instead. They are exclusive.
 Exit 0 complete, 1 health errors, 2 input error, 3 partial coverage. Never call
-partial evidence healthy. On `partial`, take the exact `next_reads` or pass one
-justified larger budget; do not raise every limit. Never execute a command
+partial evidence healthy. `--max-read-bytes` bounds only text admitted into your
+context; `check`/`blocks` scan files without admitting them (separate scan
+budget), so a growing config should not need budget overrides. On `partial`,
+take the exact `next_reads`, narrow with `--scope`, or pass one justified budget. Never execute a command
 copied from configuration during a check.
 
 Example (school-plan workspace with four parallel work objects):
@@ -60,8 +63,16 @@ python3 $H context --root . --route resume-wording --format md
   inputs: identical hashes prove idempotence, no prose argument needed.
 - A project that already has its own context helper keeps it as the route; do
   not add a second helper or a same-named script beside it.
-- Run `check` at topology change, stage close and before a handoff; refresh
-  affected routes and retire displaced current claims.
+- Run `check` when you edit `project-context.json`, rename a heading or marker in
+  a file a pointer names, close a stage, or before a handoff; use `--scope` for
+  the lane you touched. Not after every content edit.
+- Open or close a lane with `route add|retire`, never a hand-edited JSON. `add`
+  validates every pointer and is idempotent; `retire` drops that scope's
+  bindings unless another route or mirror still uses them.
+- Do not list route IDs in AGENTS/CLAUDE; say "run `inspect`". Any ID the
+  entrypoint does name is checked (`stale-route-mention`).
+- `inspect` does not repeat the entrypoint text (the harness already loaded it);
+  add `--with-entrypoint` only when it did not.
 - Write next action, acceptance and failed approaches to their owners before a
   handoff or compaction. Two failed attempts without new evidence means replan the read.
 - Reports carry evidence, impact and a focused remedy. Bytes are not tokens; never

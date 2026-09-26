@@ -13,7 +13,7 @@ description: >
   routes while capturing conversation-only state, exact workspace paths,
   completed checks, settled decisions, and the immediate next action.
 ---
-<!-- SKILL-VERSION: 2026.09.12 | name: handoff | canonical: ~/.codex/skills/handoff | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.09.26 | name: handoff | canonical: ~/.codex/skills/handoff | bump this date on every edit -->
 <!-- SKILL-FINGERPRINT: updated_at=2026-07-10T21:40:53+07:00 | updated_by=Codex (GPT-5), at Chutpong's direction | change=repository-aware storage lifecycle and scope-safe routing | basis=HANDOFF-SKILL-UPGRADE-VERDICT-2026-07-10 -->
 
 # Handoff
@@ -291,7 +291,10 @@ After writing, verify:
 - an index row changed only when an existing index policy required it; and
 - Git status includes only expected handoff files when Git is available; and
 - when `project-context.json` exists, the resume route the handoff names still
-  resolves (`context --route <id>` exits 0), or the handoff states why not.
+  resolves (`context --route <id>` exits 0), or the handoff states why not; and
+- when written from a Git worktree, the handoff names that worktree path and
+  says whether its `project-context.json` route is merged into the main checkout.
+  A route that exists only in the worktree cannot be resumed from main.
 
 In the final response, link the saved snapshot and state its scope, canonical
 location, lifecycle, and current-pointer action. Do not paste the full handoff

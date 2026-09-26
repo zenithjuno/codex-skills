@@ -25,7 +25,10 @@ Do not create project-context.json just to complete a checklist. Add it once
 concrete roles/routes need machine checking and no supported adapter already owns
 that routing. Schema is in schema.md. Its values are pointers, not copied state.
 Point at owned marker blocks rather than heading text wherever the file is edited
-often; a renamed heading breaks a section pointer silently.
+often; a renamed heading breaks a section pointer silently. Add and retire lanes
+with `route add|retire` (schema.md), not by hand-editing the JSON. The AGENTS
+bridge block names the helper and says "run `inspect` for route IDs"; it does
+not list the IDs, which would be an undeclared mirror of the configuration.
 
 ## Existing project
 

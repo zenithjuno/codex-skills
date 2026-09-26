@@ -96,11 +96,26 @@ def marker_blocks(text):
 
 
 class Reader:
-    def __init__(self, root, allow, budget, max_files):
+    """Bounded reader.
+
+    Two quantities are tracked separately. *Scanned* bytes are file contents the
+    helper inspects to locate headings/markers or compare mirrors; they never
+    reach the agent. *Admitted* bytes are selected text emitted as sources, i.e.
+    what actually enters the agent's context. `--max-read-bytes` bounds admitted
+    bytes; `--max-scan-bytes`/`--max-file-bytes` bound scanning. Legacy mode (the
+    delegated BUILD-CONTROL adapter) keeps the original single budget.
+    """
+
+    def __init__(self, root, allow, budget, max_files, scan_budget=4 * 1024 * 1024,
+                 file_cap=1024 * 1024, max_scan_files=256, legacy=False):
         self.root = root.resolve()
         self.allow = [self.root] + [p.resolve() for p in allow]
         self.budget, self.max_files = budget, max_files
-        self.used = 0
+        self.scan_budget, self.file_cap, self.max_scan_files = scan_budget, file_cap, max_scan_files
+        self.legacy = legacy
+        self.used = 0          # admitted (legacy: everything read)
+        self.scanned = 0
+        self.admitted_files = set()
         self.cache = {}
 
     def resolve(self, path):
@@ -114,18 +129,27 @@ class Reader:
         p = self.resolve(path)
         if p in self.cache:
             return p, self.cache[p]
-        if len(self.cache) >= self.max_files:
+        if len(self.cache) >= (self.max_files if self.legacy else self.max_scan_files):
             raise Partial('source file limit reached')
         try:
             if not p.is_file():
                 raise InputError(f'missing regular source file: {p}')
             size = p.stat().st_size
-            if size > self.budget - self.used:
-                raise Partial(f'source needs {size} bytes; {self.budget - self.used} remain; use a narrower external section read or explicit budget')
+            if self.legacy:
+                if size > self.budget - self.used:
+                    raise Partial(f'source needs {size} bytes; {self.budget - self.used} remain; use a narrower external section read or explicit budget')
+            else:
+                if size > self.file_cap:
+                    raise Partial(f'source is {size} bytes, above the {self.file_cap}-byte per-file scan cap; point at a smaller owner or pass --max-file-bytes')
+                if size > self.scan_budget - self.scanned:
+                    raise Partial(f'scan needs {size} bytes; {self.scan_budget - self.scanned} scan bytes remain; narrow with --scope or pass --max-scan-bytes')
             with p.open('rb') as f:
                 # No sentinel byte beyond the allocated allowance.
                 data = f.read(size)
-            self.used += len(data)
+            if self.legacy:
+                self.used += len(data)
+            else:
+                self.scanned += len(data)
             if p.stat().st_size != size:
                 raise Partial('source changed during read; retry from current revision')
             text = data.decode('utf-8')
@@ -133,6 +157,18 @@ class Reader:
             raise InputError(str(e)) from e
         self.cache[p] = text
         return p, text
+
+    def admit(self, source):
+        """Charge selected text that is about to be emitted into the agent's context."""
+        if self.legacy:
+            return
+        size = len(source['text'].encode('utf-8'))
+        if size > self.budget - self.used:
+            raise Partial(f'selected text needs {size} bytes; {self.budget - self.used} admitted bytes remain; take this source as a separate read or pass --max-read-bytes')
+        if source['path'] not in self.admitted_files and len(self.admitted_files) >= self.max_files:
+            raise Partial('admitted source file limit reached')
+        self.used += size
+        self.admitted_files.add(source['path'])
 
     def exists(self, path):
         p = self.resolve(path)
@@ -153,7 +189,9 @@ class Reader:
 class Audit:
     def __init__(self, args):
         self.args = args
-        self.reader = Reader(args.root, args.allow_read, args.max_read_bytes, args.max_files)
+        self.reader = Reader(args.root, args.allow_read, args.max_read_bytes, args.max_files,
+                             args.max_scan_bytes, args.max_file_bytes, args.max_scan_files,
+                             legacy=bool(args.control))
         self.report = dict(schema_version=1, command=args.command, coverage='complete',
                            coverage_by_dimension={'structural': 'complete', 'session': 'unavailable'},
                            checked_scopes=[], findings=[], metrics={}, next_reads=[], sources=[], routes=[], blocks=[])
@@ -188,6 +226,7 @@ class Audit:
                 return dict(path=path, section=None, marker=None, text='')
             source = self.reader.selected(path, section, marker)
             if emit and not any((s['path'], s['section'], s.get('marker')) == (source['path'], section, marker) for s in self.report['sources']):
+                self.reader.admit(source)
                 self.report['sources'].append(source)
             return source
         except Partial as e:
@@ -300,13 +339,15 @@ class Audit:
         if loaded is None:
             return
         config, bindings, routes = loaded
-        self.report['routes'] = [dict(id=r['id'], scope=r['scope'], purpose=r['purpose']) for r in routes.values()]
+        self.all_route_ids = set(routes)
+        self.report['routes'] = [dict(id=r['id'], scope=r['scope'], purpose=r['purpose']) for r in routes.values()
+                                 if not self.args.scope or r['scope'] in self.args.scope]
         if self.error_seen:
             self.incomplete(path, None, 'Resolve declaration conflicts before validating their source targets.')
             return  # Never choose a plausible authority from conflicting declarations.
         if self.args.command == 'context':
             if self.args.route not in routes:
-                raise InputError(f'unknown route: {self.args.route}')
+                raise InputError(unknown_route_message(self.args.route, routes))
             route = routes[self.args.route]
             self.report['checked_scopes'] = [route['scope']]
             required = list(route['reads'])
@@ -322,10 +363,24 @@ class Audit:
             for item in required:
                 self.read_pointer(item, emit=True)
             return
-        self.report['checked_scopes'] = sorted({k[0] for k in bindings})
-        self.read(config['entrypoint'], emit=self.args.command == 'inspect')
+        if self.args.scope:
+            known = {k[0] for k in bindings} | {r['scope'] for r in routes.values()}
+            unknown = sorted(set(self.args.scope) - known)
+            if unknown:
+                raise InputError(f"unknown scope(s): {', '.join(unknown)}; known: {', '.join(sorted(known))}")
+            wanted = set(self.args.scope)
+            bindings = {k: v for k, v in bindings.items() if k[0] in wanted}
+            routes = {k: v for k, v in routes.items() if v['scope'] in wanted}
+            config = dict(config, mirrors=[m for m in config.get('mirrors', []) if m['scope'] in wanted])
+        self.report['checked_scopes'] = sorted({k[0] for k in bindings} | {r['scope'] for r in routes.values()})
         if self.args.command == 'inspect':
+            self.summarize_entrypoint(config['entrypoint'])
+            scopes = {}
+            for (scope, role) in bindings:
+                scopes.setdefault(scope, []).append(role)
+            self.report['scopes'] = {k: sorted(v) for k, v in sorted(scopes.items())}
             return
+        self.read(config['entrypoint'])
         if self.args.command == 'blocks':
             pointers = list(bindings.values()) + [i for r in routes.values() for i in r['reads']] + list(config.get('mirrors', []))
             files = [config['entrypoint']] + [i['path'] for i in pointers if i.get('section') is not None or i.get('marker') is not None]
@@ -345,6 +400,7 @@ class Audit:
             if a and b and normalize(a['text']) != normalize(b['text']):
                 self.finding('mirror-drift', f"{mirror['scope']}/{mirror['role']}", 'Update declared mirror from its owner.', 'error', evidence=[self.location(a), self.location(b)])
         self.redirect_chain(config['entrypoint'], set())
+        self.stale_route_mentions(config['entrypoint'], self.all_route_ids)
         if self.args.command in ('check', 'blocks'):
             pointers = list(bindings.values()) + [i for r in routes.values() for i in r['reads']] + list(config.get('mirrors', []))
             declared = set()
@@ -356,6 +412,34 @@ class Audit:
                         pass
             files = [config['entrypoint']] + [i['path'] for i in pointers if i.get('section') is not None or i.get('marker') is not None]
             self.scan_blocks(files + [str(p) for p in self.args.path], declared)
+
+    def summarize_entrypoint(self, path):
+        """Entrypoint identity without its text: the harness already loads AGENTS/CLAUDE."""
+        if self.args.with_entrypoint:
+            self.read(path, emit=True)
+            return
+        source = self.read(path)
+        if source:
+            self.report['entrypoint'] = dict(path=source['path'], sha256=source['sha256'],
+                                             lines=source['line_end'], bytes=len(source['text'].encode('utf-8')))
+
+    def stale_route_mentions(self, path, route_ids):
+        """Route IDs named in the entrypoint must exist; a stale mention sends the next session to a dead route."""
+        source = self.read(path)
+        if not source:
+            return
+        mentioned = {}
+        for n, line in enumerate(source['text'].splitlines(), 1):
+            for rid in re.findall(r'--route[ =]`?([A-Za-z0-9][A-Za-z0-9_.-]*)', line):
+                mentioned.setdefault(rid, n)
+            if re.search(r'route ids?\b', line, re.I):
+                for rid in re.findall(r'`([A-Za-z0-9][A-Za-z0-9_.-]*)`', line):
+                    mentioned.setdefault(rid, n)
+        for rid, n in sorted(mentioned.items()):
+            if rid not in route_ids:
+                self.finding('stale-route-mention', f'{path}:{rid}',
+                             f'Entrypoint names route {rid!r}, which is not configured. Remove the mention or add the route; prefer pointing readers to `inspect` instead of listing IDs.',
+                             'warning', evidence=[dict(path=source['path'], section=None, line_start=n, line_end=n, excerpt='')])
 
     @staticmethod
     def location(source):
@@ -380,7 +464,14 @@ class Audit:
         for name in ('AGENTS.md','CLAUDE.md'):
             if (self.args.root / name).exists():
                 names.append(name)
-                self.read(name, emit=True)
+                if self.args.command == 'inspect' and not self.args.with_entrypoint:
+                    source = self.read(name)
+                    if source:
+                        self.report.setdefault('entrypoint_files', []).append(dict(
+                            path=source['path'], sha256=source['sha256'], lines=source['line_end'],
+                            bytes=len(source['text'].encode('utf-8'))))
+                else:
+                    self.read(name, emit=self.args.command == 'inspect')
         self.report['entrypoints'] = names
         self.report['checked_scopes'] = ['entrypoint-only']
         if self.args.command in ('check', 'blocks'):
@@ -617,8 +708,19 @@ class Audit:
         self.report['metrics'].update(source_read_bytes=self.reader.used + self.delegated_bytes,
                                       source_files=len(self.reader.cache) + self.delegated_files,
                                       token_estimate=None)
+        if not self.reader.legacy:
+            self.report['metrics'].update(admitted_bytes=self.reader.used, scanned_bytes=self.reader.scanned)
         return 2 if self.input_error else 1 if self.error_seen else 3 if self.partial else 0
 
+
+
+def unknown_route_message(route_id, routes):
+    import difflib
+    ids = sorted(routes)
+    close = difflib.get_close_matches(route_id, ids, n=2, cutoff=0.5)
+    hint = f"; did you mean {' or '.join(close)}?" if close else ''
+    return (f"unknown route: {route_id}{hint} Available: {', '.join(ids) or 'none'}. "
+            "A route that exists only in another worktree's project-context.json must be merged before it can be resumed here.")
 
 
 def bounded_process(command, cap, timeout):
@@ -655,8 +757,16 @@ def render_markdown(report):
     out = [f"# {report.get('command', 'report')} · coverage: {report.get('coverage')} · {report.get('coverage_by_dimension')}"]
     if report.get('error'):
         out.append(f"ERROR: {report['error']}")
+    if report.get('entrypoint'):
+        e = report['entrypoint']
+        out.append(f"Entrypoint: {e['path']} ({e['lines']} lines, {e['bytes']} bytes, sha256 {e['sha256'][:12]}) — already loaded by the harness; not repeated")
+    for e in report.get('entrypoint_files', []):
+        out.append(f"Entrypoint: {e['path']} ({e['lines']} lines, {e['bytes']} bytes, sha256 {e['sha256'][:12]})")
     if report.get('routes'):
-        out.append('Routes: ' + ', '.join(f"{r['id']} ({r['scope']}: {r['purpose']})" for r in report['routes']))
+        out.append('Routes:')
+        out.extend(f"- {r['id']} ({r['scope']}): {r['purpose']}" for r in report['routes'])
+    if report.get('scopes'):
+        out.append('Scopes: ' + '; '.join(f"{k}: {', '.join(v)}" for k, v in report['scopes'].items()))
     for f in report.get('findings', []):
         where = '; '.join(f"{e.get('path')}" + (f" §{e['section']}" if e.get('section') else '') for e in f.get('evidence', []))
         out.append(f"- [{f['severity']}] {f['check']}: {f['impact']} ({where})")
@@ -730,6 +840,159 @@ def emit(audit):
     return exit_code
 
 
+# ---------------------------------------------------------------------------
+# route list|add|retire — the only writing command. It edits project-context.json
+# and nothing else, validates every pointer before writing, refuses to write over
+# a concurrent change, and leaves the file byte-identical when nothing changes.
+# ---------------------------------------------------------------------------
+
+def parse_pointer(spec):
+    """PATH, PATH#Exact heading, or PATH@marker-name."""
+    if '#' in spec:
+        path, section = spec.split('#', 1)
+        return dict(path=path, section=section)
+    head, sep, marker = spec.rpartition('@')
+    if sep and head and '/' not in marker:
+        return dict(path=head, marker=marker)
+    return dict(path=spec, section=None)
+
+
+def pointer_label(item):
+    if item.get('marker'):
+        return f"{item['path']}@{item['marker']}"
+    if item.get('section'):
+        return f"{item['path']}#{item['section']}"
+    return item['path']
+
+
+def dump_config(config):
+    return json.dumps(config, ensure_ascii=False, indent=2) + '\n'
+
+
+def route_command(args):
+    report = dict(schema_version=1, command='route', action=args.action, changed=False, findings=[])
+    config_path = (args.config if args.config else args.root / 'project-context.json')
+    config_path = config_path if config_path.is_absolute() else args.root / config_path
+    if not config_path.is_file():
+        raise InputError(f'no configuration at {config_path}; route edits never create one (bootstrap decides that)')
+    before = config_path.read_bytes()
+    config = json.loads(before.decode('utf-8'))
+    if not isinstance(config, dict) or config.get('schema_version') != 1:
+        raise InputError('configuration requires schema_version 1')
+    config.setdefault('bindings', [])
+    config.setdefault('routes', [])
+    routes = {r['id']: r for r in config['routes']}
+    report['config'] = str(config_path)
+    report['sha256_before'] = fingerprint(before)
+
+    if args.action == 'list':
+        report['routes'] = [dict(id=r['id'], scope=r['scope'], purpose=r['purpose'],
+                                 reads=[pointer_label(i) for i in r.get('reads', [])],
+                                 verification=r.get('verification_binding')) for r in config['routes']]
+        return report
+
+    if not args.id:
+        raise InputError(f'route {args.action} requires --id')
+
+    if args.action == 'add':
+        if not (args.scope and len(args.scope) == 1 and args.purpose and args.read):
+            raise InputError('route add requires --id, exactly one --scope, --purpose and at least one --read')
+        scope = args.scope[0]
+        reader = Reader(args.root, args.allow_read, 1, 1)
+        new_bindings = []
+        for spec in args.bind:
+            role, sep, target = spec.partition('=')
+            if not sep or not role or not target:
+                raise InputError(f'--bind expects ROLE=POINTER, got {spec!r}')
+            new_bindings.append(dict(scope=scope, role=role, **parse_pointer(target)))
+        reads = [parse_pointer(x) for x in args.read]
+        for item in reads + new_bindings:
+            try:
+                reader.selected(item['path'], item.get('section'), item.get('marker'))
+            except (InputError, Partial) as e:
+                raise InputError(f'{pointer_label(item)} does not resolve: {e}') from None
+        existing = {(b['scope'], b['role']): b for b in config['bindings']}
+        for b in new_bindings:
+            old = existing.get((b['scope'], b['role']))
+            if old is None:
+                config['bindings'].append(b)
+            elif pointer_label(old) != pointer_label(b):
+                if not args.replace:
+                    raise InputError(f"binding {b['scope']}/{b['role']} already points at {pointer_label(old)}; pass --replace to repoint it")
+                config['bindings'][config['bindings'].index(old)] = b
+        verify = None
+        if args.verify and args.verify != 'none':
+            vscope, sep, vrole = args.verify.partition(':')
+            if not sep:
+                raise InputError('--verify expects SCOPE:ROLE or none')
+            if not any(b['scope'] == vscope and b['role'] == vrole for b in config['bindings']):
+                raise InputError(f'--verify {args.verify}: no such binding; add it with --bind first')
+            verify = dict(scope=vscope, role=vrole)
+        route = dict(id=args.id, scope=scope, purpose=args.purpose, reads=reads, verification_binding=verify)
+        if args.id in routes and routes[args.id] != route:
+            if not args.replace:
+                raise InputError(f'route {args.id} already exists with different content; pass --replace to overwrite it')
+            config['routes'][config['routes'].index(routes[args.id])] = route
+        elif args.id not in routes:
+            config['routes'].append(route)
+        report['route'] = dict(id=args.id, scope=scope, reads=[pointer_label(i) for i in reads])
+
+    elif args.action == 'retire':
+        if args.id not in routes:
+            raise InputError(unknown_route_message(args.id, routes))
+        route = routes[args.id]
+        config['routes'].remove(route)
+        removed = []
+        if not args.keep_bindings:
+            scope = route['scope']
+            still_used = {r['scope'] for r in config['routes']}
+            referenced = {(r['verification_binding']['scope'], r['verification_binding']['role'])
+                          for r in config['routes'] if r.get('verification_binding')}
+            referenced |= {(m['scope'], m['role']) for m in config.get('mirrors', [])}
+            if scope not in still_used:
+                keep = []
+                for b in config['bindings']:
+                    if b['scope'] == scope and (b['scope'], b['role']) not in referenced:
+                        removed.append(f"{b['scope']}/{b['role']} → {pointer_label(b)}")
+                    else:
+                        keep.append(b)
+                config['bindings'] = keep
+        report['route'] = dict(id=args.id, scope=route['scope'])
+        report['removed_bindings'] = removed
+
+    after = dump_config(config).encode('utf-8')
+    if after == before:
+        report['sha256_after'] = report['sha256_before']
+        return report
+    if dump_config(json.loads(before.decode('utf-8'))).encode('utf-8') != before:
+        report['findings'].append('configuration was not in canonical format (indent 2, UTF-8); this write normalizes it')
+    # Refuse to overwrite a concurrent edit: reread and compare before replacing.
+    if fingerprint(config_path.read_bytes()) != report['sha256_before']:
+        raise InputError('project-context.json changed while this edit was prepared; rerun against the current file')
+    tmp = config_path.with_name(config_path.name + '.tmp-route')
+    tmp.write_bytes(after)
+    os.replace(tmp, config_path)
+    report['changed'] = True
+    report['sha256_after'] = fingerprint(after)
+    return report
+
+
+def render_route(report):
+    out = [f"# route {report['action']} · changed: {report['changed']}"]
+    for r in report.get('routes', []):
+        verify = r['verification'] and f"{r['verification']['scope']}:{r['verification']['role']}" or 'none'
+        out.append(f"- {r['id']} ({r['scope']}): {r['purpose']}\n  reads: {'; '.join(r['reads'])}\n  verification: {verify}")
+    if report.get('route'):
+        out.append(f"route: {json.dumps(report['route'], ensure_ascii=False)}")
+    for b in report.get('removed_bindings', []):
+        out.append(f"- removed binding {b}")
+    for f in report.get('findings', []):
+        out.append(f"- note: {f}")
+    if report.get('error'):
+        out.append(f"ERROR: {report['error']}")
+    return '\n'.join(out) + '\n'
+
+
 class CLIParser(argparse.ArgumentParser):
     def error(self, message):
         raise InputError(message)
@@ -737,17 +1000,30 @@ class CLIParser(argparse.ArgumentParser):
 
 def parser():
     p = CLIParser(description=__doc__)
-    p.add_argument('command', choices=('inspect','context','check','blocks'))
+    p.add_argument('command', choices=('inspect','context','check','blocks','route'))
+    p.add_argument('action', nargs='?', choices=('list','add','retire'), help='route: list, add or retire')
     p.add_argument('--root', required=True, type=Path)
     group = p.add_mutually_exclusive_group()
     group.add_argument('--config', type=Path)
     group.add_argument('--control', type=Path)
     p.add_argument('--route')
+    p.add_argument('--id', help='route add/retire: route ID')
+    p.add_argument('--purpose', help='route add: short task label')
+    p.add_argument('--read', action='append', default=[], help='route add: PATH, PATH#Heading or PATH@marker (repeatable)')
+    p.add_argument('--bind', action='append', default=[], help='route add: ROLE=POINTER binding for the route scope (repeatable)')
+    p.add_argument('--verify', help='route add: SCOPE:ROLE of the verification binding, or none')
+    p.add_argument('--replace', action='store_true', help='route add: overwrite a different route/binding with the same key')
+    p.add_argument('--keep-bindings', action='store_true', help='route retire: keep the scope bindings')
     p.add_argument('--build-helper', type=Path, help='Explicit trusted companion helper override; never read from project configuration')
     p.add_argument('--trace', type=Path)
     p.add_argument('--path', type=Path, action='append', default=[], help='blocks/check: extra file (relative to root) to scan for owned blocks')
     p.add_argument('--allow-read', type=Path, action='append', default=[])
-    p.add_argument('--max-read-bytes', type=int, default=131072)
+    p.add_argument('--scope', action='append', default=[], help='check/blocks/inspect: limit to these scopes (repeatable)')
+    p.add_argument('--with-entrypoint', action='store_true', help='inspect: also print the entrypoint text')
+    p.add_argument('--max-read-bytes', type=int, default=131072, help='bytes of selected text admitted into context')
+    p.add_argument('--max-scan-bytes', type=int, default=4 * 1024 * 1024, help='bytes scanned to locate sections/markers (not admitted)')
+    p.add_argument('--max-file-bytes', type=int, default=1024 * 1024, help='per-file scan cap')
+    p.add_argument('--max-scan-files', type=int, default=256)
     p.add_argument('--max-output-bytes', type=int, default=None,
                    help='default 65536 for context (one route payload), 16384 for inspect/check')
     p.add_argument('--max-files', type=int, default=32)
@@ -776,16 +1052,34 @@ def main():
         sys.stdout.buffer.write(data)
         return 2
     args.root = args.root.resolve()
+    if args.command == 'route' or args.action:
+        cap = args.max_output_bytes or 16384
+        if args.command != 'route' or not args.action:
+            report = dict(schema_version=1, command=args.command, error='route needs an action (list|add|retire); actions apply only to route')
+            code = 2
+        else:
+            try:
+                if args.control:
+                    raise InputError('route edits generic bindings only, not --control')
+                report, code = route_command(args), 0
+            except (InputError, OSError, ValueError, KeyError) as e:
+                report, code = dict(schema_version=1, command='route', action=args.action, changed=False, error=str(e)[:800]), 2
+        data = (render_route(report) if args.format == 'md' else json.dumps(report, ensure_ascii=False, indent=2 if args.format == 'text' else None) + '\n').encode('utf-8')
+        sys.stdout.buffer.write(data[:cap])
+        return code
     if args.max_output_bytes is None:
         args.max_output_bytes = 65536 if args.command == 'context' else 16384
     audit = Audit(args)
     try:
-        if not math.isfinite(args.timeout) or min(args.max_read_bytes, args.max_output_bytes, args.max_files, args.timeout) <= 0:
+        if not math.isfinite(args.timeout) or min(args.max_read_bytes, args.max_output_bytes, args.max_files, args.timeout,
+                                                   args.max_scan_bytes, args.max_file_bytes, args.max_scan_files) <= 0:
             raise InputError('limits must be positive')
         if args.command == 'context' and not args.route:
             raise InputError('context requires --route')
         if args.trace and args.command != 'check':
             raise InputError('--trace applies only to check')
+        if args.scope and args.command == 'context':
+            raise InputError('--scope does not apply to context; the route names its scope')
         audit.run()
     except InputError as e:
         audit.input_error = True

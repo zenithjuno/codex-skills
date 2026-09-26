@@ -220,7 +220,11 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(self.cli('check')[0],2)
 
     def test_source_file_limit(self):
-        code,r,_=self.cli('check','--max-files','1');self.assertEqual(code,3)
+        # --max-files bounds admitted source files (context); scanning has its own file limit.
+        (self.root/'NOTES.md').write_text('## N\nnote\n')
+        self.edit(lambda d:d['routes'][0]['reads'].append(dict(path='NOTES.md',section='N')))
+        code,r,_=self.cli('context','--route','resume','--max-files','1');self.assertEqual(code,3)
+        code,r,_=self.cli('check','--max-scan-files','1');self.assertEqual(code,3)
         self.assertEqual(r['metrics']['source_files'],1)
 
     def test_T31_check_stats_whole_file_pointers(self):
@@ -287,6 +291,98 @@ class CoreTests(unittest.TestCase):
         a=self.cli('blocks')[1]['blocks'];b=self.cli('blocks')[1]['blocks'];self.assertEqual(a,b)
         with (self.root/'AGENTS.md').open('a') as f:f.write('unowned line\n')
         self.assertEqual(self.cli('blocks')[1]['blocks'],a)
+
+    # ---- 2026-09-25 usage review: P1 scan/admit, P3 inspect, P4 route errors, stale mentions, P2 route edits ----
+
+    def big_contract(self, kb=200):
+        (self.root/'CONTRACT.md').write_text('# Contract\n## Scope\nOnly the checker.\n## Appendix\n'+('x'*1023+'\n')*kb)
+        self.edit(lambda d:d['bindings'].append(dict(scope='app',role='scope',path='CONTRACT.md',section='Scope')))
+
+    def test_T37_check_scans_without_admitting(self):
+        self.big_contract()
+        code,r,_=self.cli('check');self.assertEqual(code,0,r)
+        self.assertEqual(r['metrics']['admitted_bytes'],0);self.assertGreater(r['metrics']['scanned_bytes'],200000)
+        code,r,_=self.cli('check','--max-scan-bytes','50000');self.assertEqual(code,3)
+
+    def test_T37_context_admits_only_selected_text(self):
+        self.big_contract()
+        self.edit(lambda d:d['routes'][0]['reads'].append(dict(path='CONTRACT.md',section='Scope')))
+        code,r,_=self.cli('context','--route','resume','--max-read-bytes','5000');self.assertEqual(code,0,r)
+        self.assertLess(r['metrics']['admitted_bytes'],5000)
+        self.assertIn('Only the checker.',''.join(x['text'] for x in r['sources']))
+
+    def test_T37_per_file_cap(self):
+        self.big_contract(1100)
+        code,r,_=self.cli('check');self.assertEqual(code,3)
+        self.assertTrue(any('per-file scan cap' in n['reason'] for n in r['next_reads']))
+
+    def test_T38_scope_filter(self):
+        (self.root/'OTHER.md').write_text('## Goal\ng\n')
+        self.edit(lambda d:d['bindings'].append(dict(scope='other',role='goal',path='OTHER.md',section='Missing')))
+        self.assertEqual(self.cli('check')[0],1)
+        code,r,_=self.cli('check','--scope','app');self.assertEqual(code,0,r);self.assertEqual(r['checked_scopes'],['app'])
+        self.assertEqual(self.cli('check','--scope','nope')[0],2)
+
+    def test_T39_inspect_summarizes_entrypoint(self):
+        code,r,_=self.cli('inspect');self.assertEqual(code,0)
+        self.assertEqual(r['sources'],[]);self.assertIn('sha256',r['entrypoint']);self.assertIn('app',r['scopes'])
+        code,r,_=self.cli('inspect','--with-entrypoint')
+        self.assertIn('Router',r['sources'][0]['text'])
+
+    def test_T40_unknown_route_lists_available(self):
+        code,r,_=self.cli('context','--route','resum');self.assertEqual(code,2)
+        msg=r['findings'][0]['impact'];self.assertIn('did you mean resume',msg);self.assertIn('Available: resume',msg)
+
+    def test_T41_stale_route_mention(self):
+        (self.root/'AGENTS.md').write_text('# Router\nRun `project_context.py context --route resume`.\nRoute IDs: `resume`, `old-lane`.\n')
+        code,r,_=self.cli('check');self.assertEqual(code,0)
+        f=[x for x in r['findings'] if x['check']=='stale-route-mention'];self.assertEqual(len(f),1)
+        self.assertIn('old-lane',f[0]['impact']);self.assertEqual(f[0]['evidence'][0]['line_start'],3)
+
+    def route(self,*args):
+        r=subprocess.run([sys.executable,str(CLI),'route',*args,'--root',str(self.root)],capture_output=True)
+        return r.returncode,json.loads(r.stdout)
+
+    def test_T42_route_add_is_validated_and_idempotent(self):
+        (self.root/'LANE.md').write_text('# Lane\n<!-- project-bootstrap:lane-state:start -->\nNext: audit batch 2.\n<!-- project-bootstrap:lane-state:end -->\n## Verify\nrun lane check\n')
+        args=['add','--id','resume-lane','--scope','lane','--purpose','Resume lane','--read','LANE.md@lane-state',
+              '--bind','current-state=LANE.md@lane-state','--bind','verification=LANE.md#Verify','--verify','lane:verification']
+        code,r=self.route(*args);self.assertEqual(code,0,r);self.assertTrue(r['changed'])
+        text=(self.root/'project-context.json').read_bytes()
+        code,r=self.route(*args);self.assertEqual(code,0);self.assertFalse(r['changed'])
+        self.assertEqual(text,(self.root/'project-context.json').read_bytes())
+        code,c,_=self.cli('context','--route','resume-lane');self.assertEqual(code,0,c)
+        self.assertIn('audit batch 2',''.join(x['text'] for x in c['sources']))
+        code,r=self.route('add','--id','resume-lane','--scope','lane','--purpose','Changed','--read','LANE.md@lane-state')
+        self.assertEqual(code,2);self.assertIn('--replace',r['error'])
+
+    def test_T42_route_add_refuses_bad_pointer_without_writing(self):
+        before=(self.root/'project-context.json').read_bytes()
+        code,r=self.route('add','--id','x','--scope','app','--purpose','p','--read','CURRENT.md#No such heading')
+        self.assertEqual(code,2);self.assertIn('does not resolve',r['error'])
+        self.assertEqual(before,(self.root/'project-context.json').read_bytes())
+
+    def test_T42_route_retire_removes_unshared_bindings(self):
+        (self.root/'LANE.md').write_text('## State\ns\n')
+        self.route('add','--id','resume-lane','--scope','lane','--purpose','Lane','--read','LANE.md#State','--bind','current-state=LANE.md#State')
+        code,r=self.route('retire','--id','resume-lane');self.assertEqual(code,0,r)
+        self.assertEqual(len(r['removed_bindings']),1)
+        d=json.loads((self.root/'project-context.json').read_text())
+        self.assertFalse(any(b['scope']=='lane' for b in d['bindings']))
+        code,r=self.route('retire','--id','resume-lane');self.assertEqual(code,2);self.assertIn('Available',r['error'])
+
+    def test_T42_route_retire_keeps_referenced_bindings(self):
+        (self.root/'LANE.md').write_text('## State\ns\n')
+        self.route('add','--id','lane','--scope','app2','--purpose','p','--read','LANE.md#State','--verify','app:verification')
+        code,r=self.route('retire','--id','resume');self.assertEqual(code,0,r)
+        d=json.loads((self.root/'project-context.json').read_text())
+        self.assertIn(('app','verification'),{(b['scope'],b['role']) for b in d['bindings']})
+        self.assertNotIn(('app','goal'),{(b['scope'],b['role']) for b in d['bindings']})
+
+    def test_T42_route_list_and_missing_config(self):
+        code,r=self.route('list');self.assertEqual(code,0);self.assertEqual(r['routes'][0]['id'],'resume')
+        (self.root/'project-context.json').unlink()
+        code,r=self.route('list');self.assertEqual(code,2);self.assertIn('never create',r['error'])
 
 
 if __name__ == '__main__':

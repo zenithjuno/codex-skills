@@ -36,6 +36,28 @@ A pointer is `{path, section}` or `{path, marker}` (never both):
   a section pointer silently until the next check.
 - Both null: whole file. `context` returns its content; `check` only confirms it exists.
 
+## Editing routes
+
+`route add|retire|list` is the only command that writes, and it writes only
+`project-context.json`. Pointer spec: `PATH`, `PATH#Exact heading`, `PATH@marker`.
+
+```sh
+python3 $H route add --root . --id resume-lane --scope lane --purpose "Resume lane" \
+  --read lane/SHEET-INDEX.md@lane-state --read lane/CONTRACT.md#Scope \
+  --bind current-state=lane/SHEET-INDEX.md@lane-state \
+  --bind verification=lane/CONTRACT.md#Verification gates --verify lane:verification
+python3 $H route retire --root . --id resume-lane      # --keep-bindings to keep them
+```
+
+- Every pointer must resolve before anything is written; an unresolved one is exit 2, no write.
+- Same inputs twice → `changed: false`, file byte-identical. A different route or
+  binding under an existing key needs `--replace`.
+- `retire` removes the route and that scope's bindings when no other route uses
+  the scope and no verification binding or mirror references them.
+- The file is rewritten as indent-2 UTF-8 JSON; a concurrent edit detected
+  before replacement aborts with exit 2.
+- It never creates a configuration; bootstrap decides whether one should exist.
+
 ## Bindings, routes, mirrors
 
 - Roles: goal, entrypoint, routing, current-state, contract, verification, history;
@@ -55,7 +77,9 @@ A pointer is `{path, section}` or `{path, marker}` (never both):
 headers followed by the selected text; best for an agent reading the result).
 Report fields: schema_version, command, coverage, coverage_by_dimension,
 checked_scopes, findings, metrics, next_reads, sources, routes, blocks (owned
-marker blocks: path, name, line range, sha256 of the body). Findings have
+marker blocks: path, name, line range, sha256 of the body); inspect adds
+entrypoint (path, sha256, lines, bytes) and scopes (roles per scope). Metrics
+separate admitted_bytes (text emitted to the agent) from scanned_bytes. Findings have
 stable IDs, severity, check, evidence, impact, recommendation, confidence and
 repairability. `--report PATH` writes a new file only; it never overwrites.
 Exit 0 complete, 1 health errors, 2 input error, 3 partial coverage.
