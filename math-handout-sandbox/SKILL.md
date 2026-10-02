@@ -10,7 +10,7 @@ description: >
   or worksheet. Do not use for direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.09.05 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.02 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 
@@ -22,6 +22,9 @@ the decision at hand.
 Route exam projects to `thai-math-exam-production`; exam state replaces a second
 handout note. If that skill requests Mode B to resolve an unclear root/authority,
 resolve only that orientation and return, without routing in a loop.
+Route curating several past papers or practice sets into a tutoring selection
+(inventory, taxonomy, candidates, sequence, foundation targets) to
+`exam-source-curation`; return here to write the accepted summaries and drills.
 Direct Thai DOCX work without design discussion routes by content: prose without
 math to `thai-docx`, mathematical notation to `thai-math-docx`. Administrative
 numbers and ordinary prose relations alone do not make a document mathematical.

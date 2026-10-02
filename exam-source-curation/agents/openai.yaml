@@ -1,0 +1,7 @@
+interface:
+  display_name: "Exam Source Curation"
+  short_description: "Curate past papers into a tutoring path"
+  default_prompt: "Use $exam-source-curation to turn these exam sources into an audited, teacher-approved tutoring selection."
+
+policy:
+  allow_implicit_invocation: true

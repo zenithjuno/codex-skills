@@ -1,0 +1,40 @@
+{
+  "project": "<lane-or-slug>",
+  "records_dir": "records",
+  "audit_dir": "source-audit",
+  "state_file": "curation-state.json",
+  "denominator": ["A66", "A67"],
+  "extra_fields": [],
+  "sets": [
+    {
+      "id": "A66",
+      "file": "<path or filename of the source>",
+      "sha256": "<64 hex>",
+      "role": "primary",
+      "provenance": "official",
+      "status": "canonical",
+      "has_answer_key": true,
+      "item_count": 30
+    },
+    {
+      "id": "A67",
+      "file": "<path>",
+      "sha256": "<64 hex>",
+      "role": "primary",
+      "provenance": "official",
+      "status": "canonical",
+      "has_answer_key": true,
+      "item_count": 30
+    },
+    {
+      "id": "A67b",
+      "file": "<re-typed copy of A67>",
+      "sha256": "<64 hex>",
+      "role": "primary",
+      "provenance": "tutor-compiled",
+      "status": "variant",
+      "variant_of": "A67",
+      "has_answer_key": false
+    }
+  ]
+}
