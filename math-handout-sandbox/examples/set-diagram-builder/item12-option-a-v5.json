@@ -12,7 +12,7 @@
   ],
   "labels": [
     {"text": "P", "role": "set", "set": "P", "x_pt": 56, "y_pt": 11},
-    {"text": "Q", "role": "set", "set": "Q", "x_pt": 144, "y_pt": 11},
+    {"text": "Q", "role": "set", "set": "Q", "x_pt": 145, "y_pt": 11},
     {"text": "R", "role": "set", "set": "R", "x_pt": 151, "y_pt": 103}
   ],
   "universe": null,

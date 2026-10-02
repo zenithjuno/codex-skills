@@ -46,19 +46,19 @@ class MaterialPreflightTests(unittest.TestCase):
     def test_parent_skill_preserves_project_state_and_dimension_authority(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(skill.split())
-        self.assertIn("TEACHING-CONVENTIONS.md", normalized)
+        self.assertIn("Read applicable root/topic teaching conventions", normalized)
         self.assertIn("DOCX-PREFERENCES.md", normalized)
-        self.assertIn("actually touch DOCX", normalized)
-        self.assertIn("topic's approved", normalized)
-        self.assertIn("resolve by dimension", normalized)
-        self.assertIn("historical files are evidence", normalized)
+        self.assertIn("when layout or DOCX is involved", normalized)
+        self.assertIn("then the active note's Contract", normalized)
+        self.assertIn("current instruction wins, approved design owns content, conventions supply defaults", normalized)
+        self.assertIn("history is evidence", normalized)
 
     def test_parent_skill_preserves_approval_and_direct_docx_route(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(skill.split())
-        self.assertIn("teacher both approves", normalized)
-        self.assertIn("Thai DOCX repair or formatting", normalized)
-        self.assertIn("route that case directly to `thai-math-docx`", normalized)
+        self.assertIn("Begin only after content approval and an artifact request", normalized)
+        self.assertIn("formatting/repair without design discussion needs no Mode B", normalized)
+        self.assertIn("prose without math to `thai-docx`, mathematical notation to `thai-math-docx`", normalized)
         self.assertIn("Do not begin production merely because it is possible", normalized)
 
     def test_preflight_reference_is_mode_b_conditional(self) -> None:
