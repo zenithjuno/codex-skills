@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import importlib.util
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -30,6 +31,37 @@ def load_tool_module():
 
 
 release_module = load_tool_module()
+
+_isolated_home: Optional[tempfile.TemporaryDirectory] = None
+_home_patches: list = []
+
+
+def setUpModule() -> None:
+    """Point every test (and every tool subprocess) at a throwaway HOME.
+
+    The tool defaults to ~/.codex/skills and ~/.claude/skills; without this a
+    release run from a test creates real symlinks in the user's Claude skills
+    dir that dangle once the temp repo is deleted.
+    """
+    global _isolated_home
+    _isolated_home = tempfile.TemporaryDirectory(prefix="skill-release-home-")
+    home = Path(_isolated_home.name)
+    _home_patches.extend(
+        [
+            mock.patch.dict(os.environ, {"HOME": str(home)}),
+            mock.patch.object(release_module, "DEFAULT_ROOT", home / ".codex" / "skills"),
+            mock.patch.object(release_module, "CLAUDE_SKILLS_DIR", home / ".claude" / "skills"),
+        ]
+    )
+    for patch in _home_patches:
+        patch.start()
+
+
+def tearDownModule() -> None:
+    while _home_patches:
+        _home_patches.pop().stop()
+    if _isolated_home is not None:
+        _isolated_home.cleanup()
 
 
 def command(*args: str, cwd: Optional[Path] = None, check: bool = True) -> subprocess.CompletedProcess[str]:
