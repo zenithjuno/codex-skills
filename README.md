@@ -49,6 +49,7 @@
 | [`learner-playtest`](learner-playtest) | เก็บและวิเคราะห์ feedback จาก **ผู้เรียนจริง** (AI ไม่จำลองผู้เล่นแทน) |
 | [`ship-check`](ship-check) | ด่านสุดท้ายก่อนปล่อยให้ผู้เรียนใช้ — สแกนหา ship-blocker + dry-run + เช็กลิสต์ความพร้อม |
 | [`playwright`](playwright) | ขับเบราว์เซอร์จริงจาก terminal เพื่อทดสอบหน้าเว็บ |
+| [`answer-me-with-html`](answer-me-with-html) | ตอบคำถามซับซ้อนเป็นหน้า HTML หน้าเดียว (ผัง ตาราง แถบงบ) — มีโน้ตภาษาไทย งบประมาณ และสมการ |
 
 ---
 
@@ -115,10 +116,25 @@ for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"
 
 | skill | ที่มา | สัญญาอนุญาต |
 |---|---|---|
-| `playwright` | ดัดแปลงจาก [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) | Apache-2.0 — ดู [`playwright/LICENSE.txt`](playwright/LICENSE.txt) และ [`NOTICE.txt`](playwright/NOTICE.txt) |
+| `playwright` | จาก [openai/skills](https://github.com/openai/skills/tree/main/skills/.curated/playwright) (curated) — เดิม README ระบุผิดว่า microsoft/playwright-cli | Apache-2.0 — ดู [`playwright/LICENSE.txt`](playwright/LICENSE.txt) และ [`NOTICE.txt`](playwright/NOTICE.txt) |
 | `systematic-debugging` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT (เล็มและปรับให้เข้ากับงาน Apps Script/HTML) |
 | `verification-before-completion` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT |
-| `karpathy-guidelines` | เรียบเรียงจากข้อสังเกตของ [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) | MIT |
+| `karpathy-guidelines` | จาก [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) เรียบเรียงจากข้อสังเกตของ [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) | MIT |
+| `answer-me-with-html` | จาก [QingYunA/answer-me-with-html](https://github.com/QingYunA/answer-me-with-html) + โน้ตภาษาไทย/งบประมาณ/สมการของเรา | MIT |
+
+### สกิลที่ยืมมา: รับอัปเดตจากต้นทาง
+
+สกิลในตารางด้านบนมีไฟล์ `UPSTREAM.md` บอกว่ามาจาก repo ไหน และ **commit ไหนเป็นฐาน** ของสำเนาเรา
+(ไม่ต้องเก็บต้นฉบับซ้ำ — git ดึงไฟล์ ณ commit นั้นได้เสมอ) ส่วนที่เราแก้เองจะถูกรักษาไว้ตอนรวม:
+
+```bash
+python3 tools/upstream_sync.py check                 # ต้นทางเปลี่ยนอะไรตั้งแต่ฐาน
+python3 tools/upstream_sync.py merge <skill> --dry-run
+python3 tools/upstream_sync.py merge <skill>         # รวมแบบ 3 ทาง ชนกันจะหยุดและไม่ขยับฐาน
+python3 tools/upstream_sync.py pin <skill> <commit>  # หลังแก้จุดชนเอง
+```
+
+แล้วปล่อยด้วย `skill_release.py` ตามปกติ · ห้ามอัปเดตด้วยการคัดลอกทับทั้งโฟลเดอร์ (ของที่เราแก้จะหาย)
 
 **ไม่รวมอยู่ใน repo นี้โดยตั้งใจ** (ดู [`.gitignore`](.gitignore)) — เป็นของบุคคลที่สาม ไม่ใช่ผลงานเรา
 และไม่มีสิทธิ์เผยแพร่ต่อ:
