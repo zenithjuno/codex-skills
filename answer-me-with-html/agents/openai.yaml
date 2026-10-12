@@ -1,6 +1,6 @@
 interface:
   display_name: "Answer me with HTML"
-  short_description: "Answer as a one-page visual HTML explainer (Thai, budget and math notes included)"
+  short_description: "Selective visual HTML explainers; Markdown by default"
   default_prompt: "Use $answer-me-with-html to answer this as one HTML page: write the Markdown draft, render it with the bundled am CLI, and give me the file link."
 
 policy:

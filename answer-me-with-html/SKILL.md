@@ -2,21 +2,17 @@
 name: answer-me-with-html
 argument-hint: "[config [key value] | clean | update]"
 description: >-
-  Turns an answer into a one-page visual HTML explainer: the model writes a short Markdown draft and
-  the bundled CLI builds one page. Use it proactively and liberally, without being asked, whenever a
-  page would help the reader more than plain text, even if plain text would also work: any explanation
-  of how something works or how parts relate (flow, request path, architecture, code or folder
-  structure, state machine, lifecycle, history); any comparison, trade-off or decision with pros and
-  cons; any diagnosis, review or investigation, especially with several causes or findings to rank;
-  any answer with a table, a numbered or ranked list, steps, branches or several sections; or when the
-  user says "I don't get it / draw it / explain visually / 讲讲原理 / 没看懂 / 画个图". When in doubt, use it: a
-  page is quick and cheap to make. Also for explainer videos ("make a video", "做个视频") and for changing
-  its settings. Skip only for small talk, a trivial one-line answer, or when the user asks for plain
-  text.
+  Create a standalone visual HTML explainer when the user asks for an HTML page
+  or visual explanation, or when a diagram, spatial layout, or interactive
+  comparison materially clarifies relationships beyond a Markdown answer.
+  Default to Markdown for ordinary explanations, proposals, question wording,
+  reviews, lists, and small tables. Do not create a page merely because an answer
+  has several sections or concepts. Also handles explicitly requested explainer
+  videos and this skill's settings.
 ---
-<!-- SKILL-VERSION: 2026.10.10 | name: answer-me-with-html | canonical: ~/.codex/skills/answer-me-with-html | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.12 | name: answer-me-with-html | canonical: ~/.codex/skills/answer-me-with-html | bump this date on every edit -->
 
-# Answer me with HTML: answer a complex question with one HTML page
+# Answer me with HTML: create a visual explainer when it adds value
 
 You write only the **content draft** (extended Markdown). The `am` CLI does all layout, colours, dark mode and diagram coordinates. **Do not hand-write HTML / CSS / SVG.**
 
@@ -30,26 +26,43 @@ When the arguments start with `config`, `clean` or `update`, or the user asks to
 
 This copy is vendored in `~/.codex/skills` (see `UPSTREAM.md`). For an update, do not use `npx skills`, the plugin or `git pull`: run `python3 ~/.codex/skills/tools/upstream_sync.py check answer-me-with-html`, then `merge`, then release with the `skill-release` skill.
 
-## 1. Decide: produce a page or not
+## 1. Decide: Markdown or a visual page
 
-Produce a page if any of these is true:
-- There are ≥3 interrelated concepts, and the reader needs to see how they relate.
-- There is a flow, protocol, call chain or state transition (especially with branches or several actors).
-- There is a comparison across ≥3 dimensions, a trade-off between options, or a "can / cannot" list.
-- There is a hierarchy or an evolution over time.
+**Default to Markdown.** Use this skill to create a page when either:
 
-Otherwise answer in plain text. When unsure: the more the question "needs a picture to understand", the more it calls for a page.
+- The user explicitly asks for an HTML page, standalone visual explainer, or a
+  visual explanation that this skill's components can express well.
+- A specific visual representation materially improves understanding beyond the
+  chat answer: for example, a branching flow with several actors, a hierarchy or
+  architecture whose connections are hard to follow in prose, a timeline with
+  parallel events, or a comparison that benefits from interactive inspection.
 
-### Always-on mode
+Before choosing a page implicitly, identify what the reader gains from the
+visual representation. If the proposed page only repeats the Markdown in panels,
+keep the answer in Markdown. When unsure, stay with Markdown; no confirmation is
+needed to skip the page.
 
-If the context contains the `[answer-me-with-html always-on]` reminder (the user added the always-on rule to a rules file such as `CLAUDE.md` or `AGENTS.md`), the bar is lower:
+Do not trigger on topic labels or formatting alone. Multiple concepts, several
+sections, a numbered list, a review, pros and cons, or a small comparison table
+are not sufficient reasons to create HTML. Routine mathematics proposals,
+question wording, solutions, local edits, and short teaching explanations
+normally remain in Markdown. A request such as "explain" or "I don't get it"
+does not by itself require HTML; choose a page only if a concrete visual helps.
 
-- Whenever this turn gives a conclusion, summary, plan, comparison, review or explanation, attach a page.
-- Do not skip it because "the answer is short". If there is a conclusion, produce a page.
-- For everyday conclusions use a small page with 2–4 panels: one callout with the conclusion, plus one table or one diagram. Do not add panels just to fill space.
-- Render with `--no-open`, so no browser window interrupts the user. The user opens the page by clicking the path at the end of the reply.
-- Order: render the page first, then write the text reply. The reply is the last thing in the turn, with the page link on its last line (see step 5). Do not write the reply and then call `am render`.
-- Produce no page for small talk, one or two sentences with no conclusion, pure command output, or when the user asks for plain text.
+An explicit request for plain text or Markdown takes precedence over implicit
+page creation. A reusable page requested for viewing or sharing is a valid
+artifact even when its content could also be expressed in Markdown. Render it
+once rather than producing both a full chat draft and an identical page.
+
+### Explicit always-on preference
+
+Keep support for an existing `[answer-me-with-html always-on]` preference only
+when the user has explicitly opted into it. Do not infer it from installing or
+using the skill previously. In that mode, attach a small page for substantive
+answers, use `--no-open`, and avoid filler panels. The user's current request to
+use Markdown or to reduce page creation overrides the saved preference.
+Settings changes and skill maintenance produce no explainer page. Videos remain
+explicit-request-only (section 7).
 
 ## 2. Workflow (one Bash call)
 
@@ -61,7 +74,7 @@ node "${CLAUDE_SKILL_DIR}/scripts/am.mjs"
 
 In Claude Code, the path above is replaced with this skill's directory automatically. If you see the variable unreplaced (other agents), replace it with the absolute path of the directory that contains this SKILL.md. If the user installed the `am` command globally, you can also use `am` directly.
 
-1. First list 3–8 panels in your head. Each panel answers one sub-question only.
+1. Choose only the panels needed for the visual explanation, normally 2–6. Each panel answers one sub-question; do not add panels to meet a count.
    The draft language follows the language of the user's question: an English question gets an English draft, a Chinese question a Chinese draft, a Japanese question a Japanese draft. The page button labels, `<html lang>` and the STE check rules switch automatically by the draft language (a draft containing kana counts as Japanese); STE applies the English or Chinese rules to each sentence by its language (Japanese sentences get only the sentence-length and paragraph-length checks, with the same character limits as Chinese; any other language gets only those two checks, counted in words). To set the language yourself, write `lang:` in the frontmatter: `en`, `zh` (Simplified Chinese), `zh-Hant` or `zh-TW` (Traditional Chinese), `ja`, or any other language tag such as `fr` or `ko`. Detection reads Chinese (Simplified, or Traditional when the text has characters written in only one form), Japanese, Korean, and Cyrillic, Arabic, Hebrew, Thai and Greek text, and reads all Latin-script text as English. Declare the language when the user writes a Latin-script language other than English, when a Chinese text is too short or too plain to show Traditional characters, or when an exact tag matters (Arabic script also writes Persian, Cyrillic also Ukrainian). A language without its own labels still gets the right `<html lang>`, with English page labels.
    For a Thai draft (`lang: th`), budget figures or mathematical formulas, first read `${CLAUDE_SKILL_DIR}/references/thai-budget.md`.
 2. Choose components by the shape of the information (see section 4).
@@ -86,9 +99,15 @@ AM_EOF
    - `STE n warnings`: rewrite the flagged lines as suggested, then render again. Retry at most 2 rounds; if warnings remain, keep the last page and say so.
    - Every time you render again after a `✓`, add `--replace <path from the last ✓ line>`. The CLI deletes that page once the new one is written, so one answer leaves one page.
    - `! Cleanup hint: …` or `! Update hint: …`: pass it on to the user in one sentence at the end of the reply, and ask whether to clean up / update. **Do not run am clean or the update command yourself**; wait until the user agrees. The CLI throttles these: the cleanup hint appears at most once every 7 days, the update hint at most once every 3 days.
-5. Reply in the terminal with only 2–3 lines: one core conclusion + the page link. Do not paste the draft or the HTML back into the terminal. Write this reply after the render, as the last step of the turn: render the page first, then reply. No tool call comes after the reply.
-   If the render output has a `link:` line, the user runs `am serve`: use that URL as the page link instead, with the URL as the label too, and skip the `file://` link below. Never start `am serve` yourself; only the user starts it.
-   Otherwise write the page link as a Markdown link to a `file://` URL, with the URL as the label too: `[file:///abs/path.html](file:///abs/path.html)`. Take the absolute path from the `✓` line and add `file://` in front; do not percent-encode it. GUI hosts (Codex, Antigravity) render this as a clickable link, and a terminal still shows the full URL.
+5. Deliver the page without duplicating the full content in chat. If the page is
+   the requested artifact, give a brief introduction and its link. If it is a
+   supporting visual, keep the requested answer and essential conclusions in chat
+   and link the page for visual detail; do not force the user to open it for a
+   simple answer. Render before delivering the final reply.
+   If the render output has a `link:` line, use that URL. Never start `am serve`
+   yourself; only the user starts it. Otherwise use the host's supported local
+   file-link format: in Codex, a Markdown link with an absolute filesystem path;
+   in terminals that need it, a `file://` URL. Use the exact output path.
 
 When a page already exists and only one panel needs to change, do not rewrite the whole page. Take the source draft from the HTML's `#am-source`, replace only the matching `##` section, and overwrite the page in place:
 
