@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "label_pt": 10,
+  "axis_label_pt": 12,
+  "axis_pt": 0.75,
+  "curve_pt": 1,
+  "tick_pt": 0.5,
+  "point_radius_pt": 2.5,
+  "point_border_pt": 0.75,
+  "arrow_length_pt": 3,
+  "halo_pt": 0.25,
+  "min_dpi": 600,
+  "grid_pt": 0.25,
+  "guide_pt": 0.5
+}

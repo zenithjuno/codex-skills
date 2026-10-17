@@ -1,27 +1,23 @@
 ---
 name: thai-math-docx
-description: >
-  Use when creating, editing, repairing, auditing, or reconstructing Thai
-  mathematics Microsoft Word .docx files. Optimize for the user's Word workflow:
-  Thai prose in TH Sarabun New 16 pt Complex Script, Latin/admin prose in
-  Cambria 12 pt, editable Word Equation/OMML for math-ish tokens, insertion-safe
-  Thai body runs, Thai-style question labels, TH Sarabun New 12 pt footers,
-  robust docDefaults/Normal style defaults that survive Clear Formatting, and
-  mandatory font/OMML audits. Use for Thai math exams, math handouts and answer keys,
-  PDF/image-to-DOCX reconstruction of mathematical documents, and repair of imported Thai
-  DOCX that contain equations — any task where Thai text plus mathematical notation must
-  remain editable and Word-compatible. For a Thai .docx with NO mathematical notation
-  (plain prose, letters, memos, reports, forms, plain handouts, or repairing an imported
-  document that has no equations), use the `thai-docx` skill instead.
+description: >-
+  Create, edit, repair, render or audit Thai mathematics Word .docx files with
+  editable OMML equations, Thai/Latin font defaults and document QA. Use for
+  exams, teaching handouts, answer keys and reconstruction from PDFs or images.
+  Also create or resize teacher-requested mathematics figures for handouts or
+  later Word reuse, using physical print-size preferences and the tested
+  coordinate-graph prototype. For Thai Word documents without mathematical
+  notation, use thai-docx. Pedagogical discussion before production belongs in
+  math-handout-sandbox.
 ---
 
-<!-- SKILL-VERSION: 2026.09.12.1 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.17 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
 Use this skill whenever the task is to create, edit, repair, reconstruct, or audit a Microsoft Word `.docx` containing Thai mathematics content.
 
-This is a document-production skill, not a discussion-gated sandbox workflow. If the user specifically wants chat-first refinement and only later dumping into a sandbox, use `math-handout-sandbox`; when that workflow writes Thai math DOCX output, still follow this skill's rules.
+This skill produces documents and teacher-approved mathematics figure assets. For figure-only requests, use the figure-style reference and export the requested assets; run DOCX production and its document gates when a DOCX is requested. It is not a discussion-gated sandbox workflow. If the user specifically wants chat-first refinement and only later dumping into a sandbox, use `math-handout-sandbox`; when that workflow writes Thai math DOCX output, still follow this skill's rules.
 
 ## Visual Truth
 
@@ -55,6 +51,7 @@ relevant script. Read anything below only when its condition is actually met.
 | `synthetic-division.md` | a solution uses synthetic division; use the approved editable traditional table rather than prose, tabs, a picture, or a local table implementation |
 | `qa-runner.md` | you need the contract schema, the full list of facts the runner checks, or the rendered-page tooling |
 | `visuals.md` | an image is on the table, and only after the teacher has confirmed it |
+| `math-figure-style.md` | producing/resizing approved mathematics figures; physical print-size preferences and the coordinate-graph prototype |
 | `thai-math-docx-text.md` | unfamiliar OOXML, an OMML edge case, font-routing debugging, a fragile transcript or copy/paste behaviour, a repair failure, low-level package/XML work, generator-internal changes, new DOCX capability work, or a conflict with historical design rationale |
 | `CHANGELOG.md` | you need a compact account of recent behavior changes before debugging, reorganizing, or merging another skill branch |
 

@@ -22,6 +22,10 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 ALWAYS = ["SKILL.md", "references/preferences.md"]
 
 SCENARIOS: dict[str, tuple[str, list[str]]] = {
+    "figure-style": (
+        "produce/resize an approved mathematics figure",
+        ALWAYS + ["references/visuals.md", "references/math-figure-style.md"],
+    ),
     "edit-data": (
         "edit a generator's DATA section, rebuild, QA — the common job",
         ALWAYS,

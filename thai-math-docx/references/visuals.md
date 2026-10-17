@@ -11,7 +11,7 @@ image, say what it would show, and wait for an explicit yes.
 
 ## Honest state of this pipeline
 
-Two paths have approved reusable support:
+The following paths have reusable support with distinct scopes:
 
 - **Set diagrams** — Venn/Euler, shaded set operations, student templates. They
   have a deterministic builder, fixtures and QA assertions in the
@@ -24,10 +24,12 @@ Two paths have approved reusable support:
   covers blank axes, open/closed rays in both directions and a mixed bounded
   interval. Adapt endpoint values and positions while preserving its geometry.
 
-Other visuals — function graphs, geometry figures, tables drawn as pictures —
-still have no builder, fixtures or QA. Treat that work as experimental: say so
-to the teacher, expect hand-tuning in Word, and do not present the result as a
-repeatable capability.
+- **Coordinate-graph print styling** — an opt-in prototype with six function-checking examples, physical-unit preferences and tests at 4, 5 and 6.5 cm. Read [math-figure-style.md](math-figure-style.md) for the helper, scope and examples. It preserves physical readability; it does not generate arbitrary mathematical figures or replace semantic/placement review.
+
+Other visuals — geometry figures, tables drawn as pictures, or graph types
+outside the tested prototype — remain experimental. State their actual tested
+scope, expect hand-tuning where needed, and do not generalize the six examples
+into a universal drawing capability.
 
 ## Asset policy
 

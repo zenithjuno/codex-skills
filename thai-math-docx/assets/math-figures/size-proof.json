@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "height_cm": 4.0,
+      "graphs": 6,
+      "number_pt": 10,
+      "axis_label_pt": 12,
+      "graph_line_pt": 1,
+      "axis_line_pt": 0.75,
+      "tick_pt": 0.5,
+      "label_overlaps": 0,
+      "geometry_unchanged": true,
+      "min_dpi": 600,
+      "status": "PASS"
+    },
+    {
+      "height_cm": 5.0,
+      "graphs": 6,
+      "number_pt": 10,
+      "axis_label_pt": 12,
+      "graph_line_pt": 1,
+      "axis_line_pt": 0.75,
+      "tick_pt": 0.5,
+      "label_overlaps": 0,
+      "geometry_unchanged": true,
+      "min_dpi": 600,
+      "status": "PASS"
+    },
+    {
+      "height_cm": 6.5,
+      "graphs": 6,
+      "number_pt": 10,
+      "axis_label_pt": 12,
+      "graph_line_pt": 1,
+      "axis_line_pt": 0.75,
+      "tick_pt": 0.5,
+      "label_overlaps": 0,
+      "geometry_unchanged": true,
+      "min_dpi": 600,
+      "status": "PASS"
+    }
+  ],
+  "negative_checks": [
+    "zero size rejected",
+    "unreadably small size rejected without shrinking fonts",
+    "size override cannot overwrite current assets",
+    "DOCX height drift rejected",
+    "DOCX image hash drift rejected"
+  ],
+  "status": "PASS",
+  "verification": "tests/test_math_figure_style.py"
+}

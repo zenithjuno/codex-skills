@@ -64,6 +64,12 @@ these measurements in a generator.
 - Keep Thai prose outside OMML unless it deliberately belongs inside an equation
   layout.
 
+## Mathematics figure preferences
+
+When producing or resizing teacher-approved mathematics figures, read [math-figure-style.md](math-figure-style.md). Keep physical label/line sizes independent of canvas size; retain editable source plus a print-resolution rendering, and keep question labels and answer areas outside individual figure files.
+
+The coordinate-graph profile uses 10 pt numeric labels, 12 pt axis labels, 1 pt curves, 0.75 pt axes and 0.5 pt ticks. These are personal defaults for that figure type, not overrides of existing set-diagram or number-line profiles. Project/current teacher instructions still take priority. The helper is a tested coordinate-graph prototype, not a universal figure generator.
+
 ## Validation and handoff
 
 - Microsoft Word on the teacher's machine is the visual authority.

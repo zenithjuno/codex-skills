@@ -65,3 +65,7 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 `expr` `plain` `text` `thai_text` `latin_text` `upright` `neg` `frac` `sup` `sub`
 `sub_sup` `rad` `bar` `acc` `nary` `integral` `lim` `lim_low` `log` `func` `binom`
 `matrix` `cases` `label` `line_break`
+
+## figure style — math_figure_style (opt-in coordinate-graph prototype)
+- PrintStyle.load(height_cm, view_height=760, path=…) · .token(name) · .units(pt) · .points(units) · .raster_scale — preserve physical print styles; see math-figure-style.md
+- verify_docx_media(docx_path, image_paths, height_cm) — check final embedded image heights, order and hashes; does not replace unified DOCX QA

@@ -279,6 +279,16 @@ matching active card, then append evidence using the template at the end.
   radicand, and an explicitly grouped signed numerator remain meaningful and
   must not be removed mechanically.
 
+### PREF-20261017-019 — Physical print styles and reusable mathematics figures
+
+- Status: confirmed
+- Tags: figures, coordinate-graphs, physical-size, readability, assets, SVG, PNG
+- Source: teacher discussion and approval, 2026-10-17; snapshot references/evidence-snapshots/math-figure-style-20261017.md
+- Source SHA256: 03b2982e0df5b4a75f3bafbfb39af2073bdfe0a5ab4ed47f21a778918aa46eed
+- Evidence: ครูขอเปลี่ยนขนาดกราฟโดยคงความอ่านง่าย แยกภาพรายข้อ และกำหนดค่ามาตรฐานเป็น pt แทนตัวเลขเฉพาะกิจ พร้อมรับให้เก็บฐานพัฒนานี้ใน skill
+- Decision: เก็บ preference หลักการปรับขนาด ตัวช่วย และตัวอย่างใน math-figure-style.md กับ assets/math-figures ใช้ตัวเลข 10 pt ชื่อแกน 12 pt เส้นกราฟ 1 pt เป็นค่าเริ่มต้นของกราฟพิกัด แยกภาพจากเลขข้อและช่องตอบ
+- Non-inference: ไม่เปลี่ยน preference Venn/Euler หรือเส้นจำนวนเดิม ไม่บังคับภาพทุกชนิดเป็น 5 ซม. หรือไม่มีกริด ไม่อ้างว่าตัวอย่างกราฟหกชนิดเป็นตัวสร้างภาพคณิตศาสตร์ครบทุกชนิด
+
 ## Entry template
 
 Copy this block to the end of **Evidence log** for each new discovery. Update the
