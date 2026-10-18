@@ -11,7 +11,7 @@ description: >-
   math-handout-sandbox.
 ---
 
-<!-- SKILL-VERSION: 2026.10.17 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.18 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -190,7 +190,7 @@ automatically. There is no second command to remember — the focused
 `scripts/audit_docx_*.py` scripts exist only to isolate a failure it reported.
 
 `check` never modifies the audited file. `fix-and-check` requires a distinct
-`--output`, repairs shared font defaults there, then audits that copy; it refuses
+`--output`, repairs shared font defaults and paragraph spacing there, then audits that copy; it refuses
 to overwrite the source. JSON is always written — to `qa-reports/` under the
 working directory unless `--report-dir` says otherwise, so run it from the
 project root rather than inside a skill checkout.

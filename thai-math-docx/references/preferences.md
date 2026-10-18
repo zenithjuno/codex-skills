@@ -17,7 +17,7 @@ never a compatibility target.
 - Ordinary Latin/admin text: `Cambria` 12 pt. Cleared or pasted sample formatting
   is not evidence to omit direct formatting from generated content.
 - Footer text and footer page fields: `TH Sarabun New` 12 pt throughout.
-- Paragraph spacing stays single (`1.0`) unless project context says otherwise.
+- Paragraph line spacing is **Single (`1.0`)**, never `1.15`. Before/after default to **0 pt**; when an actual paragraph gap is needed, use **6 pt only**. This includes tables, headers/footers, styles and document defaults. The shared save path normalizes legacy values to 0, preserves explicit 6 pt, and the QA gate rejects other values. A later explicit teacher instruction can override this preference.
 - Keep student-facing text, labels, answer lines, and tables editable in Word.
 - Real mathematical notation is editable Word Equation/OMML, not an image.
 - Equation boundaries must remain editable after a real Word open/save cycle.
@@ -42,6 +42,12 @@ never a compatibility target.
 
 Use the named layout profiles and shared layout layer rather than recreating
 these measurements in a generator.
+
+### Numeric spacing configuration
+
+The single numeric source is `assets/paragraph-spacing.json`: `default_before_pt`, `default_after_pt`, `gap_pt`, and `line_spacing`. Current preferences are 0 / 0 / 6 pt and 1.0. Builders, heading/question defaults, save-time normalization and QA all read this file; do not hard-code a second copy of these values. Existing explicit paragraph gaps are retained only when zero or the configured `gap_pt`.
+
+For an explicit project preference, set `THAI_MATH_DOCX_SPACING_CONFIG` to an absolute path to a JSON file with the same schema when running `produce.py` (and later standalone QA). It applies to both build and checking without modifying the global preference. Invalid configurations fail rather than silently falling back. Without the override, use the skill's config.
 
 ## Mathematical notation
 

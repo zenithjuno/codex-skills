@@ -15,6 +15,7 @@ from xml.etree import ElementTree as ET
 
 from docx import Document
 
+from thai_math_docx_preferences import load_spacing_preferences
 import audit_docx_font_defaults as font_defaults
 import audit_docx_insertion_safety as insertion_safety
 import audit_docx_omml as omml_audit
@@ -224,6 +225,27 @@ def _audit_omml(
     metrics["unformatted_thai_math"] = list(result["unformatted_thai_math"])
     metrics["notes"] = list(result["notes"])
     return list(result["failures"]), metrics
+
+
+def _audit_paragraph_spacing(roots: Mapping[str, ET.Element]) -> list[str]:
+    prefs = load_spacing_preferences()
+    allowed = {"0", str(round(prefs["gap_pt"] * 20))}
+    line = str(round(prefs["line_spacing"] * 240))
+    failures: list[str] = []
+    for name, root in roots.items():
+        if not name.startswith("word/"):
+            continue
+        for index, spacing in enumerate(root.findall(f".//{W}pPr/{W}spacing"), 1):
+            for attr in ("before", "after"):
+                value = spacing.get(f"{W}{attr}", "0")
+                if value not in allowed:
+                    failures.append(f"{name}: spacing {index} {attr} must be 0 or {prefs['gap_pt']} pt")
+            if any(spacing.get(f"{W}{attr}") not in (None, "0", "false", "off")
+                   for attr in ("beforeLines", "afterLines", "beforeAutospacing", "afterAutospacing")):
+                failures.append(f"{name}: spacing {index} uses automatic or line-based paragraph gaps")
+            if spacing.get(f"{W}line", line) != line or spacing.get(f"{W}lineRule", "auto") != "auto":
+                failures.append(f"{name}: spacing {index} must use line spacing {prefs['line_spacing']}")
+    return failures
 
 
 def _audit_geometry_and_tables(
@@ -482,6 +504,10 @@ def audit_docx(
         metrics["omml"] = omml_metrics
         _check(checks, "omml-editability", "FAIL" if omml_failures else "PASS", "Full editable OMML structure and Thai-in-math checks", issue_count=len(omml_failures))
 
+        spacing_failures = _audit_paragraph_spacing(roots)
+        failures.extend(spacing_failures)
+        _check(checks, "paragraph-spacing", "FAIL" if spacing_failures else "PASS", "Paragraph spacing matches active preference config", issue_count=len(spacing_failures))
+
         layout_failures, layout_reviews, layout_metrics = _audit_geometry_and_tables(roots, contract["layout"])
         failures.extend(layout_failures)
         reviews.extend(layout_reviews)
@@ -578,8 +604,7 @@ def fix_copy(source: str | Path, output: str | Path) -> tuple[Path, str]:
     shutil.copy2(source_path, output_path)
     document = Document(output_path)
     builder.enforce_document_font_defaults(document)
-    document.save(output_path)
-    builder.normalize_docx_theme_thai_fonts(output_path)
+    builder.save_docx(document, output_path)
     return output_path, source_hash
 
 

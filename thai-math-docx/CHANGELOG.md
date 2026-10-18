@@ -1,5 +1,13 @@
 # Thai Math DOCX Changelog
 
+## 2026-10-18 — Paragraph spacing standard
+
+- Default before/after to 0 pt and preserve only explicit 6 pt gaps.
+- Store numeric preferences in assets/paragraph-spacing.json; builder and QA share one validated loader, with an optional project override.
+- Normalize Single (1.0) across paragraphs, tables, headers/footers, styles and defaults before save.
+- Add a QA gate and regression tests for inherited 1.15, automatic gaps and invalid point values.
+
+
 ## 2026-09-12 — Editable synthetic-division pattern
 
 - Added `patterns.add_synthetic_division` for the teacher-approved traditional

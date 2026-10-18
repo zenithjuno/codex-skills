@@ -289,6 +289,15 @@ matching active card, then append evidence using the template at the end.
 - Decision: เก็บ preference หลักการปรับขนาด ตัวช่วย และตัวอย่างใน math-figure-style.md กับ assets/math-figures ใช้ตัวเลข 10 pt ชื่อแกน 12 pt เส้นกราฟ 1 pt เป็นค่าเริ่มต้นของกราฟพิกัด แยกภาพจากเลขข้อและช่องตอบ
 - Non-inference: ไม่เปลี่ยน preference Venn/Euler หรือเส้นจำนวนเดิม ไม่บังคับภาพทุกชนิดเป็น 5 ซม. หรือไม่มีกริด ไม่อ้างว่าตัวอย่างกราฟหกชนิดเป็นตัวสร้างภาพคณิตศาสตร์ครบทุกชนิด
 
+### PREF-20261018-020 — Single spacing and restricted paragraph gaps
+
+- Date: 2026-10-18
+- Source: ครูขอแก้ spacing หลังตรวจชีทฟังก์ชันทั่วถึงในเลน Solve
+- Teacher instruction: “before after = 0pt ให้หมด หรือถ้าจะใช้จริงๆ ให้ใช้ 6pt เท่านั้น; line spacing = 1 line ไม่เอา 1.15”
+- Decision: Default before/after 0 pt, explicit gaps only 6 pt; Single (1.0), including inherited styles and table paragraphs. Enforced in the shared builder/save path and QA gate, rather than leaving each generator to remember.
+- Follow-up: ครูขอให้ตัวเลขเป็น config รองรับ preference จึงใช้ assets/paragraph-spacing.json ร่วมกันทั้งตัวสร้างและตัวตรวจ พร้อมทางเลือก config เฉพาะโครงการ
+- Tags: paragraph-spacing, styles, table-paragraphs, numeric-config
+
 ## Entry template
 
 Copy this block to the end of **Evidence log** for each new discovery. Update the

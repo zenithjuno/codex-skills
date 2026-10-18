@@ -18,6 +18,8 @@ from typing import Iterable
 # in the shared `append_parts` and left two generators still emitting the bug.
 # Protect anything a correctness fix would be made inside.
 PROTECTED_HELPERS = {
+    "normalize_document_spacing",
+    "load_spacing_preferences",
     "verify_docx_media",
     "add_dotted_response_lines",
     "add_heading",
@@ -78,6 +80,7 @@ PROTECTED_LAYOUT_TAGS = {
 }
 ALLOW_COMPONENTS = {"tests", "evidence", "legacy_evidence"}
 SHARED_OWNER_NAMES = {
+    "thai_math_docx_preferences.py",
     "math_figure_style.py",
     "audit_generator_shared_api.py",
     "refresh_generator_knowledge.py",

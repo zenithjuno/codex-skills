@@ -15,6 +15,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 
+from lxml import etree
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
@@ -23,6 +24,7 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 from thai_math_docx_layout import get_current_layout_profile, set_table_fixed_widths_cm
+from thai_math_docx_preferences import load_spacing_preferences
 # `normalize_math_string` (thai_math_source_adapter) is imported lazily inside the one
 # math-path function that uses it (compact_item_to_omml_fragment), so importing this
 # builder for a prose/table document pulls in no math grammar module (thai-docx seam, S03).
@@ -219,11 +221,11 @@ def set_latin_run(run: Any, bold: bool | None = None, size: int = 12,
     lang.attrib.pop(qn("w:bidi"), None)
 
 
-def configure_paragraph(paragraph: Any, space_after: int = 4) -> None:
-    paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-    paragraph.paragraph_format.line_spacing = 1.0
-    paragraph.paragraph_format.space_before = Pt(0)
-    paragraph.paragraph_format.space_after = Pt(space_after)
+def configure_paragraph(paragraph: Any, space_after: float | None = None) -> None:
+    prefs = load_spacing_preferences()
+    paragraph.paragraph_format.line_spacing = prefs["line_spacing"]
+    paragraph.paragraph_format.space_before = Pt(prefs["default_before_pt"])
+    paragraph.paragraph_format.space_after = Pt(prefs["default_after_pt"] if space_after is None else space_after)
 
 
 def configure_document(doc: Document, profile: str | None = None) -> None:
@@ -242,9 +244,8 @@ def configure_document(doc: Document, profile: str | None = None) -> None:
     else:
         normal.font.name = "Cambria"
         normal.font.size = Pt(12)
-    normal.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-    normal.paragraph_format.line_spacing = 1.0
-    normal.paragraph_format.space_after = Pt(4)
+    configure_paragraph(normal)
+    normalize_document_spacing(doc)
 
 
 def new_document(profile: str | None = None) -> Document:
@@ -601,7 +602,7 @@ def append_parts(paragraph: Any, parts: list[dict[str, Any]]) -> None:
     ensure_thai_insertion_safe_paragraph_end(paragraph)
 
 
-def append_parts_or_tables(doc: Document, paragraph: Any, parts: list[dict[str, Any]], space_after: int = 4) -> Any:
+def append_parts_or_tables(doc: Document, paragraph: Any, parts: list[dict[str, Any]], space_after: float | None = None) -> Any:
     """Append inline parts while routing table blocks through ``add_table``.
 
     ``python-docx`` paragraphs cannot contain real Word tables. Shared year
@@ -629,7 +630,7 @@ def append_parts_or_tables(doc: Document, paragraph: Any, parts: list[dict[str, 
     return paragraph
 
 
-def add_paragraph(doc: Document, parts: list[dict[str, Any]] | None = None, space_after: int = 4) -> Any:
+def add_paragraph(doc: Document, parts: list[dict[str, Any]] | None = None, space_after: float | None = None) -> Any:
     paragraph = doc.add_paragraph()
     configure_paragraph(paragraph, space_after=space_after)
     if parts:
@@ -637,11 +638,14 @@ def add_paragraph(doc: Document, parts: list[dict[str, Any]] | None = None, spac
     return paragraph
 
 
-def add_heading(doc: Document, text: str, space_after: int = 6) -> Any:
-    return add_paragraph(doc, [{"type": "label", "text": text, "bold": True}], space_after=space_after)
+def add_heading(doc: Document, text: str, space_after: float | None = None) -> Any:
+    gap = load_spacing_preferences()["gap_pt"] if space_after is None else space_after
+    return add_paragraph(doc, [{"type": "label", "text": text, "bold": True}], space_after=gap)
 
 
-def add_question_block(doc: Document, number: int, prompt_parts: list[dict[str, Any]], space_after: int = 6) -> None:
+def add_question_block(doc: Document, number: int, prompt_parts: list[dict[str, Any]], space_after: float | None = None) -> None:
+    if space_after is None:
+        space_after = load_spacing_preferences()["gap_pt"]
     paragraph = doc.add_paragraph()
     configure_paragraph(paragraph, space_after=space_after)
     label = paragraph.add_run(f"ข้อ {number}. ")
@@ -704,9 +708,59 @@ def add_table(
     return table
 
 
+def normalize_document_spacing(doc: Document) -> None:
+    """Normalize paragraph spacing against the active numeric preferences.
+
+    Normalize body/table/header/footer paragraphs, paragraph styles and defaults
+    so inherited Word template values cannot restore 1.15 or arbitrary gaps.
+    """
+    prefs = load_spacing_preferences()
+    allowed = {"0", str(round(prefs["gap_pt"] * 20))}
+    styles = doc.styles.element
+    defaults = styles.find(qn("w:docDefaults"))
+    if defaults is None:
+        defaults = OxmlElement("w:docDefaults")
+        styles.insert(0, defaults)
+    default_p = defaults.find(qn("w:pPrDefault"))
+    if default_p is None:
+        default_p = OxmlElement("w:pPrDefault")
+        defaults.append(default_p)
+    if default_p.find(qn("w:pPr")) is None:
+        default_p.append(OxmlElement("w:pPr"))
+    for part in doc.part.package.parts:
+        root = getattr(part, "element", None)
+        generic_xml = root is None
+        if generic_xml:
+            if not str(part.partname).endswith(".xml") or W_NS.encode() not in part.blob:
+                continue
+            root = parse_xml(part.blob)
+        for paragraph in root.iter(qn("w:p")):
+            if paragraph.find(qn("w:pPr")) is None:
+                paragraph.insert(0, OxmlElement("w:pPr"))
+        for style in root.iter(qn("w:style")):
+            if style.get(qn("w:type")) == "paragraph" and style.find(qn("w:pPr")) is None:
+                style.append(OxmlElement("w:pPr"))
+        for props in root.iter(qn("w:pPr")):
+            spacing = props.find(qn("w:spacing"))
+            if spacing is None:
+                spacing = OxmlElement("w:spacing")
+                props.append(spacing)
+            for attr in ("before", "after"):
+                value = spacing.get(qn("w:" + attr))
+                fallback = str(round(prefs["default_" + attr + "_pt"] * 20))
+                spacing.set(qn("w:" + attr), value if value in allowed else fallback)
+            for attr in ("beforeLines", "afterLines", "beforeAutospacing", "afterAutospacing"):
+                spacing.attrib.pop(qn("w:" + attr), None)
+            spacing.set(qn("w:line"), str(round(prefs["line_spacing"] * 240)))
+            spacing.set(qn("w:lineRule"), "auto")
+        if generic_xml:
+            part._blob = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
+
+
 def save_docx(doc: Document, path: str | Path) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
+    normalize_document_spacing(doc)
     doc.save(out)
     normalize_docx_theme_thai_fonts(out)
     return out

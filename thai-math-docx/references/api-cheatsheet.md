@@ -20,7 +20,8 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 - `set_thai_body_run(run, bold=…, size=…)` / `set_thai_label_run(…)`
 - `set_table_fixed_widths(table, widths)` — EMUs
 - `standard_activity_table_widths(column_count)` / `current_student_table_widths(layout)`
-- `save_docx(doc, path)` — writes + runs the Thai-font normalization
+- `normalize_document_spacing(doc)` — body/tables/headers/styles: enforce the active numeric spacing config
+- `save_docx(doc, path)` — normalizes paragraph spacing, writes + runs Thai-font normalization
 - `normalize_docx_theme_thai_fonts(path, target_font=…)` — standalone re-normalize
 
 ## layout — `thai_math_docx_layout` (cells, columns, response lines)
@@ -69,3 +70,6 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 ## figure style — math_figure_style (opt-in coordinate-graph prototype)
 - PrintStyle.load(height_cm, view_height=760, path=…) · .token(name) · .units(pt) · .points(units) · .raster_scale — preserve physical print styles; see math-figure-style.md
 - verify_docx_media(docx_path, image_paths, height_cm) — check final embedded image heights, order and hashes; does not replace unified DOCX QA
+
+## preferences — `thai_math_docx_preferences`
+- `load_spacing_preferences(path=None)` — validated spacing JSON; defaults to assets/paragraph-spacing.json, with optional THAI_MATH_DOCX_SPACING_CONFIG project override; used by builder and QA
