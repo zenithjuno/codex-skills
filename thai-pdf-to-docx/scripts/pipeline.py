@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Run the whole chain for one lane directory:  probe -> extract -> build_docx -> build_xlsx -> qa.
 
   python3 pipeline.py --lane <lane> sources/book.pdf --name book --title "Book title" [--render] [--only probe]

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Step 3a: work/content.json -> .docx  (1 PDF page = 1 docx page, A4, TH Sarabun New with cs/lang, Arabic digits).
 
 Page breaks use pageBreakBefore on the first paragraph of each page; orientation changes start a new section.
@@ -298,8 +299,16 @@ def setup_section(sec, orient, layouts):
     sec.header_distance = Cm(0.7)
 
 
-def build(content, probe, out, title):
-    layouts = (probe or {}).get("layout", {})
+def merged_layouts(probe, cfg):
+    """probe layout per orientation, overridden key by key by work/overrides/config.json "layout" (probe.json is rewritten by every run)."""
+    lays = {o: dict(v) for o, v in ((probe or {}).get("layout") or {}).items()}
+    for o, v in ((cfg or {}).get("layout") or {}).items():
+        lays.setdefault(o, {}).update(v)
+    return lays
+
+
+def build(content, probe, out, title, cfg=None):
+    layouts = merged_layouts(probe, cfg)
     pages = content["pages"]
     doc = Document()
     st = doc.styles["Normal"]
@@ -411,7 +420,7 @@ def main(argv=None):
     content = load_json("work/content.json")
     probe = load_json("work/probe.json")
     title = a.title or cfg.get("title") or Path(a.out).stem
-    build(content, probe, a.out, title)
+    build(content, probe, a.out, title, cfg)
     print("saved", a.out)
     run_fixer(a.out)
     return 0

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Table helpers: PDF table -> grid (with merges) -> Word block + xlsx-ready matrix.  Generic only."""
 from __future__ import annotations
 
@@ -6,7 +7,7 @@ import re
 
 import fitz  # noqa: F401  (kept for callers that pass fitz objects)
 
-from tdlib import arabic
+from tdlib import arabic, subs_runs
 
 HEADER_SHADE = "D9D9D9"
 
@@ -26,7 +27,7 @@ def raw_lines(page):
             if not txt.strip():
                 continue
             bb = l["bbox"]
-            runs = [[s["text"], isbold(s["font"])] for s in sp if s["text"] != ""]
+            runs = subs_runs(page.number + 1, [[s["text"], isbold(s["font"])] for s in sp if s["text"] != ""])
             out.append(dict(x0=bb[0], y0=bb[1], x1=bb[2], y1=bb[3], runs=runs))
     return out
 

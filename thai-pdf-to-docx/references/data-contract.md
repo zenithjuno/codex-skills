@@ -5,13 +5,14 @@ All paths are relative to the lane directory. JSON is UTF-8. Lengths in blocks a
 ## work/probe.json (probe.py)
 ```
 { "source": "sources/book.pdf", "sha256": "...", "page_count": 54,
-  "pages": [ {"page": 1, "class": "text|scan|landscape-table", "orient": "P|L", "size": [w, h],
-              "thai_chars": n, "chars": n, "images": n, "image_cover": 0..1, "tables": n, "pua_chars": n}, ... ],
-  "layout": { "P": {"left": pt, "right": pt, "axis": pt, "n_lines": n, "measured": true},
+  "pages": [ {"page": 1, "class": "text|scan|landscape-table|broken-thai", "orient": "P|L", "size": [w, h],
+              "thai_chars": n, "chars": n, "images": n, "image_cover": 0..1, "tables": n, "pua_chars": n,
+              "thai_marks": n, "mark_ratio": thai_marks/thai_chars}, ... ],
+  "layout": { "P": {"left": pt, "right": pt, "axis": pt, "n_lines": n, "measured": true, "first_indent": pt (optional)},
               "L": { ... "measured": false } } }
 ```
 `left` = mode of line x0, `right` = 97th percentile of line x1, `axis` = (left+right)/2, all in PDF points.
-An orientation with too few body lines is inferred from the other one (`measured: false`).
+An orientation with too few body lines (< 20), or mostly centred ones, is inferred from the other one (`measured: false`).
 
 ## work/content.json (extract.py -> build_docx.py, qa.py)
 ```
@@ -46,9 +47,11 @@ Rows or columns whose label starts with `รวม` are checked by qa.py.
 ## work/overrides/ (per book; all optional)
 
 - `config.json`: `{"title": "...", "extra_markers": ["regex", ...], "layout": {"P": {"left": 70.9, "right": 537, "axis": 304}},
-  "drop_page_numbers": true}`.
+  "drop_page_numbers": true, "first_indent": 18.8, "qa": {"total_columns": [{"table": "T05", "total": "รวม", "parts": ["ชาย", "หญิง"]}]}}`.
   `extra_markers` are regex fragments (matched at line start) that start a new paragraph, e.g. `"ภาคผนวก\\s*\\S"`;
   `layout` overrides the probe values per orientation.
+- `text_subs.json`: `[{"page": 12 | [12,13] | "*", "find": "...", "replace": "...", "regex": false, "whole_line": false}]`.
+  Applied in order to each PDF text line (body and table cells, also in qa). `hooks.py` may define `text_fix(pn, text) -> str | None`.
 - `manual_pages.json`: `{"1": [block, ...], "9": {"orient": "P", "blocks": [block, ...]}}`. A list is shorthand for blocks.
   Pages listed here are used as is (no text-layer extraction, no generic tables). QA treats them as self-check only.
 - `tables.json`: list of table objects in the schema above plus `"replace_pages": [..]`: generic tables lying entirely on

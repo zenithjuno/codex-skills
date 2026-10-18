@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Step 4: automatic QA.  Writes work/qa.json and work/REPORT-conversion.md.
 
 Checks
@@ -29,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import extract as EX  # noqa: E402
 import tablelib as TL  # noqa: E402
 from tdlib import (THAI_DIGIT_RE, THAI_LETTER_RE, UNSURE_RE, arabic, dump_json, enter_lane, find_soffice,  # noqa: E402
-                   lane_args, load_json, nsp)
+                   lane_args, load_config, load_json, nsp)
 
 TOL = 0.006
 
@@ -78,8 +79,48 @@ def _close(a, b):
 SKIP_COL = re.compile(r"^(ที่|ลำดับ|ข้อ|no\.?|#|pdf_page)$|ร้อยละ|%|เฉลี่ย|average|mean|คะแนน", re.I)
 
 
-def sum_checks(tables):
+TOTAL_HEADS = ("รวม", "รวมทั้งสิ้น")
+
+
+def _kind(rows, c):
+    """'amt' if any value of column c has a fractional part, else 'cnt' (counts / whole numbers)."""
+    for r in rows:
+        v = _num(r[c]) if c < len(r) else None
+        if isinstance(v, float) and v != int(v):
+            return "amt"
+    return "cnt"
+
+
+def _head(col):
+    return col.split(" - ")[-1].strip()
+
+
+def _prefix(col):
+    return col.rsplit(" - ", 1)[0].strip() if " - " in col else ""
+
+
+def total_parts(cols, rows, numeric, c, declared=None):
+    """numeric columns that make up total column c.
+    declared: config qa.total_columns entries {"table", "total", "parts": [header, ...]} (matched by full or last-segment header).
+    Else: columns to its left under the same group header; with no group, columns of the same kind (counts vs amounts)."""
+    def match(name):
+        return [i for i in numeric if name in (cols[i], _head(cols[i]))]
+    for d in declared or []:
+        if d["total"] in (cols[c], _head(cols[c])):
+            return [i for n in d["parts"] for i in match(n) if i != c]
+    left = [i for i in numeric if i < c and not _head(cols[i]).startswith("รวม")]
+    pre = _prefix(cols[c])
+    if pre:
+        grp = [i for i in left if _prefix(cols[i]) == pre]
+        if grp:
+            return grp
+    k = _kind(rows, c)
+    return [i for i in left if _kind(rows, i) == k]
+
+
+def sum_checks(tables, cfg=None):
     res = []
+    declared = ((cfg or {}).get("qa") or {}).get("total_columns") or []
 
     def add(tid, check, ok, detail):
         res.append(dict(table=tid, check=check, result="PASS" if ok else "FAIL", detail=detail))
@@ -90,8 +131,13 @@ def sum_checks(tables):
             continue
         tid = t["id"]
 
+        def total_label(r):
+            """label of a total row: the FIRST text cell of the row starts with รวม (a รวม... cell elsewhere is just text)."""
+            v = next((v for i, v in enumerate(r) if i > 0 and isinstance(v, str) and v.strip()), None)
+            return v if v is not None and v.strip().startswith("รวม") else None
+
         def is_total_row(r):
-            return any(isinstance(v, str) and v.strip().startswith("รวม") for i, v in enumerate(r) if i > 0)
+            return total_label(r) is not None
 
         body = [r for r in rows if not is_total_row(r)]
         numeric = []
@@ -112,7 +158,7 @@ def sum_checks(tables):
         for ri, r in enumerate(rows):
             if not is_total_row(r):
                 continue
-            label = next((v for v in r[1:] if isinstance(v, str) and v.strip().startswith("รวม")), "รวม")
+            label = total_label(r)
             for c in numeric:
                 v = _num(r[c]) if c < len(r) else None
                 if v is None:
@@ -128,9 +174,9 @@ def sum_checks(tables):
             last_total = ri
         # total columns
         for c in numeric:
-            if not cols[c].split(" - ")[-1].strip().startswith("รวม"):
+            if _head(cols[c]) not in TOTAL_HEADS:
                 continue
-            left = [i for i in numeric if i < c]
+            left = total_parts(cols, rows, numeric, c, [d for d in declared if d.get("table", tid) in (tid, "*")])
             if len(left) < 2:
                 continue
             for ri, r in enumerate(rows):
@@ -158,10 +204,13 @@ def wrap_checks(doc, content, dpages):
         D = arabic("\n".join(x[1] for x in dpages[pn - 1])) if pn - 1 < len(dpages) else ""
         for a, b in zip(lines, lines[1:]):
             ta = arabic("".join(r[0] for r in a["runs"]))
-            tb = arabic("".join(r[0] for r in b["runs"])).lstrip()
+            tb_raw = arabic("".join(r[0] for r in b["runs"]))
+            tb = tb_raw.lstrip()
             if not ta.strip() or not tb or "\t" in ta or "\t" in tb:
                 continue
             ends_space = ta[-1].isspace()
+            if ends_space and (ta[-2:] == "  " or tb_raw[:1].isspace()):
+                continue   # a double space in the source: nothing to compare
             core = ta.rstrip()
             if not (THAI_LETTER_RE.match(core[-1]) and THAI_LETTER_RE.match(tb[0])):
                 continue
@@ -242,7 +291,7 @@ def run(pdf, docx_path, xlsx_path, render=False):
         for row in ws.iter_rows(min_row=2, values_only=True):
             numtext += sum(1 for n, v in zip(names, row) if n != "pdf_pages_all" and isinstance(v, str) and TL.parse_number(v) is not None)
     nwrap, wrap_problems = wrap_checks(doc, content, dpages)
-    sums = sum_checks(tables)
+    sums = sum_checks(tables, load_config())
     unsure = []
     for pn_, n_, h_, typ_, text in load_json("work/text_rows.json", []):
         for m in UNSURE_RE.findall(text):

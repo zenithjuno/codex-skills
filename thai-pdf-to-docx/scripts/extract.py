@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Step 2: PDF -> work/content.json (Word blocks per page) + work/tables.json (xlsx tables).
 
 Inputs : sources PDF, work/probe.json, optional work/overrides/{config.json, manual_pages.json, tables.json, hooks.py}
@@ -22,7 +23,7 @@ from pathlib import Path
 import fitz
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from tdlib import arabic, dump_json, enter_lane, is_page_number, lane_args, load_config, load_json, overrides_dir  # noqa: E402
+from tdlib import arabic, dump_json, subs_runs, enter_lane, is_page_number, lane_args, load_config, load_json, overrides_dir  # noqa: E402
 import tablelib as TL  # noqa: E402
 
 CM = 28.35
@@ -59,7 +60,7 @@ def page_lines(page, exclude=(), drop_page_numbers=True):
             if any(bb[1] >= e[1] - 2 and bb[3] <= e[3] + 2 and bb[0] >= e[0] - 2 and bb[2] <= e[2] + 2 for e in exclude):
                 continue
             vis = [c for s, _ in spans for c in s["chars"] if c["c"].strip()]
-            runs = [(t, isbold(s["font"]), round(s["size"], 1)) for s, t in spans if t != ""]
+            runs = subs_runs(page.number + 1, [(t, isbold(s["font"]), round(s["size"], 1)) for s, t in spans if t != ""], 1)
             out.append(dict(y0=bb[1], y1=bb[3], x0=min(c["bbox"][0] for c in vis), x1=max(c["bbox"][2] for c in vis), runs=runs))
     out.sort(key=lambda l: (round(l["y0"] / 4), l["x0"]))
     rows = []
@@ -90,6 +91,9 @@ def to_paragraphs(lines, layout, cfg=None):
     if not lines:
         return []
     right = max(layout["right"], max(l["x1"] for l in lines))
+    # first-line indent of this book (probe measures it); a line indented by more than IND starts a paragraph
+    fi_book = cfg.get("first_indent") or layout.get("first_indent")
+    IND = max(6.0, 0.6 * fi_book) if fi_book else 20.0
     paras = []
     cur = None
     prev = None
@@ -136,11 +140,11 @@ def to_paragraphs(lines, layout, cfg=None):
                 tok = txt.lstrip().split(" ")[0].split("\t")[0]
                 full = txt.strip()
                 cw = (l["x1"] - l["x0"]) / (_ncw(full) or 1)
-                if _ncw(tok) * cw > right - prev["x1"] + 1 and not MARK.match(txt) and (l["x0"] - BASE) < 20 and not allbold:
+                if _ncw(tok) * cw > right - prev["x1"] + 1 and not MARK.match(txt) and (l["x0"] - BASE) < IND and not allbold:
                     short = False
                     l["wrapjoin"] = True
             # first-line indented line (next line returns to the left) -> new paragraph
-            findent = (l["x0"] - BASE) > 20 and l["x0"] > prev["x0"] + 15 and (nxt is None or nxt["x0"] < l["x0"] - 15 or nxt["y0"] - l["y1"] > 9)
+            findent = (l["x0"] - BASE) > IND and l["x0"] > prev["x0"] + 0.75 * IND and (nxt is None or nxt["x0"] < l["x0"] - 0.75 * IND or nxt["y0"] - l["y1"] > 9)
             boldsplit = allbold and pb and prev["x1"] < right - 25
             if short or center or prev["center"] or MARK.match(txt) or (allbold != pb) or gap > 9 or "\t" in txt or findent or boldsplit:
                 newp = True
@@ -380,8 +384,9 @@ def build(pdf, probe, cfg):
             orient = orient if isinstance(m, list) else m.get("orient", orient)
             pages[pn] = dict(orient=orient, cls=pi["class"], source="manual", blocks=blocks)
             continue
-        if pi["class"] == "scan":
-            blocks = [dict(k="p", runs=[["[TODO scan page %d: transcribe into work/overrides/manual_pages.json]" % pn, False, 16]],
+        if pi["class"] in ("scan", "broken-thai"):
+            why = "scan page" if pi["class"] == "scan" else "broken Thai text layer, see SKILL.md ocr.py"
+            blocks = [dict(k="p", runs=[["[TODO %s %d: transcribe into work/overrides/manual_pages.json]" % (why, pn), False, 16]],
                            center=False, left=0, first=0, before=0, size=16, tabs=[])]
             meta["placeholder_pages"].append(pn)
             src = "placeholder"

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Step 3b: work/tables.json + work/content.json -> .xlsx  (index / T01.. / text sheets).
 
 Sheets: index (table_id, pdf_page, caption, sheet, rows, cols, notes) · one sheet per table
