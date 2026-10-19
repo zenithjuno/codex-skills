@@ -36,7 +36,7 @@ Digits are always Arabic (0-9), including when the source prints Thai digits.
 
 ```
 <lane>/sources/   PDF (read-only, note sha256)
-       work/      probe.json content.json tables.json qa.json REPORT-conversion.md  (+ scan PNGs)
+       work/      probe.json content.json tables.json qa.json REPORT-conversion.md  figures/ (+ scan PNGs)
        work/overrides/  config.json manual_pages.json tables.json hooks.py   (book-specific; optional)
        final/     <name>.docx  <name>-tables.xlsx
 ```
@@ -73,7 +73,8 @@ hand-back <= 25 lines) and give it to the cheaper model.
    numbers are numeric cells (commas stripped; a lone `-` in a numeric column becomes empty); `pdf_page` column;
    tables continued across pages become one sheet; freeze header + autofilter.
 
-**3. QA.** `qa.py` writes `work/REPORT-conversion.md`: per-page character counts (PDF vs docx), table counts,
+**3. QA.** `qa.py` writes `work/REPORT-conversion.md`: per-page character counts (PDF vs docx), table counts, figures in the PDF vs pictures in the
+docx per page (section 7; CHECK when one is missing; WARN when the estimated page height, from the picture aspect ratio vs the room left, overflows an A4 body),
 Thai-digit leftovers, numbers stored as text, wrap-join space check, sum assertions on rows/columns named
 `รวม`/`รวมทั้งสิ้น`, `[?...]` list, docx page count (and LibreOffice render count with `--render`).
 A sum FAIL means "source disagrees with itself or a cell was misread": report it, do not fix it.
@@ -87,6 +88,24 @@ Beware of the reviewer's own false positives (see the checklist).
 **5. Teacher check and close.** Teacher gets only: `[?...]` items, hand-transcribed pages (org charts etc.), and the
 numbers that do not add up (keep or correct?). Record answers and the "source oddities" list in the lane's progress file.
 
+## Figures (pictures)
+
+Pictures are kept by default; nothing is dropped silently. `probe.py` lists the figures per page (xref, bbox, native dpi, smask yes/no) and flags
+`figure-table` (a large paper-like image with ruling lines or no text under it: a table stored as an image; a pale map can be a false hit).
+`extract.py` exports every embedded image over `figures.min_area` at native resolution to `work/figures/` (transparency flattened on a white
+canvas; photos JPEG q88, logos/line art PNG; width capped to the text width), inserts it as an `img` block at its y, shrinks the gap it left in
+the text flow (the next paragraph's `before`), and composes side-by-side images (two logos) into one picture. If the composed image disagrees with
+what the page shows (an image mask rendering dark) or the xref is in `clip_xrefs`, it draws the page clip instead, removing overlapping caption text
+on a scratch copy by redaction. Full-page backgrounds and an image repeated on >= 5 pages (footer emblem) are skipped **with a warning**;
+decorations are decided per book in `config.json` `figures` (`skip_xrefs`, `skip_pages`, `clip_xrefs`, `width_cm`; see data-contract.md). A teacher
+should say which pictures are decoration: ask, do not guess.
+
+- **Crop** photos, maps, logos, emblems, org charts: the picture is the content.
+- **Rebuild** a table stored as an image (`figure-table`): it is data. Transcribe it as a real table with OCR (`ocr.py`) + eye check on a 190-300 dpi
+  render, assert row/column sums in the lane override (`tables.json` / hook), then add the image's xref to `figures.skip_xrefs` so it is not
+  also pasted as a picture. Until then QA keeps reporting it as `figure-table`.
+- A manual page with its own `img` blocks, or a hook that places `img` blocks itself, is left alone; scan pages are not touched.
+
 ## OCR for scan and broken-thai pages (optional, macOS)
 
 `scripts/ocr.py book.pdf --pages 12,40-45` renders pages at 200 dpi and runs Apple Vision (`ocr.swift`: th-TH + en-US, accurate,
@@ -98,7 +117,7 @@ Thai words from OCR, digits from the text layer, cell geometry from `find_tables
 lists numbers that differ (OCR misreads digits, tone marks and similar glyphs). Resolve every difference on the page image.
 Build the result in a hook or `manual_pages.json`; keep the OCR code in the lane overrides, not in this skill.
 
-## Pitfalls seen in real runs (1-4 and 8 coded and tested; 9-12 are advice)
+## Pitfalls seen in real runs (1-4, 8, 13 coded and tested; 9-12 are advice)
 
 1. Centred headings drifting right: a centred line must carry indent 0 (Word centres inside the shifted area).
 2. List items taken as centred headings: a line sharing its x with a neighbour, or starting with a number marker, is
@@ -120,6 +139,10 @@ Build the result in a hook or `manual_pages.json`; keep the OCR code in the lane
    (counts vs decimal amounts) or the columns declared in `qa.total_columns`; a total row is one whose first text cell starts with `รวม`.
    First-line indents differ per book (18.8 pt seen): the threshold comes from the probe, not a constant.
 
+13. Pictures vanish: the text layer has no pictures, so a converter that only reads text drops the cover photo, map, emblem, org chart and any
+   table stored as an image (a 137-page book lost all of them, unnoticed). The script now exports and counts them (Figures section above); judge
+   decorations with the teacher, rebuild `figure-table` pictures as tables, and check the Figures table in the QA report.
+
 ## Cost note
 
 One ~50-page book took a cheaper converter model roughly 400k tokens / 20 min / ~120 tool calls (hand-parsing
@@ -135,6 +158,8 @@ A second book (137 pages, 53 with a broken Thai layer fixed by OCR + layer digit
 - Generic table extraction trusts `find_tables`: stacked sub-rows, group-header rows inside a table and tables drawn
   without ruling lines usually need a hook. Chart/org-chart boxes are detected as tables: take those pages manual.
 - Layout is measured per orientation; an orientation with few lines (< 20) or mostly centred lines inherits the portrait margins.
+- Pictures are placed inline at their y, one block each: text wrapped beside a picture, overlays and cropped/rotated images are not reproduced
+  (a page clip is drawn when the composed image disagrees with the page). `figure-table` is a hint, a pale coloured map can trigger it.
 - OCR needs macOS with `swiftc`; elsewhere transcribe scan pages by eye.
 - Word pagination can differ from the PDF: the render check is LibreOffice's, not Word's. Word on the user's
   machine is the visual authority.

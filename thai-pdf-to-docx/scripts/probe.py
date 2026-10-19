@@ -3,7 +3,8 @@
 """Step 0: probe a PDF. Writes work/probe.json and prints a short markdown summary.
 
 Per page: class (text | scan | landscape-table | broken-thai), size, thai_chars, images,
-image_cover, tables, pua_chars, thai_marks, mark_ratio (Thai vowel/tone marks per Thai letter: ~0.19 in
+image_cover, figures (list: xref, bbox, area, cover, native dpi, smask, pixels, repeated, background,
+figure_table = "ruling"|"no-text-layer"|null: a large paper-like picture that may be a TABLE stored as an image), tables, pua_chars, thai_marks, mark_ratio (Thai vowel/tone marks per Thai letter: ~0.19 in
 real Thai text, ~0 when the text layer lost its marks -> class broken-thai).  Per orientation (P/L): layout {left,right,axis}
 measured from the book itself (mode of line x0, 97th percentile of line x1,
 axis=(left+right)/2) -- extract.py uses these instead of hard-coded constants.
@@ -21,7 +22,8 @@ from pathlib import Path
 import fitz
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from tdlib import THAI_LETTER_RE, THAI_MARK_RE, PUA_RE, dump_json, enter_lane, is_page_number, lane_args  # noqa: E402
+import figlib as FL  # noqa: E402
+from tdlib import THAI_LETTER_RE, THAI_MARK_RE, PUA_RE, dump_json, enter_lane, is_page_number, lane_args, load_config  # noqa: E402
 
 MIN_LINES = 20  # fewer measured lines than this -> infer the layout from the other orientation
 BROKEN_RATIO = 0.05   # mark/letter ratio below this with more than BROKEN_MIN_LETTERS letters = broken Thai text layer
@@ -81,7 +83,7 @@ def _first_indent(pages, left, right):
     return float(d) if n >= 3 else None
 
 
-def probe(pdf_path):
+def probe(pdf_path, cfg=None):
     doc = fitz.open(pdf_path)
     pages = []
     xs0 = {"P": [], "L": []}
@@ -119,6 +121,12 @@ def probe(pdf_path):
             for x0, x1, _, _ in pl:
                 xs0[orient].append(x0)
                 xs1[orient].append(x1)
+    fc = FL.fig_cfg(cfg)
+    rep = FL.repeated_signatures(doc, fc["min_area"])
+    for pi, page in zip(pages, doc):
+        figs = FL.page_figure_info(doc, page, fc["min_area"], rep)
+        pi["figures"] = figs
+        pi["figure_tables"] = sum(1 for f in figs if f["figure_table"])
     layout = {}
     cand, trusted = {}, {}
     for o in ("P", "L"):
@@ -166,6 +174,10 @@ def summary_md(p):
     for c in ("text", "scan", "landscape-table", "broken-thai"):
         pg = [x["page"] for x in p["pages"] if x["class"] == c]
         out.append(f"| {c} ({len(pg)}) | {_ranges(pg)} |")
+    fig = [x["page"] for x in p["pages"] if x.get("figures")]
+    out.append(f"| figures (embedded pictures, {sum(len(x.get('figures') or []) for x in p['pages'])}) | {_ranges(fig) or '-'} |")
+    ft = [x["page"] for x in p["pages"] if x.get("figure_tables")]
+    out.append(f"| figure-table (picture of a table, rebuild) | {_ranges(ft) or '-'} |")
     pua = [x["page"] for x in p["pages"] if x["pua_chars"]]
     out.append(f"| PUA/U+FFFD in text layer | {_ranges(pua) or '-'} |")
     bt = [x["page"] for x in p["pages"] if x["class"] == "broken-thai"]
@@ -173,6 +185,15 @@ def summary_md(p):
         out.append("")
         out.append("broken-thai = Thai letters present but vowel/tone marks missing (ratio < %s): text layer unusable, run scripts/ocr.py" % BROKEN_RATIO)
     out.append("")
+    if fig:
+        out.append("figures per page (xref, bbox pt, native dpi, smask): extract.py inserts them as pictures; decorations go to config.json figures.skip_xrefs / skip_pages")
+        for x in p["pages"]:
+            for f in x.get("figures") or []:
+                tags = [t for t in ("figure-table:" + str(f["figure_table"]) if f["figure_table"] else "", "background" if f["background"] else "",
+                                    "repeated" if f["repeated"] else "") if t]
+                out.append("- p.%d xref %d bbox %s %d dpi smask=%s%s" % (x["page"], f["xref"], f["bbox"], f["dpi"], "yes" if f["smask"] else "no",
+                                                                    " [" + ", ".join(tags) + "]" if tags else ""))
+        out.append("")
     for o, l in p["layout"].items():
         out.append(f"layout {o}: left={l['left']} right={l['right']} axis={l['axis']}" + ("" if l["measured"] else " (inferred)") + (f" first_indent={l['first_indent']}" if l.get("first_indent") else ""))
     return "\n".join(out)
@@ -200,7 +221,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     pdf = os.path.abspath(a.pdf)
     enter_lane(a.lane)
-    p = probe(pdf)
+    p = probe(pdf, load_config())
     rel = os.path.relpath(pdf)
     p["source"] = pdf if rel.startswith("..") else rel
     dump_json(a.out, p)

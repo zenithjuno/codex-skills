@@ -374,7 +374,7 @@ def build(content, probe, out, title, cfg=None):
                 add_runs(par, [(r[0], r[1]) for r in blk["runs"]], size, blk.get("color"))
             elif k == "img":
                 par = doc.add_paragraph()
-                fmt_par(par, 16, center=blk.get("center", False), before=blk.get("before", 0))
+                fmt_par(par, 16, center=blk.get("center", False), left=blk.get("left", 0), before=blk.get("before", 0))
                 par.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
                 par.paragraph_format.line_spacing = 1.0
                 if need_break:

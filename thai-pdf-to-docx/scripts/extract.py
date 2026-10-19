@@ -8,6 +8,7 @@ Rules kept from the field pitfalls (see SKILL.md):
   2  a list item that starts at the same x as its neighbour, or starts with a number marker, is not a heading
   3  '3.1 ' / '2.1.1 ' (no trailing dot/bracket) starts a new paragraph
   4  a wrapped line is joined to the previous one with a space ONLY if the PDF line ended with a space
+  Figures: embedded pictures become `img` blocks at their y position (figlib.py; config.json "figures" skips decorations).
 Layout constants (left margin, right edge, centre axis) come from probe.json, not from code.
 """
 from __future__ import annotations
@@ -24,6 +25,7 @@ import fitz
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from tdlib import arabic, dump_json, subs_runs, enter_lane, is_page_number, lane_args, load_config, load_json, overrides_dir  # noqa: E402
+import figlib as FL  # noqa: E402
 import tablelib as TL  # noqa: E402
 
 CM = 28.35
@@ -269,6 +271,7 @@ def default_page(doc, pn, probe, cfg, layout, raw_tables):
         block, info = TL.pdf_table(page, t, avail, marker)
         info.update(page=pn, H=page.rect.height, caption=TL.caption_above(page, t.bbox))
         raw_tables.append(info)
+        block.setdefault("y", t.bbox[1])     # lets figures be inserted by y position
         tb.append((t.bbox[1], t.bbox[3], block))
     return body_blocks(doc, pn, tb, layout, cfg)
 
@@ -353,6 +356,66 @@ def apply_table_overrides(tables, ov, manual_pages):
     return tables
 
 
+# --------------------------------------------------------------------------- figures
+def figure_blocks(doc, pn, layout, cfg, repeated, outdir="work/figures"):
+    """picture blocks of page pn (+ warnings): embedded images over the minimum area, adjacent ones composed into one picture,
+    native resolution, transparency flattened on white, photos JPEG / line art PNG, width capped to the text width.
+    Block: dict(k='img', path, width_cm, center, left, before, y, y1, xrefs, how)."""
+    page = doc[pn - 1]
+    c = FL.fig_cfg(cfg)
+    figs = FL.page_figure_info(doc, page, c["min_area"], repeated)
+    kept, skipped = FL.select_figures(pn, figs, cfg)
+    warns = ["page %d: figure xref %d skipped (%s)" % (pn, f["xref"], why) for f, why in skipped]
+    out = []
+    textw = (layout["right"] - layout["left"]) / CM
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    for old in Path(outdir).glob("p%02d-f*.*" % pn):      # a rerun with other settings must not leave stale pictures
+        old.unlink()
+    for gi, group in enumerate(FL.group_figures(kept), 1):
+        try:
+            pm, how, box = FL.render_group(doc, page, group, cfg)
+        except Exception as e:   # a picture that cannot be rendered must not stop the book: say so
+            warns.append("page %d: figure xref %s not exported (%s)" % (pn, group[0]["xref"], e))
+            continue
+        path = FL.save_picture(pm, "%s/p%02d-f%d" % (outdir, pn, gi), c["jpeg_quality"])
+        w = box.width / CM
+        w = c.get("width_cm", {}).get("%d:%d" % (pn, group[0]["xref"]), w)
+        w = round(min(w, textw), 2)
+        cx = (box.x0 + box.x1) / 2
+        centred = abs(cx - layout["axis"]) < 0.08 * page.rect.width
+        blk = dict(k="img", path=path, width_cm=w, center=bool(centred), before=6, y=box.y0, y1=box.y1,
+                   xrefs=[f["xref"] for f in group])
+        if not centred:
+            blk["left"] = round(max(0.0, min((box.x0 - layout["left"]) / CM, textw - w)), 2)
+        if how != "compose":
+            blk["how"] = how
+            warns.append("page %d: figure xref %d drawn from the page clip (image mask renders wrong or clip_xrefs)" % (pn, group[0]["xref"]))
+        out.append(blk)
+        for f in group:
+            if f["figure_table"]:
+                warns.append("page %d: figure xref %d looks like a picture of a TABLE (%s): inserted as a picture, rebuild it as a real table "
+                             "(OCR + eye check, sums asserted) and add its xref to figures.skip_xrefs" % (pn, f["xref"], f["figure_table"]))
+    return out, warns
+
+
+def insert_figures(blocks, figs):
+    """splice picture blocks into a page's blocks by y; the gap the picture left in the text flow is taken out of the next
+    paragraph's `before`.  Blocks without a y inherit the one before them."""
+    out = list(blocks)
+    for f in sorted(figs, key=lambda f: -f["y"]):         # bottom-up so indexes stay valid
+        last, idx = -1.0, len(out)
+        for k, b in enumerate(out):
+            last = b.get("y", last)
+            if last >= f["y"]:
+                idx = k
+                break
+        out.insert(idx, f)
+        if idx + 1 < len(out) and out[idx + 1]["k"] == "p":
+            nb = out[idx + 1]
+            out[idx + 1] = dict(nb, before=round(min(max(0.0, nb.get("before", 0) - (f["y1"] - f["y"])), 12), 1))
+    return out
+
+
 # --------------------------------------------------------------------------- hooks
 def load_hooks():
     p = overrides_dir() / "hooks.py"
@@ -371,6 +434,7 @@ def build(pdf, probe, cfg):
     manual = {int(k): v for k, v in manual.items()}
     ov_tables = load_json(overrides_dir() / "tables.json", []) or []
     hooks = load_hooks()
+    repeated = FL.repeated_signatures(doc, FL.fig_cfg(cfg)["min_area"])
     hook = getattr(hooks, "page", None) if hooks else None
     pages, raw_tables = {}, []
     meta = dict(source=probe.get("source"), page_count=doc.page_count, manual_pages=sorted(manual), hook_pages=[], placeholder_pages=[], warnings=[])
@@ -401,6 +465,11 @@ def build(pdf, probe, cfg):
                 blocks = res
                 src = "hook"
                 meta["hook_pages"].append(pn)
+        if pi["class"] != "scan" and not any(b.get("k") == "img" for b in blocks):   # a hook that placed pictures itself wins
+            figs, warns = figure_blocks(doc, pn, layout, cfg, repeated)
+            meta["warnings"] += warns
+            if figs:
+                blocks = insert_figures(blocks, figs)
         pages[pn] = dict(orient=orient, cls=pi["class"], source=src, blocks=blocks)
     raw_tables = [t for t in raw_tables if pages[t["page"]]["source"] not in ("manual",)]
     tables = apply_table_overrides(merge_tables(raw_tables), ov_tables, set(manual))

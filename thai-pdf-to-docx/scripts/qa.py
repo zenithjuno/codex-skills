@@ -8,7 +8,8 @@ Checks
   3  no Thai digits left in docx / xlsx; numeric xlsx cells are numbers, not text
   4  wrap-join spaces: a Thai-Thai line wrap may carry a space in the docx only if the PDF line ended with a space (and vice versa)
   5  sum assertions: rows/columns named รวม / รวมทั้งสิ้น must equal the parts (a FAIL is a discrepancy to REPORT, never to fix)
-  6  logical docx page count == PDF page count; optional LibreOffice render page count (--render)
+  6  figures: embedded pictures per PDF page vs pictures in the docx, plus a page-overflow height estimate (WARN)
+  7  logical docx page count == PDF page count; optional LibreOffice render page count (--render)
 A PASS here is evidence, not proof: it does not check indents, bold, or reading order -- see references/review-checklist.md.
 """
 from __future__ import annotations
@@ -28,17 +29,32 @@ from docx.oxml.ns import qn
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import extract as EX  # noqa: E402
+import figlib as FL  # noqa: E402
 import tablelib as TL  # noqa: E402
 from tdlib import (THAI_DIGIT_RE, THAI_LETTER_RE, UNSURE_RE, arabic, dump_json, enter_lane, find_soffice,  # noqa: E402
                    lane_args, load_config, load_json, nsp)
 
 TOL = 0.006
+CM_PT = 28.35
 
 
 # ------------------------------------------------------------------ docx -> logical pages
-def docx_pages(path):
+EMU_CM = 360000.0
+
+
+def _pictures(el):
+    """(width cm, height cm) of every inline picture inside a paragraph element."""
+    out = []
+    for ex in el.iter("{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}extent"):
+        out.append((int(ex.get("cx")) / EMU_CM, int(ex.get("cy")) / EMU_CM))
+    return out
+
+
+def docx_pages(path, pictures=None):
+    """logical pages -> (pages, ntab).  pictures: optional list that receives, per logical page, [(w_cm, h_cm), ...]."""
     body = Document(path).element.body
     pages, ntab, first = [[]], [0], True
+    pics = [[]] if pictures is not None else None
 
     def ptext(p):
         return "".join(t.text or "" for t in p.iter(qn("w:t")))
@@ -52,10 +68,16 @@ def docx_pages(path):
             if pb and not first:
                 pages.append([])
                 ntab.append(0)
+                if pics is not None:
+                    pics.append([])
             pages[-1].append(("p", ptext(el)))
+            if pics is not None:
+                pics[-1] += _pictures(el)
             if sect:
                 pages.append([])
                 ntab.append(0)
+                if pics is not None:
+                    pics.append([])
             first = False
         elif tag == "tbl":
             pages[-1].append(("t", "".join(t.text or "" for t in el.iter(qn("w:t")))))
@@ -64,7 +86,63 @@ def docx_pages(path):
     while len(pages) > 1 and not pages[-1]:
         pages.pop()
         ntab.pop()
+        if pics is not None:
+            pics.pop()
+    if pics is not None:
+        pictures[:] = pics
     return pages, ntab
+
+
+# ------------------------------------------------------------------ figures
+TOP_CM, BOTTOM_CM = 1.9, 1.5      # build_docx.setup_section margins
+SPACING_CM = 6 / 28.35            # `before` of a picture paragraph
+
+
+def figure_checks(doc, content, dpics, cfg):
+    """per page: figures in the PDF vs pictures in the docx, and a height estimate that warns when the page would overflow.
+    Estimate = PDF text/table heights (a gap a picture filled counts at most 12 pt) + docx picture heights, against the body height of the page.
+    An approximation (text may reflow in Word): a WARN means look at the page, not a proven overflow."""
+    c = FL.fig_cfg(cfg)
+    rep = FL.repeated_signatures(doc, c["min_area"])
+    rows = []
+    for pn in range(1, doc.page_count + 1):
+        page = doc[pn - 1]
+        pg = content["pages"][str(pn)]
+        figs = FL.page_figure_info(doc, page, c["min_area"], rep)
+        kept, skipped = FL.select_figures(pn, figs, cfg)
+        groups = FL.group_figures(kept)
+        have = dpics[pn - 1] if pn - 1 < len(dpics) else []
+        manual = pg["source"] in ("manual", "placeholder") or pg["cls"] == "scan"
+        expected = None if manual else len(groups)
+        status, note = "OK", ""
+        if expected is not None and len(have) < expected:
+            status, note = "CHECK", "%d picture(s) of the PDF missing in the docx" % (expected - len(have))
+        elif expected is not None and len(have) > expected:
+            note = "%d more picture(s) in the docx than exported figures (hook/override)" % (len(have) - expected)
+        tabs = [f for f in figs if f["figure_table"]]
+        if tabs:
+            note = (note + "; " if note else "") + "figure-table xref %s: picture of a table, rebuild as a real table" % ",".join(str(f["xref"]) for f in tabs)
+        warn = ""
+        if have:
+            allowed = page.rect.height / CM_PT - TOP_CM - BOTTOM_CM
+            pics_h = sum(h for _, h in have) + SPACING_CM * len(have)
+            other = 0.0
+            if not manual:
+                items = sorted([(l["y0"], l["y1"]) for l in EX.page_lines(page)] + [(t.bbox[1], t.bbox[3]) for t in EX.good_tables(page)])
+                spans = [(min(f["bbox"][1] for f in g), max(f["bbox"][3] for f in g)) for g in groups]
+                for k, (y0, y1) in enumerate(items):
+                    other += y1 - y0
+                    if k + 1 < len(items):
+                        gap = max(0.0, items[k + 1][0] - y1)
+                        inside = sum(max(0.0, min(b, items[k + 1][0]) - max(a, y1)) for a, b in spans)
+                        other += min(max(0.0, gap - inside), 12.0) if inside else gap
+                other /= CM_PT
+            est = other + pics_h
+            if est > allowed:
+                warn = "estimated %.1f cm of content > %.1f cm body height (pictures %.1f cm): shrink a picture (figures.width_cm) or check the page in Word" % (est, allowed, pics_h)
+        rows.append(dict(pdf_page=pn, pdf_figures=len(figs), skipped=len(skipped), exported=expected, docx_pictures=len(have),
+                         status=status, note=note, overflow=warn))
+    return rows
 
 
 # ------------------------------------------------------------------ sums
@@ -256,7 +334,8 @@ def run(pdf, docx_path, xlsx_path, render=False):
     doc = fitz.open(pdf)
     content = load_json("work/content.json")
     tables = load_json("work/tables.json", [])
-    dpages, ntab = docx_pages(docx_path)
+    dpics = []
+    dpages, ntab = docx_pages(docx_path, dpics)
     xw = openpyxl.load_workbook(xlsx_path)
     xidx = {r[0]: r for r in xw["index"].iter_rows(min_row=2, values_only=True)}
     xtabs = {pn: [] for pn in range(1, doc.page_count + 1)}
@@ -305,12 +384,14 @@ def run(pdf, docx_path, xlsx_path, render=False):
     for pn_, n_, h_, typ_, text in load_json("work/text_rows.json", []):
         for m in UNSURE_RE.findall(text):
             unsure.append((pn_, m))
+    figures = figure_checks(doc, content, dpics, load_config())
     page_ok = len(dpages) == doc.page_count
     rendered, rnote = (render_pages(docx_path) if render else (None, "not requested"))
     out = dict(pages=rows, sums=sums, wrap=dict(checked=nwrap, problems=wrap_problems), thai_digits=dict(docx=td_docx, xlsx=td_xlsx),
                numeric_as_text=numtext, logical_pages=len(dpages), pdf_pages=doc.page_count, render=dict(pages=rendered, note=rnote),
-               unsure=unsure, meta=content["meta"])
-    out["ok"] = page_ok and td_docx == 0 and td_xlsx == 0 and numtext == 0 and not wrap_problems and all(r["status"] != "CHECK" for r in rows)
+               unsure=unsure, meta=content["meta"], figures=figures)
+    out["ok"] = page_ok and td_docx == 0 and td_xlsx == 0 and numtext == 0 and not wrap_problems and all(r["status"] != "CHECK" for r in rows) \
+        and all(f["status"] != "CHECK" for f in figures)
     return out
 
 
@@ -327,6 +408,10 @@ def write_report(q, path):
     A.append("- Thai digits left: docx %d, xlsx %d; numbers stored as text in xlsx: %d" % (q["thai_digits"]["docx"], q["thai_digits"]["xlsx"], q["numeric_as_text"]))
     A.append("- Wrap-join space check: %d wraps compared, %d problems" % (q["wrap"]["checked"], len(q["wrap"]["problems"])))
     A.append("- Sum assertions: %d, FAIL %d" % (len(q["sums"]), len(fails)))
+    fg = q.get("figures") or []
+    A.append("- Figures: PDF %d (skipped %d), docx pictures %d; pages to look at: %d, overflow warnings: %d" % (
+        sum(f["pdf_figures"] for f in fg), sum(f["skipped"] for f in fg), sum(f["docx_pictures"] for f in fg),
+        sum(1 for f in fg if f["status"] != "OK" or f["note"]), sum(1 for f in fg if f["overflow"])))
     A.append("- Manual pages: %s; hook pages: %s; untranscribed scan pages: %s" % (meta["manual_pages"], meta["hook_pages"], meta["placeholder_pages"]))
     A.append("")
     A.append("## 2. Per page\n")
@@ -359,7 +444,18 @@ def write_report(q, path):
         for w in meta["warnings"]:
             A.append("- " + w)
         A.append("")
-    A.append("## 7. Not checked by this script\n")
+    A.append("## 7. Figures (pictures in the PDF vs the docx)\n")
+    shown = [f for f in fg if f["pdf_figures"] or f["docx_pictures"]]
+    if shown:
+        A.append("| pdf page | PDF figures | skipped | exported | docx pictures | status | note / overflow estimate |")
+        A.append("|---|---|---|---|---|---|---|")
+        for f in shown:
+            A.append("| %s | %s | %s | %s | %s | %s | %s |" % (f["pdf_page"], f["pdf_figures"], f["skipped"], "-" if f["exported"] is None else f["exported"],
+                                                        f["docx_pictures"], f["status"], "; ".join(x for x in (f["note"], ("WARN " + f["overflow"]) if f["overflow"] else "") if x)))
+    else:
+        A.append("- no figures")
+    A.append("")
+    A.append("## 8. Not checked by this script\n")
     A.append("Indents/alignment against the page image, bold, reading order, scanned-page accuracy, typos kept from the source, and Word's own pagination. Use the reviewer checklist.\n")
     Path(path).write_text("\n".join(A), encoding="utf-8")
 
