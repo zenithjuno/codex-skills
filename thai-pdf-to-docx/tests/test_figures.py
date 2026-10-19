@@ -52,6 +52,12 @@ def grid_image(w=520, h=200):
     return png_rgba(w, h, px, alpha=False)
 
 
+def _flat(v):
+    pm = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 100, 60), False)
+    pm.clear_with(v)
+    return pm
+
+
 def big_photo(w=300, h=130):
     return png_rgba(w, h, lambda x, y: ((x * 7) % 256, (y * 5) % 256, (x + y) % 256, 255), alpha=False)
 
@@ -259,7 +265,7 @@ class FiguresExtract(unittest.TestCase):
         photo = [f for f in FL.page_figure_info(doc, page) if f["bbox"][:2] == [100.0, 160.0]][0]
         real = FL._compose
         try:
-            FL._compose = lambda d, g, box, dpi: fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 100, 60), False)   # a dark render
+            FL._compose = lambda d, g, box, dpi: _flat(255)       # a render that is nothing like the page
             pm, how, _ = FL.render_group(doc, page, [photo], {})
         finally:
             FL._compose = real
