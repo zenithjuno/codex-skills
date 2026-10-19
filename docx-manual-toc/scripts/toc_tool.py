@@ -13,6 +13,9 @@ Subcommands
                                         update numbers of existing lines and insert
                                         missing lines, matching the existing style
   verify   PDF --plan PLAN.json         check each entry's page against a Word PDF
+  restyle-header DOCX --para N --like M --output OUT.docx
+                                        give paragraph N's chapter header the run
+                                        style of paragraph M's header, realign number
   sections DOCX                         list section breaks near the front
   drop-empty-section DOCX --para N --output OUT.docx
                                         remove an empty section-break paragraph
@@ -54,16 +57,18 @@ def norm(s):
 
 FONT_DIRS = ['~/Library/Fonts', '/Library/Fonts', '/System/Library/Fonts/Supplemental',
              '/Applications/Microsoft Word.app/Contents/Resources/DFonts']
-FONT_FILES = {'th sarabun new': 'THSarabunNew.ttf', 'th sarabunpsk': 'THSarabun.ttf'}
+FONT_FILES = {('th sarabun new', False): 'THSarabunNew.ttf', ('th sarabun new', True): 'THSarabunNew Bold.ttf',
+              ('th sarabunpsk', False): 'thsarabun.ttf', ('th sarabunpsk', True): 'thsarabun-bold.ttf'}
 _font_cache = {}
 
 
-def font_for(name):
+def font_for(name, bold=False):
+    """Font for width estimates; bold runs need the bold face (it is wider)."""
     from PIL import ImageFont
-    key = (name or '').lower()
+    key = ((name or '').lower(), bool(bold))
     if key in _font_cache:
         return _font_cache[key]
-    wanted = [FONT_FILES.get(key, ''), 'THSarabunNew.ttf']
+    wanted = [FONT_FILES.get(key, ''), 'THSarabunNew Bold.ttf' if bold else 'THSarabunNew.ttf']
     for fn in wanted:
         for d in FONT_DIRS:
             p = os.path.join(os.path.expanduser(d), fn)
@@ -105,6 +110,12 @@ def run_style(r):
                 hp = int(s.get(w('val')))
                 break
     return name, hp
+
+
+def is_bold(r):
+    rpr = r.find(w('rPr'))
+    b = rpr.find(w('b')) if rpr is not None else None
+    return b is not None and b.get(w('val')) not in ('0', 'false')
 
 
 def tokens(p):
@@ -188,7 +199,7 @@ def simulate(toks, stops, default_tab):
             x = next_stop(x, stops, default_tab)
         elif kind(t) == 't':
             name, hp = run_style(t.getparent())
-            x += width_twips(t.text or '', font_for(name), hp)
+            x += width_twips(t.text or '', font_for(name, is_bold(t.getparent())), hp)
     return x
 
 
@@ -388,7 +399,7 @@ def cmd_set(a):
             if anchor is None:
                 sys.exit('new entry "%s" has no matched entry before it in paragraph %s' % (e['title'], key))
             name, hp = run_style(title_tok.getparent())
-            font = font_for(name)
+            font = font_for(name, is_bold(title_tok.getparent()))
             lead_w = simulate(lead_toks, stops, dt)
 
             def plan_tabs(text):
@@ -463,6 +474,19 @@ def cmd_verify(a):
             bad += not ok
             if not ok or a.all:
                 print('%-6s %-40s contents %-4s found on %s' % ('OK' if ok else 'CHECK', e['title'][:40], e['page'], hits[:4]))
+    xs = {}
+    for i in range(body):
+        for b in d[i].get_text('dict')['blocks']:
+            for l in b.get('lines', []):
+                sp = [s for s in l['spans'] if s['text'].strip()]
+                if sp and l['bbox'][1] > a.header_band and re.fullmatch(r'\d+', sp[-1]['text'].strip()):
+                    xs.setdefault(round(sp[-1]['bbox'][0]), []).append(sp[-1]['text'].strip())
+    if len(xs) > 1:
+        bad += 1
+        print('CHECK  contents numbers sit in %d columns: %s'
+              % (len(xs), '; '.join('x=%d: %s' % (x, ' '.join(v[:6])) for x, v in sorted(xs.items()))))
+    elif xs:
+        print('contents numbers share one column (x=%d)' % list(xs)[0])
     print('verify: %d entries, %d to check' % (sum(len(v) for v in plan['paragraphs'].values()), bad))
     sys.exit(1 if bad else 0)
 
@@ -497,6 +521,54 @@ def cmd_drop_section(a):
     print('removed empty section paragraph %d; wrote %s' % (a.para, a.output))
 
 
+def header_line(p):
+    for line in lines_of(p):
+        pl = parse_line(line)
+        if pl and not pl['lead']:
+            return pl
+    return None
+
+
+def cmd_restyle_header(a):
+    if a.output == a.docx:
+        sys.exit('refusing to overwrite the input; give a different --output')
+    z, root, paras, dt = load(a.docx)
+    ref, tgt = header_line(paras[a.like]), header_line(paras[a.para])
+    if not ref or not tgt:
+        sys.exit('both paragraphs need a numbered chapter header line (run set first)')
+    style = ref['title_toks'][0].getparent().find(w('rPr'))
+    for tok in tgt['title_toks']:
+        r = tok.getparent()
+        old = r.find(w('rPr'))
+        if old is not None:
+            r.remove(old)
+        if style is not None:
+            r.insert(0, copy.deepcopy(style))
+    stops = tab_stops(paras[a.para])
+    target = round(simulate(ref['before_num'], tab_stops(paras[a.like]), dt))
+    for tab in tgt['tabs']:
+        r = tab.getparent()
+        r.remove(tab)
+        if not [c for c in r if c.tag != w('rPr')]:
+            r.getparent().remove(r)
+    x = simulate(tgt['title_toks'], stops, dt)
+    n = 0
+    while x < target - 1:
+        x = next_stop(x, stops, dt)
+        n += 1
+    at = tgt['title_toks'][-1].getparent()
+    for _ in range(n):
+        r = make_run(ref['tabs'][0], etree.Element(w('tab')))
+        at.addnext(r)
+        at = r
+    data = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)
+    with zipfile.ZipFile(a.output, 'w', zipfile.ZIP_DEFLATED) as o:
+        for it in z.infolist():
+            o.writestr(it, data if it.filename == 'word/document.xml' else z.read(it.filename))
+    print('header of paragraph %d now styled like paragraph %d; tabs %d, lands %d (target %d); wrote %s'
+          % (a.para, a.like, n, x, target, a.output))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -524,8 +596,13 @@ def main():
     ds.add_argument('docx')
     ds.add_argument('--para', type=int, required=True)
     ds.add_argument('--output', required=True)
+    rh = sub.add_parser('restyle-header')
+    rh.add_argument('docx')
+    rh.add_argument('--para', type=int, required=True)
+    rh.add_argument('--like', type=int, required=True)
+    rh.add_argument('--output', required=True)
     a = ap.parse_args()
-    {'inspect': cmd_inspect, 'headings': cmd_headings, 'set': cmd_set, 'verify': cmd_verify,
+    {'restyle-header': cmd_restyle_header, 'inspect': cmd_inspect, 'headings': cmd_headings, 'set': cmd_set, 'verify': cmd_verify,
      'sections': cmd_sections, 'drop-empty-section': cmd_drop_section}[a.cmd](a)
 
 

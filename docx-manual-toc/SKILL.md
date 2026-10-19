@@ -75,6 +75,14 @@ Script: `scripts/toc_tool.py` (lxml, PyMuPDF, Pillow; run without `python3 -I`).
   all-bold line as a heading, not only large type.
 - Word PDFs decompose sara am, also around a tone mark (ซ ํ ้ า for ซ้ำ);
   matching normalises both forms.
+- Bold text is wider: width estimates use the bold font file for bold runs
+  (TH SarabunPSK bold ships inside Word's DFonts). Estimating bold 18 pt headers
+  with the regular face once put a chapter number one tab stop short.
+- `verify` also checks that every contents number shares one x position in the
+  Word PDF; trust that over the twips estimate.
+- To make a teacher-typed chapter header match the others (after the teacher
+  agrees), `restyle-header DOCX --para N --like M --output OUT.docx` copies the
+  header run style and realigns its number.
 - Glyphs missing from the contents font (e.g. superscript ⁿ in TH Sarabun) are
   written in plain text instead (`i^n`), and the teacher is told.
 - One run can hold several pieces (`⇥42`, or a line break followed by a space);
