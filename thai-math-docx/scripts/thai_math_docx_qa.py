@@ -504,6 +504,12 @@ def audit_docx(
         metrics["omml"] = omml_metrics
         _check(checks, "omml-editability", "FAIL" if omml_failures else "PASS", "Full editable OMML structure and Thai-in-math checks", issue_count=len(omml_failures))
 
+        from document_profile import audit_profile, load_profile
+        metrics["personal_profile"] = load_profile()
+        profile_failures = audit_profile(roots)
+        failures.extend(profile_failures)
+        _check(checks, "personal-profile", "FAIL" if profile_failures else "PASS", "Explicit personal paragraph/cases profile", issue_count=len(profile_failures))
+
         spacing_failures = _audit_paragraph_spacing(roots)
         failures.extend(spacing_failures)
         _check(checks, "paragraph-spacing", "FAIL" if spacing_failures else "PASS", "Paragraph spacing matches active preference config", issue_count=len(spacing_failures))

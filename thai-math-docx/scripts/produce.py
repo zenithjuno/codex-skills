@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -64,7 +66,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--render", action="store_true", help="also write one contact sheet")
     parser.add_argument("--contract", type=Path, help="QA contract; omit for an ordinary generated document")
     parser.add_argument("--report-dir", type=Path, help="where QA reports go (default: ./qa-reports)")
+    parser.add_argument("--word-check", action="store_true", help="export a private copy with Word; report unavailable/blocked separately")
+    parser.add_argument("--page-plan", type=Path, help="explicit Word PDF page anchors; implies --word-check")
+    parser.add_argument("--profile", help="personal profile name solve-tutoring, or a profile JSON path")
     args = parser.parse_args(argv)
+    if args.profile:
+        os.environ["THAI_MATH_DOCX_PROFILE"] = args.profile
+    from document_profile import load_profile
+    try:
+        load_profile()
+        from word_page_check import load_plan
+        page_plan = load_plan(args.page_plan) if args.page_plan else None
+    except (ValueError, OSError) as exc:
+        return fail("profile/page-plan", str(exc))
 
     generator = args.generator
     if not generator.is_file():
@@ -133,9 +147,38 @@ def main(argv: list[str] | None = None) -> int:
         sheet = outdir / "contact-sheet.png"
         render_path = str(sheet) if sheet.exists() else str(outdir)
 
+    word_status = "NOT_REQUESTED"
+    word_report = None
+    if args.word_check or args.page_plan:
+        from word_export_pdf import export_pdf
+        from word_page_check import check_pdf_with_runtime
+        outdir = (args.report_dir or Path("qa-reports")) / (docx.stem + "-word")
+        outdir.mkdir(parents=True, exist_ok=True)
+        export = export_pdf(docx, outdir / "document.pdf")
+        word_report = {"export": export}
+        word_status = export["status"]
+        if word_status == "EXPORTED":
+            try:
+                word_report["pagination"] = check_pdf_with_runtime(outdir / "document.pdf", page_plan)
+                word_status = word_report["pagination"]["status"]
+            except ImportError as exc:
+                word_status = "BLOCKED"
+                word_report["reason"] = "PDF inspection dependency unavailable: " + str(exc)
+            except (OSError, ValueError) as exc:
+                word_status = "ERROR"
+                word_report["reason"] = str(exc)
+        report_path = outdir / "word-check.json"
+        report_path.write_text(json.dumps(word_report, ensure_ascii=False, indent=2), encoding="utf-8")
+        if word_status in {"FAIL", "ERROR"}:
+            return fail("word-check", word_status, evidence=str(report_path))
+        if args.page_plan and word_status in {"BLOCKED", "SKIPPED"}:
+            print(f"BLOCKED  word-check={word_status} structural_qa=PASS evidence={report_path}")
+            return 2
+
     print(
         f"PASS  {docx}  qa={qa_report}  render={render_path}  "
         f"word_review={str(result['needs_word_review']).lower()}"
+        + (f" word_check={word_status} evidence={outdir / 'word-check.json'}" if word_report else "")
     )
     return 0
 

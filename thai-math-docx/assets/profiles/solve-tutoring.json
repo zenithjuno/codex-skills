@@ -1,0 +1,6 @@
+{
+ "schema_version": 1,
+ "plain_paragraphs": true,
+ "cases_col_aligns": ["center", "center", "center"],
+ "cases_connectors": ["เมื่อ", ";"]
+}

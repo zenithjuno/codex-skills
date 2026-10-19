@@ -10,7 +10,7 @@ description: >
   or worksheet. Do not use for direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.10.02 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.19 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 
@@ -63,6 +63,11 @@ authority/routes or long-project signals. Record accepted durable decisions in
 the relevant design note. Without project authority rules, current instruction
 wins, approved design owns content, conventions supply defaults, then skills;
 history is evidence, not a compatibility target. Surface real conflicts.
+
+For sequence rebuilding, distilled exam-style examples, moved coverage or concept
+figures, read [sequence-and-figures](references/sequence-and-figures.md). Keep
+required labels and short explanatory text with the approved content, not as
+afterthoughts during production.
 
 ## Writing a design note
 

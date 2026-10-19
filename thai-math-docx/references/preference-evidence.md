@@ -298,6 +298,15 @@ matching active card, then append evidence using the template at the end.
 - Follow-up: ครูขอให้ตัวเลขเป็น config รองรับ preference จึงใช้ assets/paragraph-spacing.json ร่วมกันทั้งตัวสร้างและตัวตรวจ พร้อมทางเลือก config เฉพาะโครงการ
 - Tags: paragraph-spacing, styles, table-paragraphs, numeric-config
 
+### PREF-20261019-021 — Teaching-page composition and explicit personal profile
+
+- Status: confirmed
+- Tags: page-layout, plain-paragraphs, cases, Word-check, instructional-figures
+- Source: teacher-approved Solve relations/functions handouts and skill-upgrade authorization, 2026-10-19
+- Evidence: ครูรับการจัดหน้าแบบกลุ่มสรุป/ภาพ/ตัวอย่างจนแทบไม่ต้องจัดเอง ขอคำอธิบายเลือกโดเมนและป้ายผลประกอบให้ภาพครบ และรับให้อัปเกรดจากผลทดลอง Word สามชุด 11 หน้า 14 anchors
+- Decision: เพิ่มสูตรจัดหน้าและการตรวจ Word ปลายทาง แยก profile solve-tutoring สำหรับย่อหน้าธรรมดากับปีกกาสามคอลัมน์ออกจากค่าทั่วไป พร้อมตรวจเชิงกล
+- Non-inference: ไม่บังคับขนาดภาพเฉพาะข้อกับทุกงาน ไม่อ้างว่าจำนวนหน้าตรงพิสูจน์ทุกพิกเซลหรือทุกเอกสาร และไม่อ้างว่า LibreOffice อัปเดตเป็นเหตุ
+
 ## Entry template
 
 Copy this block to the end of **Evidence log** for each new discovery. Update the

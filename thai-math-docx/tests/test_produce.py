@@ -6,6 +6,8 @@ import contextlib
 import sys
 import tempfile
 import unittest
+import json
+from unittest.mock import patch
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = SKILL_ROOT / "scripts"
@@ -92,6 +94,28 @@ class ProduceTests(unittest.TestCase):
         path = self.dir / name
         path.write_text(body.format(scripts=str(SCRIPTS)), encoding="utf-8")
         return path
+
+    def test_unavailable_word_is_separate_from_structural_pass(self):
+        gen = self.write("build_good.py", GOOD)
+        with patch('word_export_pdf.export_pdf', return_value={'status':'SKIPPED','reason':'no Word'}):
+            code,out=run(str(gen),'--word-check','--report-dir',str(self.reports))
+        self.assertEqual(0,code,out)
+        self.assertIn('word_check=SKIPPED',out)
+
+    def test_required_pagination_cannot_pass_when_word_blocked(self):
+        gen = self.write("build_good.py", GOOD)
+        plan=self.dir/'plan.json';plan.write_text(json.dumps({'schema_version':1,'page_count':1}))
+        with patch('word_export_pdf.export_pdf', return_value={'status':'BLOCKED','reason':'permission'}):
+            code,out=run(str(gen),'--page-plan',str(plan),'--report-dir',str(self.reports))
+        self.assertEqual(2,code,out)
+        self.assertIn('structural_qa=PASS',out)
+
+    def test_wrong_word_anchor_fails_even_if_structural_qa_passed(self):
+        gen = self.write("build_good.py", GOOD)
+        with patch('word_export_pdf.export_pdf', return_value={'status':'EXPORTED'}), patch('word_page_check.check_pdf_with_runtime',return_value={'status':'FAIL','failures':['wrong page']}):
+            code,out=run(str(gen),'--word-check','--report-dir',str(self.reports))
+        self.assertEqual(1,code,out)
+        self.assertIn('FAIL  word-check',out)
 
     def test_ordinary_document_passes_in_one_line(self) -> None:
         gen = self.write("build_good.py", GOOD)

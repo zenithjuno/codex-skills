@@ -524,7 +524,8 @@ def expr_fragment(expr: dict[str, Any]) -> str:
             expr.get("bottom", expr.get("k", expr.get("lower", []))),
         )
     if kind == "cases":
-        col_aligns = expr.get("col_aligns") or ["left", "left"]
+        from document_profile import load_profile
+        col_aligns = expr.get("col_aligns") or load_profile().get("cases_col_aligns") or ["left", "left"]
         base_jc = expr.get("base_jc") or "left"
         return (
             '<m:d><m:dPr><m:begChr m:val="{"/><m:endChr m:val=""/></m:dPr><m:e>'
@@ -761,6 +762,8 @@ def save_docx(doc: Document, path: str | Path) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     normalize_document_spacing(doc)
+    from document_profile import apply_profile
+    apply_profile(doc)
     doc.save(out)
     normalize_docx_theme_thai_fonts(out)
     return out

@@ -11,7 +11,7 @@ description: >-
   math-handout-sandbox.
 ---
 
-<!-- SKILL-VERSION: 2026.10.18 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.19 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -46,6 +46,8 @@ relevant script. Read anything below only when its condition is actually met.
 
 | Read | When |
 |---|---|
+| `teaching-page-layout.md` | a new multi-page teaching handout or substantial page-layout revision; plan instructional groups before placing blocks |
+| `word-check.md` | final delivery on a ready Word machine, or page-number/TOC assertions; explicit anchors and safe copy-only export |
 | `api-cheatsheet.md` | the shared-API audit fails, you are writing a new generator, or you are adding a structure you have not used before — it is the inventory of every shared function by layer plus the part-type and expression-kind vocabularies |
 | `shared-generator.md` | you need a worked example or a notation rule — vector accent, piecewise/cases, native integral/limit |
 | `synthetic-division.md` | a solution uses synthetic division; use the approved editable traditional table rather than prose, tabs, a picture, or a local table implementation |
@@ -69,6 +71,12 @@ Rules that hold whichever reference you opened:
   re-implementing shared helpers.
 - `thai-font-normalize` plus the audits are the post-build repair and
   verification layer.
+
+For final delivery, use `produce.py … --word-check` when Word is available;
+`--page-plan` checks declared page anchors. Structural QA, Word pagination and
+manual cursor/figure review remain distinct. `--profile solve-tutoring` opts into
+this teacher’s plain paragraphs and centered three-column cases; never impose
+that personal profile on other projects.
 
 ## Font Invariants
 

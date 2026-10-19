@@ -76,9 +76,17 @@ When producing or resizing teacher-approved mathematics figures, read [math-figu
 
 The coordinate-graph profile uses 10 pt numeric labels, 12 pt axis labels, 1 pt curves, 0.75 pt axes and 0.5 pt ticks. These are personal defaults for that figure type, not overrides of existing set-diagram or number-line profiles. Project/current teacher instructions still take priority. The helper is a tested coordinate-graph prototype, not a universal figure generator.
 
+## Personal document profiles
+
+Use the project profile first. `--profile solve-tutoring` or
+THAI_MATH_DOCX_PROFILE selects the teacher’s plain paragraphs and centered
+three-column cases, using เมื่อ (thai_text) or ; as the middle cell. With no
+profile, other paragraph/cases defaults remain unchanged. See
+[teaching-page-layout.md](teaching-page-layout.md) for assemblies and profile use.
+
 ## Validation and handoff
 
-- Microsoft Word on the teacher's machine is the visual authority.
+- Microsoft Word on the teacher's machine is the visual authority. Final layout delivery on a ready Word machine uses the shared safe-copy exporter and optional explicit page anchors; see [word-check.md](word-check.md). LibreOffice stays the iteration/fallback renderer. Word unavailability or permission blocking is reported separately, never as a passed page-number check.
 - Be exact about what a render proves. **A fresh render answers** whether every
   block reached the page, whether equations are present and upright, roughly how
   many pages, and whether a table is grossly misshapen — a contact sheet costs
@@ -92,8 +100,7 @@ The coordinate-graph profile uses 10 pt numeric labels, 12 pt axis labels, 1 pt 
   paragraph settings, fonts, and OMML/XML invariants.
 - Run the unified DOCX QA gate and report both its result and the independent
   `needs_word_review` items.
-- Hand off a generated DOCX as a high-quality editable draft for the teacher's
-  final Word adjustment, not as an asserted final product.
+- Aim for a deliberately arranged editable handout requiring minimal teacher adjustment. Report what structural QA, Word pagination and visual inspection actually established; do not use renderer differences as a reason to skip layout work or claim export alone proves final quality.
 - For a newly changed equation-boundary strategy, the decisive manual check is
   in Microsoft Word: open/save, delete and retype a pure-math choice, then type
   Thai and Latin immediately outside the equation. XML and LibreOffice checks

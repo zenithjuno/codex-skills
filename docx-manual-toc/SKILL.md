@@ -15,7 +15,7 @@ Pair: [`docx-question-renumber`](../docx-question-renumber/SKILL.md).
 ## Ground rules
 
 - **Word is the page-number truth.** `scripts/word_export_pdf.py IN.docx OUT.pdf`
-  drives Microsoft Word on macOS (AppleScript) on a copy inside Word's container,
+  delegates to the shared thai-math-docx exporter and drives Word on macOS on a copy inside Word's container,
   closes without saving and cleans up. LibreOffice paginated one 122-page book as
   141 pages and garbles tab-aligned contents; use it for nothing here.
 - Never edit the teacher's file in place; write a new file or your own earlier
@@ -23,6 +23,10 @@ Pair: [`docx-question-renumber`](../docx-question-renumber/SKILL.md).
 - Show the teacher full tables in chat (entry, old → new page, proposed
   additions) before asking anything. Which headings belong in the contents is the
   teacher's call — propose, do not add silently.
+
+The sibling `thai-math-docx` skill owns export logic. SKIPPED means unavailable;
+BLOCKED means permission/dialog/timeout and is not a valid page-number check.
+Never quit Word or close teacher documents to resolve either.
 
 ## Workflow
 

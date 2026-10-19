@@ -73,3 +73,8 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 
 ## preferences — `thai_math_docx_preferences`
 - `load_spacing_preferences(path=None)` — validated spacing JSON; defaults to assets/paragraph-spacing.json, with optional THAI_MATH_DOCX_SPACING_CONFIG project override; used by builder and QA
+
+## Word / personal-profile tooling (CLI, not generator helpers)
+- `produce.py --word-check [--page-plan plan.json] [--profile solve-tutoring]`
+- `word_export_pdf.py IN.docx OUT.pdf [--json]` — shared copy-only Word exporter
+- `word_page_check.py WORD.pdf --plan plan.json` — unique explicit page anchors

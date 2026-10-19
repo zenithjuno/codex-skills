@@ -1,5 +1,12 @@
 # Thai Math DOCX Changelog
 
+## 2026-10-19 — Teaching layout and Word delivery checks
+
+- Plan instructional page groups with reusable shared-API assemblies.
+- Add shared copy-only Word export, explicit PDF page anchors, and distinct blocked/unavailable results.
+- Add opt-in personal paragraph/cases profile, generation support and QA assertions.
+- Keep image semantics and Word cursor review separate from structural/export success.
+
 ## 2026-10-18 — Paragraph spacing standard
 
 - Default before/after to 0 pt and preserve only explicit 6 pt gaps.

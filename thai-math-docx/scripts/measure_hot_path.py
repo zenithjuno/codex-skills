@@ -26,6 +26,14 @@ SCENARIOS: dict[str, tuple[str, list[str]]] = {
         "produce/resize an approved mathematics figure",
         ALWAYS + ["references/visuals.md", "references/math-figure-style.md"],
     ),
+    "teaching-layout": (
+        "plan a new multi-page teaching handout",
+        ALWAYS + ["references/teaching-page-layout.md"],
+    ),
+    "word-check": (
+        "final Word pagination check",
+        ALWAYS + ["references/word-check.md"],
+    ),
     "edit-data": (
         "edit a generator's DATA section, rebuild, QA — the common job",
         ALWAYS,

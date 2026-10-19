@@ -11,7 +11,8 @@ Teacher masters are hand-numbered: labels such as `1.`, `x.`, `ข้อ 87.` an
 document range, in reading order, without touching question content.
 
 Pair: [`docx-manual-toc`](../docx-manual-toc/SKILL.md) updates the hand-typed
-contents page afterwards and owns the Word PDF exporter used below.
+contents page afterwards. Both use the shared `thai-math-docx` Word exporter;
+local compatibility CLIs do not duplicate its logic.
 
 ## Ground rules
 
@@ -58,8 +59,11 @@ Script: `scripts/renumber_questions.py` (lxml; run without `python3 -I`).
    mismatch). The log shows any sub label whose number actually changed — read it.
 5. **Check pagination in Word.** Labels at 16 pt are taller than labels that
    fell back to Cambria 12 pt, so pages grow. Export both files with
-   `../docx-manual-toc/scripts/word_export_pdf.py` and run
-   `scripts/compare_pages.py BEFORE.pdf AFTER.pdf`. If the page count grew, go to
+   `scripts/word_export_pdf.py` and run
+   `scripts/compare_pages.py BEFORE.pdf AFTER.pdf`. This is a coarse comparison,
+   not proof that body-size headings or every question stayed on the right page;
+   use explicit unique anchors through thai-math-docx when those are required.
+   Word unavailability/permission errors leave pagination unverified. If the page count grew, go to
    the first divergent page, remove spare EMPTY paragraphs on the page before it
    (no text, drawing or break), re-export, repeat until counts and printed
    numbers match. Tell the teacher which pages are tight and what you removed.
