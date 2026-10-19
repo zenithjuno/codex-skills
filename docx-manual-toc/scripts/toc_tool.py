@@ -46,7 +46,8 @@ def w(tag):
 
 
 def norm(s):
-    return re.sub(r'\s+', '', s).replace('ํา', 'ำ')  # Word PDFs split sara am
+    # Word PDFs split sara am, also around a tone mark: ซ + ํ + ้ + า -> ซ้ำ
+    return re.sub('\u0e4d([\u0e48-\u0e4b]?)\u0e32', '\\1\u0e33', re.sub(r'\s+', '', s))
 
 
 # ---------- font metrics ----------
@@ -250,6 +251,13 @@ def cmd_inspect(a):
                   % (i, n, pl['title'][:45], len(pl['tabs']), pl['num'].text.strip(), col))
 
 
+def is_bold_heading(line, tt):
+    """A short line set entirely in bold (sub-headings are often body size)."""
+    spans = [s for s in line['spans'] if s['text'].strip()]
+    return (bool(spans) and len(tt) <= 45 and not re.match(r'^(ข้อ|\d)', tt)
+            and all(s['flags'] & 16 or 'bold' in s['font'].lower() for s in spans))
+
+
 def cmd_headings(a):
     import fitz
     d = fitz.open(a.pdf)
@@ -262,8 +270,8 @@ def cmd_headings(a):
                 sz = max(s['size'] for s in l['spans'])
                 if l['bbox'][1] < a.header_band and re.fullmatch(r'\d+', tt):
                     num = tt
-                elif sz >= a.min_size and tt:
-                    heads.append('%s(%d)' % (t.strip()[:50], round(sz)))
+                elif tt and (sz >= a.min_size or is_bold_heading(l, tt)):
+                    heads.append('%s(%d%s)' % (t.strip()[:50], round(sz), '' if sz >= a.min_size else ' bold'))
         if heads:
             print('pdf %d | printed %s | %s' % (i + 1, num, ' · '.join(heads)))
     print('total pages', len(d))
@@ -281,42 +289,101 @@ def find_line(p, entry):
     return None, None
 
 
+def entries_of(plan, key):
+    return plan['paragraphs'][key]
+
+
+def find_bare_header(p, entry):
+    """Tokens of a line that matches a chapter entry by prefix but has no number yet."""
+    want = norm(clean_title(entry['title']))
+    for line in lines_of(p):
+        toks = [t for t in line['toks']]
+        texts = [t for t in toks if kind(t) == 't' and (t.text or '').strip()]
+        if not texts or parse_line(line):
+            continue
+        if norm(clean_title(''.join(t.text or '' for t in texts))).startswith(want):
+            while toks and (kind(toks[-1]) == 'tab' or not (toks[-1].text or '').strip()):
+                toks.pop()
+            return toks
+    return None
+
+
 def cmd_set(a):
     if a.output == a.docx:
         sys.exit('refusing to overwrite the input; give a different --output')
     plan = json.load(open(a.plan, encoding='utf-8'))
     z, root, paras, dt = load(a.docx)
-    template = None                                   # a regular "⇥- title⇥⇥n" line
-    for key in plan['paragraphs']:
-        for line in lines_of(paras[int(key)]):
+    keys = list(plan['paragraphs'])
+
+    def regular_template(p):
+        for line in lines_of(p):
             pl = parse_line(line)
             if pl and pl['lead'] and pl['tabs'] and line['br'] is not None:
-                template = (line, pl)
-                break
-        if template:
-            break
-    if not template:
-        sys.exit('no regular contents line to copy the style from')
-    t_line, t_pl = template
-    lead_toks = t_pl['lead']
-    title_tok = t_pl['title_toks'][0]
-    tab_tok = t_pl['tabs'][0]
-    for key, entries in plan['paragraphs'].items():
+                return line, pl
+        return None
+
+    def header_template(p):
+        for line in lines_of(p):
+            pl = parse_line(line)
+            if pl and not pl['lead'] and pl['tabs']:
+                return pl
+        return None
+
+    headers_by_key = {k: header_template(paras[int(k)]) for k in keys}
+    for ki, key in enumerate(keys):
         p = paras[int(key)]
         stops = tab_stops(p)
+        # copy the line style of this paragraph; else the nearest earlier one
+        template = regular_template(p)
+        j = ki
+        while template is None and j > 0:
+            j -= 1
+            template = regular_template(paras[int(keys[j])])
+        if template is None:
+            sys.exit('no regular contents line to copy the style from')
+        t_line, t_pl = template
+        lead_toks = t_pl['lead']
+        title_tok = t_pl['title_toks'][0]
+        tab_tok = t_pl['tabs'][0]
         cols = [round(simulate(pl['before_num'], stops, dt)) for pl in
                 (parse_line(l) for l in lines_of(p)) if pl and pl['lead']]
         if not cols:
             cols = [round(simulate(t_pl['before_num'], tab_stops(t_pl['num'].getparent().getparent()), dt))]
         target = max(set(cols), key=cols.count)       # the column most numbers land on
         anchor = None
-        for e in entries:
+        for e in entries_of(plan, key):
             line, pl = find_line(p, e)
             if pl:
                 old = pl['num'].text.strip()
                 pl['num'].text = str(e['page'])
                 print('kept  %-42s %s -> %s' % (pl['title'][:42], old, e['page']))
                 anchor = pl['num']
+                continue
+            bare = find_bare_header(p, e) if e.get('prefix') else None
+            if bare is not None:                      # chapter header typed without a number
+                headers = [h for h in headers_by_key.values() if h]
+                if not headers:
+                    sys.exit('no numbered chapter header to copy the number style from')
+                earlier = [headers_by_key[k] for k in keys[:ki] if headers_by_key[k]]
+                h = earlier[-1] if earlier else headers[0]   # nearest earlier chapter's style
+                hcols = [round(simulate(x['before_num'], tab_stops(x['num'].getparent().getparent()), dt))
+                         for x in headers]
+                htarget = max(set(hcols), key=hcols.count)
+                x = simulate(bare, stops, dt)
+                n = 0
+                while x < htarget - 1:
+                    x = next_stop(x, stops, dt)
+                    n += 1
+                last = [t for t in bare if kind(t) == 't'][-1]
+                at = split_after(last)
+                num_el = t_el(str(e['page']))
+                for r in [make_run(h['tabs'][0], etree.Element(w('tab'))) for _ in range(n)] + \
+                         [make_run(h['num'], num_el)]:
+                    at.addnext(r)
+                    at = r
+                anchor = num_el
+                print('numbered header %-32s %s  (tabs %d, lands %d, target %d)'
+                      % (e['title'][:32], e['page'], n, x, htarget))
                 continue
             if anchor is None:
                 sys.exit('new entry "%s" has no matched entry before it in paragraph %s' % (e['title'], key))
@@ -355,7 +422,8 @@ def cmd_set(a):
         for line in lines_of(p):
             pl = parse_line(line)
             if pl and not any(norm(pl['title']) == norm(e['title']) or
-                              (e.get('prefix') and norm(pl['title']).startswith(norm(e['title']))) for e in entries):
+                              (e.get('prefix') and norm(pl['title']).startswith(norm(e['title'])))
+                              for e in entries_of(plan, key)):
                 print('WARNING: paragraph %s line "%s" is not in the plan; left unchanged' % (key, pl['title']))
     data = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)
     with zipfile.ZipFile(a.output, 'w', zipfile.ZIP_DEFLATED) as o:
@@ -377,7 +445,7 @@ def cmd_verify(a):
                 sz = max(s['size'] for s in l['spans'])
                 if l['bbox'][1] < a.header_band and re.fullmatch(r'\d+', tt):
                     num = int(tt)
-                elif sz >= a.min_size:
+                elif sz >= a.min_size or is_bold_heading(l, tt):
                     heads.append(tt)
         pages.append((num, heads))
     body = next((i for i, (n, _) in enumerate(pages) if n == 1), None)

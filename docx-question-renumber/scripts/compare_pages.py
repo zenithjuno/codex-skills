@@ -16,7 +16,8 @@ import fitz
 
 
 def norm(s):
-    return re.sub(r'\s+', '', s).replace('ํา', 'ำ')
+    # Word PDFs split sara am, also around a tone mark: ซ + ํ + ้ + า -> ซ้ำ
+    return re.sub('\u0e4d([\u0e48-\u0e4b]?)\u0e32', '\\1\u0e33', re.sub(r'\s+', '', s))
 
 
 def page_info(pg, margin):

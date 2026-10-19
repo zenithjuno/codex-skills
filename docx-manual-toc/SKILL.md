@@ -63,6 +63,20 @@ Script: `scripts/toc_tool.py` (lxml, PyMuPDF, Pillow; run without `python3 -I`).
 
 ## Pitfalls seen in practice
 
+- Chapters may differ in line style (one with `- Title`, the next without).
+  New lines copy the style of their own chapter's lines; a chapter with no lines
+  yet copies the nearest earlier chapter.
+- A chapter header typed without a page number (a placeholder for a new
+  chapter) gets one when the plan lists it with `prefix: true`: tabs to the
+  column other chapter numbers use, number style from the nearest earlier
+  chapter header. The header text itself is the teacher's and is not restyled —
+  point out if it looks different from the other headers.
+- Sub-headings are often bold body-size text; `headings`/`verify` count a short
+  all-bold line as a heading, not only large type.
+- Word PDFs decompose sara am, also around a tone mark (ซ ํ ้ า for ซ้ำ);
+  matching normalises both forms.
+- Glyphs missing from the contents font (e.g. superscript ⁿ in TH Sarabun) are
+  written in plain text instead (`i^n`), and the teacher is told.
 - One run can hold several pieces (`⇥42`, or a line break followed by a space);
   the tool works on text/tab/break pieces, not runs, and splits a run when it
   must insert after a number that shares it.
