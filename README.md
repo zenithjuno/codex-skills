@@ -38,6 +38,8 @@
 | [`thai-math-docx`](thai-math-docx) | สร้าง/แก้/ตรวจไฟล์ Word คณิตศาสตร์ภาษาไทย รวมสมการ OMML และการตรวจความปลอดภัยตอนแทรกเนื้อหา |
 | [`thai-font-normalize`](thai-font-normalize) | บังคับฟอนต์ไทยใน .docx ให้เป็น TH Sarabun New กันตกไป Angsana New ตอน export PDF หรือ clear formatting |
 | [`math-handout-sandbox`](math-handout-sandbox) | ออกแบบสื่อคณิตศาสตร์แบบครูนำ คุยก่อนแล้วค่อยผลิต |
+| [`docx-question-renumber`](docx-question-renumber) | รันเลขข้อใหม่ในไฟล์ Word ที่พิมพ์เลขเอง (1. 2. 3. / 1) 2) 3)) ตั้งฟอนต์เลขให้เหมือนกันทุกข้อ แล้วเช็กการตัดหน้าด้วย Word |
+| [`docx-manual-toc`](docx-manual-toc) | อัปเดต/เพิ่มหัวข้อในสารบัญพิมพ์มือ (tab ไม่ใช้ Heading) โดยเอาเลขหน้าจาก PDF ที่ Word export เอง |
 | [`soffice-runtime-fix`](soffice-runtime-fix) | ซ่อม LibreOffice/soffice ที่พังหลัง Codex อัปเดต runtime บน macOS |
 
 ## เกมการเรียนรู้ (HTML/JS learning games)
