@@ -80,6 +80,7 @@ SKIP_COL = re.compile(r"^(ที่|ลำดับ|ข้อ|no\.?|#|pdf_page)$
 
 
 TOTAL_HEADS = ("รวม", "รวมทั้งสิ้น")
+ROW_KIND_COL = "ชนิดแถว"  # optional row-type column; values starting with รวม mark total/subtotal rows
 
 
 def _kind(rows, c):
@@ -131,8 +132,16 @@ def sum_checks(tables, cfg=None):
             continue
         tid = t["id"]
 
+        kind_col = next((i for i, c in enumerate(cols) if c.strip() == ROW_KIND_COL), None)
+
         def total_label(r):
-            """label of a total row: the FIRST text cell of the row starts with รวม (a รวม... cell elsewhere is just text)."""
+            """label of a total row. With a `ชนิดแถว` column, that column decides (a value starting with รวม);
+            otherwise the FIRST text cell of the row starts with รวม (a รวม... cell elsewhere is just text)."""
+            if kind_col is not None:
+                k = r[kind_col] if kind_col < len(r) else None
+                if not (isinstance(k, str) and k.strip().startswith("รวม")):
+                    return None
+                return next((v for i, v in enumerate(r) if i > 0 and i != kind_col and isinstance(v, str) and v.strip()), k)
             v = next((v for i, v in enumerate(r) if i > 0 and isinstance(v, str) and v.strip()), None)
             return v if v is not None and v.strip().startswith("รวม") else None
 

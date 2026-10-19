@@ -219,6 +219,16 @@ class QaTotals(unittest.TestCase):
         res = self.sums(cols, rows)
         self.assertEqual([r["result"] for r in res], ["PASS"], res)
 
+    def test_row_kind_column_marks_subtotals(self):
+        # subtotal rows are marked only in a ชนิดแถว column (their first text cell is a group name, not รวม)
+        cols = ["pdf_page", "ระดับ", "ชั้น", "ชนิดแถว", "จำนวน"]
+        rows = [[1, "ต้น", "ม.1", "ชั้น", 10], [1, "ต้น", "ม.2", "ชั้น", 20], [1, "ต้น", "ต้น", "รวมระดับ", 30],
+                [1, "ปลาย", "ม.4", "ชั้น", 5], [1, "ปลาย", "ปลาย", "รวมระดับ", 5], [1, None, None, "รวม", 35]]
+        res = self.sums(cols, rows)
+        self.assertEqual([r["result"] for r in res], ["PASS"] * 3, res)
+        rows[-1][-1] = 70  # double-counted grand total must fail
+        self.assertEqual(self.sums(cols, rows)[-1]["result"], "FAIL")
+
 
 @unittest.skipUnless(synth.fonts_available(), "no TH Sarabun New TTF installed")
 class WrapDoubleSpace(unittest.TestCase):

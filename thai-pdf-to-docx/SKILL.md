@@ -10,7 +10,7 @@ description: >
   authoring new Thai documents (thai-docx) or math worksheets (thai-math-docx).
 ---
 
-<!-- SKILL-VERSION: 2026.10.18 | name: thai-pdf-to-docx | canonical: ~/.codex/skills/thai-pdf-to-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.19 | name: thai-pdf-to-docx | canonical: ~/.codex/skills/thai-pdf-to-docx | bump this date on every edit -->
 
 # Thai PDF to DOCX + XLSX
 
@@ -113,6 +113,8 @@ Build the result in a hook or `manual_pages.json`; keep the OCR code in the lane
    OCR hybrid above. Do not treat a page as good just because the digits and letters are present.
 10. Budget tables: a sub-heading row that carries its own amounts belongs in the main sheet with a `ชนิดแถว` column
    (heading / item / total) so `SUM` over items works; only when it merely repeats the sum of its children is it left out of sums.
+   qa.py reads the same column: a `ชนิดแถว` value starting with `รวม` marks a total/subtotal row (so subtotals are not
+   double-counted). Without that column, a row is a total only if its first text cell starts with `รวม`.
 11. A cell with several stacked values (one per line: items, amounts) is split to one xlsx row per item, not left as a multi-line cell.
 12. Total checks: only columns headed exactly `รวม`/`รวมทั้งสิ้น` are total columns, summed over same-group or same-kind columns
    (counts vs decimal amounts) or the columns declared in `qa.total_columns`; a total row is one whose first text cell starts with `รวม`.
