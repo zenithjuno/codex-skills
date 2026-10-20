@@ -64,14 +64,18 @@ end timeout
         result.update(status='ERROR',reason=str(exc))
     finally:
         # Even a timed-out Apple Event may have opened the copy. Attempt bounded
-        # cleanup of that exact file, never a teacher document. Retain the temp
+        # cleanup of that exact file, never a teacher document. Word rejects
+        # `repeat with x in documents` (-1708) and reports HFS full names, so
+        # iterate by index and compare POSIX paths; no match means closed. Retain the temp
         # folder if we cannot confirm closure so Word does not lose its backing file.
         closed=not opened
         if work and opened:
             cleanup=f'''with timeout of 4 seconds
+set target to {apple_string(work/'input.docx')}
 tell application "Microsoft Word"
-repeat with candidate in documents
-if full name of candidate is {apple_string(work/'input.docx')} then close candidate saving no
+repeat with i from (count of documents) to 1 by -1
+set candidate to document i
+if POSIX path of ((full name of candidate) as text) is target then close candidate saving no
 end repeat
 end tell
 end timeout'''

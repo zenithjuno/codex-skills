@@ -34,6 +34,7 @@ class WordChecks(unittest.TestCase):
    export_script=run.call_args_list[0].kwargs['input'];cleanup_script=run.call_args_list[1].kwargs['input']
    self.assertNotIn('active document',export_script);self.assertNotIn('quit',export_script)
    self.assertIn(str(work/'input.docx'),cleanup_script);self.assertIn('saving no',cleanup_script)
+   self.assertNotIn('in documents',cleanup_script);self.assertIn('POSIX path of',cleanup_script);self.assertNotIn('quit',cleanup_script)
  def test_explicit_anchors_work_at_body_size_and_fail_wrong_page(self):
   import fitz
   with tempfile.TemporaryDirectory() as d:
