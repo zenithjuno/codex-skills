@@ -9,7 +9,7 @@ description: >
   belong here.
 ---
 
-<!-- SKILL-VERSION: 2026.09.05 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.10.20 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
 
 # Thai DOCX (no math)
 
@@ -72,3 +72,20 @@ Keep `needs_word_review` separate from the automated verdict.
 sheet catches gross omissions and broken tables, not exact Word layout. Deliver
 the actual DOCX and report QA plus any pending Word review; do not claim final
 visual approval from a LibreOffice preview.
+
+## Review from a Word-exported PDF
+
+For Thai DOCX work, discuss and review pages from a PDF exported by Microsoft
+Word — the same pagination the teacher sees — not from a LibreOffice render.
+LibreOffice mis-paginates: a 189-page book came out with stray heading-only
+pages that do not exist in Word.
+
+```bash
+python3 scripts/word_export_pdf.py IN.docx OUT.pdf --json
+```
+
+It opens a private copy inside Word's container and saves it as PDF; the source
+is never saved. Shared implementation: `thai-math-docx/scripts/word_export_pdf.py`.
+`EXPORTED` is the only verified result; `SKIPPED` or `BLOCKED` means the
+pagination is **not verified** — say so, never substitute a LibreOffice preview
+as approval. Never quit Word or close the teacher's open documents.
