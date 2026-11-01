@@ -63,6 +63,13 @@ redo it later from a clean state. (Same principle as blind re-transcription: anc
 The tool's `question` command shows only the prompt+choices; `answer` reveals the key. Keep those two moments
 in separate steps, and never run `answer` before your own solution file exists.
 
+Blindness covers the whole context, not just the next input. A context that produced the key, or has read a
+solutions file, producer notes, or a reference key, cannot check blind. Hand the solving to a checker that
+**starts with a fresh context window**: a new session, or a subagent explicitly started fresh. Never a fork of
+the current conversation: some harnesses (Codex, for one) fork by default, and a fork inherits everything the
+parent saw. Brief the checker with file paths and conventions only (`AUDIT_ROOT`, the questions snapshot,
+STATE.md), never pasted answers or producer history.
+
 ## Setup (once per data set)
 
 1. **Put the data where the tool can find it.** The producer's files are JSON: `questions_*.json` (each item has

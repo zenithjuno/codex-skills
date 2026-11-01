@@ -3,7 +3,7 @@ name: systematic-debugging
 description: Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes
 license: MIT
 ---
-<!-- SKILL-VERSION: 2026.08.02 | name: systematic-debugging | canonical: ~/.codex/skills/systematic-debugging | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.02 | name: systematic-debugging | canonical: ~/.codex/skills/systematic-debugging | bump this date on every edit -->
 
 # Systematic Debugging
 
@@ -185,6 +185,9 @@ You MUST complete each phase before proceeding to the next.
    - MUST have before fixing
    - **Red-green is mandatory:** run it BEFORE the fix and watch it FAIL. A test you never
      saw fail proves nothing — it may be testing the wrong thing.
+   - If you forced the red by mutating code, a fixture, or a document (e.g. editing a
+     `.docx` to plant the bug), `diff` against a pristine copy first (for `.docx`, diff the
+     unzipped `word/document.xml`). An edit that silently changed nothing is not a red.
    - Where to put it, in order of preference:
      | Bug is in | Write the test as |
      |---|---|
