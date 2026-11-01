@@ -1,0 +1,7 @@
+interface:
+  display_name: "Retro"
+  short_description: "Session retrospective — propose environment fixes from where the agent struggled"
+  default_prompt: "Use $retro on this session: list where the agent struggled, and propose the smallest environment fix for each, most severe first."
+
+policy:
+  allow_implicit_invocation: false
