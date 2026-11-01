@@ -11,7 +11,7 @@ description: >-
   math-handout-sandbox.
 ---
 
-<!-- SKILL-VERSION: 2026.10.19 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.02 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 
@@ -72,6 +72,9 @@ Rules that hold whichever reference you opened:
 - `thai-font-normalize` plus the audits are the post-build repair and
   verification layer.
 
+For a standalone export, `scripts/word_export_pdf.py IN.docx OUT.pdf --json`:
+its flags, statuses and fixes are in `--help` and `references/word-check.md`;
+do not read its source, and never drive Word through computer use to inspect pages.
 For final delivery, use `produce.py … --word-check` when Word is available;
 `--page-plan` checks declared page anchors. Structural QA, Word pagination and
 manual cursor/figure review remain distinct. `--profile solve-tutoring` opts into

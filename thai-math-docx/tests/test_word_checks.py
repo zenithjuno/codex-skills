@@ -25,6 +25,7 @@ class WordChecks(unittest.TestCase):
    with patch.object(exporter.sys,'platform','darwin'),patch.object(exporter.Path,'exists',return_value=True),patch.object(exporter.Path,'is_dir',return_value=True),patch.object(exporter.tempfile,'mkdtemp',side_effect=PermissionError('denied')):
     r=exporter.export_pdf(p,Path(d)/'out.pdf')
    self.assertEqual('BLOCKED',r['status']);self.assertTrue(r['source_unchanged'])
+  self.assertIn('escalated',r['reason'])
  def test_timeout_closes_only_private_copy_without_source_save(self):
   with tempfile.TemporaryDirectory() as d:
    p=Path(d)/'in.docx';p.write_bytes(b'original');work=Path(d)/'owned';work.mkdir()

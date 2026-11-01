@@ -58,8 +58,12 @@ end timeout
             finally:
                 if os.path.exists(tmp):os.unlink(tmp)
             result.update(status='EXPORTED',reason='Exported a private copy; no source save')
-    except (PermissionError,subprocess.TimeoutExpired) as exc:
-        result.update(status='BLOCKED',reason=str(exc))
+    except PermissionError as exc:
+        # Seen in Codex runs: the agent sandbox cannot write Word's container.
+        result.update(status='BLOCKED',reason=f'{exc}. The agent sandbox cannot write Word\'s container: '
+                      'rerun this exact command once with escalated (outside-sandbox) permission')
+    except subprocess.TimeoutExpired as exc:
+        result.update(status='BLOCKED',reason=f'{exc}. For a large book retry once with --timeout up to 300')
     except OSError as exc:
         result.update(status='ERROR',reason=str(exc))
     finally:
@@ -92,8 +96,15 @@ end timeout'''
     return result
 
 
+EPILOG='''status / exit code:
+  EXPORTED 0  valid PDF written from a private copy; source unchanged
+  SKIPPED  2  not macOS or Word not installed; pagination unverified
+  BLOCKED  2  permission, dialog or timeout; reason says what to do
+  ERROR    1  bad input, no valid PDF, or source changed during export'''
+
+
 def main(argv=None):
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('input');ap.add_argument('output');ap.add_argument('--timeout',type=int,default=45);ap.add_argument('--json',action='store_true')
+    ap=argparse.ArgumentParser(description=__doc__,epilog=EPILOG,formatter_class=argparse.RawDescriptionHelpFormatter);ap.add_argument('input');ap.add_argument('output');ap.add_argument('--timeout',type=int,default=45);ap.add_argument('--json',action='store_true')
     a=ap.parse_args(argv);r=export_pdf(a.input,a.output,a.timeout)
     print(json.dumps(r,ensure_ascii=False) if a.json else f"{r['status']}: {r['reason']} — {r['pdf']}")
     return 0 if r['status']=='EXPORTED' else 2 if r['status'] in {'BLOCKED','SKIPPED'} else 1

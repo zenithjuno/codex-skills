@@ -15,8 +15,10 @@ python3 scripts/word_page_check.py out.pdf --plan plan.json --report check.json
 The exporter is shared by docx-manual-toc and docx-question-renumber compatibility
 CLIs. Requires an interactive macOS session with Microsoft Word and Automation
 permission. Uses a uniquely named copy in Word's container, closes only that
-copy without saving, verifies the source hash, and never quits Word. Sandbox or
-Automation permission may require the execution environment's authorized route;
+copy without saving, verifies the source hash, and never quits Word. A sandboxed agent
+gets `Operation not permitted` on Word's container: rerun the same command once
+with escalated (outside-sandbox) permission. Automation permission is the
+teacher's to grant in System Settings;
 do not claim unavailable Word when the actual issue is permission. Do not keep
 retrying the same denial. No Windows COM backend is claimed.
 

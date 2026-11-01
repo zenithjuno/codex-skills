@@ -9,7 +9,7 @@ description: >
   belong here.
 ---
 
-<!-- SKILL-VERSION: 2026.10.20 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.02 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
 
 # Thai DOCX (no math)
 
@@ -89,3 +89,10 @@ is never saved. Shared implementation: `thai-math-docx/scripts/word_export_pdf.p
 `EXPORTED` is the only verified result; `SKIPPED` or `BLOCKED` means the
 pagination is **not verified** — say so, never substitute a LibreOffice preview
 as approval. Never quit Word or close the teacher's open documents.
+
+Use the CLI as documented here and in `--help`; do not read the exporter source.
+`--timeout` defaults to 45 s, up to 300 for a large book. Exit 0 = `EXPORTED`,
+2 = `SKIPPED`/`BLOCKED`, 1 = `ERROR`. A `BLOCKED` reason names its fix: for
+`Operation not permitted … com.microsoft.Word`, rerun the same command once with
+escalated (outside-sandbox) permission. Never open or drive Word through computer
+use to inspect pages; it hangs and proves nothing the exported PDF does not.
