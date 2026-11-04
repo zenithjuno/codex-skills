@@ -110,7 +110,8 @@ def endpoint(c,p,x,y,filled=True):
     a,b=p(x,y);r=STYLE.token('point_radius_pt')
     fill=NAVY if filled else "white"
     c.d.ellipse(((a-r)*S,(b-r)*S,(a+r)*S,(b+r)*S),fill=fill,outline=NAVY,width=round(STYLE.token('point_border_pt')*S))
-    c.svg.append(f'<circle cx="{a}" cy="{b}" r="{r}" fill="{fill}" stroke="{NAVY}" stroke-width="{STYLE.token('point_border_pt')}"/>')
+    border=STYLE.token('point_border_pt')
+    c.svg.append(f'<circle cx="{a}" cy="{b}" r="{r}" fill="{fill}" stroke="{NAVY}" stroke-width="{border}"/>')
 
 # New order: source 2,4,5,1,6,3. Coordinates are chosen for clear teaching.
 c=Canvas(W,H);p=axes(c)

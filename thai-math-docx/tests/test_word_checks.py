@@ -1,10 +1,12 @@
 from pathlib import Path
-import json,os,sys,tempfile,unittest,subprocess
+import importlib.util,json,os,sys,tempfile,unittest,subprocess
 from types import SimpleNamespace
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import word_export_pdf as exporter
 import word_page_check as pages
+
+needs_fitz=unittest.skipUnless(importlib.util.find_spec('fitz'),'PyMuPDF (fitz) not installed in this Python')
 
 class WordChecks(unittest.TestCase):
  def test_applescript_path_is_escaped(self):
@@ -36,6 +38,7 @@ class WordChecks(unittest.TestCase):
    self.assertNotIn('active document',export_script);self.assertNotIn('quit',export_script)
    self.assertIn(str(work/'input.docx'),cleanup_script);self.assertIn('saving no',cleanup_script)
    self.assertNotIn('in documents',cleanup_script);self.assertIn('POSIX path of',cleanup_script);self.assertNotIn('quit',cleanup_script)
+ @needs_fitz
  def test_explicit_anchors_work_at_body_size_and_fail_wrong_page(self):
   import fitz
   with tempfile.TemporaryDirectory() as d:
@@ -46,6 +49,7 @@ class WordChecks(unittest.TestCase):
    self.assertEqual('PASS',pages.check_pdf(p,good)['status'])
    good['anchors'][0]['page']=1
    self.assertEqual('FAIL',pages.check_pdf(p,good)['status'])
+ @needs_fitz
  def test_duplicate_identity_cannot_silently_pass(self):
   import fitz
   with tempfile.TemporaryDirectory() as d:
@@ -55,6 +59,7 @@ class WordChecks(unittest.TestCase):
    self.assertEqual('FAIL',pages.check_pdf(p,{'anchors':[{'text':'Example 93.','page':1}]})['status'])
  def test_normalize_thai_sara_am(self):
   self.assertEqual(pages.normalize('ซ้ำ'),pages.normalize('ซ ํ ้ า'))
+ @needs_fitz
  def test_empty_working_page_is_warning_not_failure(self):
   import fitz
   with tempfile.TemporaryDirectory() as d:
