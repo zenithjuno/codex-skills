@@ -2,14 +2,16 @@
 name: thai-docx
 description: >
   Create, edit, repair, audit, or preview Thai Word documents without mathematical
-  notation: reports, letters, memos, school forms, minutes, and prose tables.
+  notation: reports, letters, memos, school forms, minutes, and prose tables,
+  including Thai official documents (บันทึกข้อความ, หนังสือภายใน, หนังสือราชการ),
+  which have their own standing layout preferences.
   Use TH Sarabun New with editable, insertion-safe Thai text; repair legacy Thai
   fonts in imported DOCX. For mathematical notation or editable equations, use
   thai-math-docx instead. Administrative numbers and prose such as คะแนน ≥ 80
   belong here.
 ---
 
-<!-- SKILL-VERSION: 2026.11.02 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.11 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
 
 # Thai DOCX (no math)
 
@@ -26,6 +28,7 @@ Direct document work needs no material-design discussion or exam workflow.
 
 | Operation | Read / run |
 |---|---|
+| บันทึกข้อความ, หนังสือภายใน, หนังสือราชการ (any Thai official memo or letter) | Read [official-letters.md](references/official-letters.md) first: standing layout/wording preferences plus an evidence log of reviewer comments. Append new reviewer comments there as new rows; then build with `engine-reuse.md` |
 | Create or edit prose | [engine-reuse.md](references/engine-reuse.md): supported builder calls and a complete build/QA example |
 | Repair an imported or legacy-font DOCX | [repair.md](references/repair.md); the repair command mutates its input, so use a working copy unless in-place repair is authorized |
 | Audit only | The QA section of `engine-reuse.md`; auditing never repairs the input |
