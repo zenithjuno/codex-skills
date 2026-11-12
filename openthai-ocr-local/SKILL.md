@@ -1,11 +1,17 @@
 ---
 name: openthai-ocr-local
-description: Read Thai/English printed PDFs or images with local OpenThai CPU OCR, audit requested pages, and select bounded text with page/line citations. Use for อ่านด้วย OpenThai, OCR ในเครื่อง, ตรวจผล OCR, or large scanned-document reading. Plain text, not reconstructed tables/equations.
+description: Read Thai/English printed PDFs or images with local OpenThai CPU OCR, audit requested pages, and select bounded text with page/line citations, and reuse prepared text for source checks. Use for อ่านด้วย OpenThai, OCR ในเครื่อง, ตรวจผล OCR, or large scanned-document reading. Plain text, not reconstructed tables/equations.
 ---
 
 # Local document reading
 
 Complete the reading task in the same user request: prepare locally → read evidence → check risk images plus a sample → record actual checks → refresh evidence → answer. Helper success alone is not completion. OCR/rules run on local CPU without cloud OCR/API calls; selected text/images enter assistant context.
+
+## Reuse a prepared document for another agent
+
+When asked to retrieve, verify or cite previously extracted text, first read [references/agent-reuse.md](references/agent-reuse.md). It covers finding the document's existing package, normalized text/number search, exact page/line selection, full-page and region comparison, recording corrections/uncertainty, and cited export. Prefer the package's trusted helper when present; otherwise use the native `inspect`/`review` workflow. Do not rerun whole-document OCR merely to answer a new question.
+
+Keep the usage route in this skill discoverable rather than only in one project's handoff. Project helpers and source files stay in their document package; the skill does not assume every package contains the same helper or a particular private document.
 
 ## Prepare and read
 
