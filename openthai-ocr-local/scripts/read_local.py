@@ -9,14 +9,14 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 
 ROOT = Path.home() / '.local/share/openthai-ocr'
-SCHEMA = 1
+SCHEMA = 2
 
 
-def init_worker(source, dpi):
-    global engine, pdf, image_source, render_scale
+def init_worker(source, dpi, method="ocr"):
+    global engine, pdf, image_source, render_scale, read_method
     sys.path.insert(0, str(ROOT / 'models'))
-    from runtime.line_engine import LineOCR
-    engine = LineOCR(ROOT / 'models', threads=1, runtime={'backend': 'onnxruntime'})
+    engine = None
+    read_method = method
     image_source = source
     render_scale = dpi / 72
     pdf = None
@@ -25,23 +25,64 @@ def init_worker(source, dpi):
         pdf = pypdfium2.PdfDocument(source)
 
 
+def useful_text(text):
+    from collections import Counter
+    chars = [c for c in text if not c.isspace()]
+    return (len(chars) >= 60 and sum(c.isalpha() for c in chars) >= 20
+            and not any(c == "\ufffd" or (ord(c) < 32 and c not in "\n\r\t") for c in text)
+            and Counter(chars).most_common(1)[0][1] / len(chars) < 0.5)
+
+
+def valid_page(result, number):
+    return (isinstance(result, dict) and result.get('page') == number
+            and isinstance(result.get('text'), str)
+            and isinstance(result.get('lines'), list) and isinstance(result.get('dropped'), list)
+            and all(isinstance(line, dict) and isinstance(line.get('text'), str)
+                    for line in result['lines'] + result['dropped']))
+
+
 def read_page(number):
+    global engine
     from PIL import Image
     started = time.perf_counter()
-    if pdf is not None:
-        page = pdf[number - 1]
-        bitmap = page.render(scale=render_scale)
-        image = bitmap.to_pil().copy()
-        bitmap.close()
-        page.close()
-    else:
-        with Image.open(image_source) as original:
-            image = original.convert('RGB')
-    result = engine.read(image)
-    image.close()
-    result['page'] = number
-    result['elapsed_seconds'] = round(time.perf_counter() - started, 3)
-    return result
+    image = None
+    try:
+        if pdf is not None:
+            page = pdf[number - 1]
+            if read_method == 'auto':
+                textpage = page.get_textpage()
+                text = textpage.get_text_range()
+                textpage.close()
+                has_images = any(obj.type == 3 for obj in page.get_objects())
+                if useful_text(text) and not has_images:
+                    lines = [{'text': t, 'confidence': None, 'box': None, 'row': i}
+                             for i, t in enumerate(text.splitlines()) if t.strip()]
+                    page.close()
+                    return dict(page=number, text='\n'.join(t['text'] for t in lines),
+                                lines=lines, dropped=[], method='text_layer',
+                                elapsed_seconds=round(time.perf_counter()-started, 3))
+            bitmap = page.render(scale=render_scale)
+            image = bitmap.to_pil().copy()
+            bitmap.close()
+            page.close()
+        else:
+            with Image.open(image_source) as original:
+                image = original.convert('RGB')
+        from runtime.line_engine import LineOCR
+        if engine is None:
+            engine = LineOCR(ROOT / 'models', threads=1, runtime={'backend': 'onnxruntime'})
+        result = engine.read(image)
+        import numpy as np
+        ink = float((np.asarray(image.convert('L')) < 235).mean())
+        result.update(page=number, method='ocr', image_size=list(image.size),
+                      ink_fraction=round(ink, 6),
+                      elapsed_seconds=round(time.perf_counter()-started, 3))
+        return result
+    except Exception as error:
+        return dict(page=number, error=f'{type(error).__name__}: {error}')
+    finally:
+        if image is not None:
+            image.close()
 
 
 def pages_from(spec, total):
@@ -72,6 +113,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input', type=Path)
     parser.add_argument('--out', required=True, type=Path)
+    parser.add_argument('--method', choices=['auto', 'ocr'], default='ocr')
     parser.add_argument('--pages', help='1-based selection, e.g. 1-5,9')
     parser.add_argument('--dpi', type=int, default=200)
     parser.add_argument('--workers', type=int, default=2, help='CPU processes; one inference thread each')
@@ -98,7 +140,8 @@ def main():
         for chunk in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(chunk)
     identity = dict(schema=SCHEMA, source_sha256=digest.hexdigest(),
-                    revision=(ROOT / 'models/REVISION').read_text().strip(), dpi=args.dpi)
+                    revision=(ROOT / 'models/REVISION').read_text().strip(), dpi=args.dpi,
+                    method=args.method, reader_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     out = args.out.expanduser().resolve()
     manifest = out / 'manifest.json'
     if manifest.exists():
@@ -108,26 +151,41 @@ def main():
         parser.error('Output directory is not an OCR cache; choose an empty --out')
     out.mkdir(parents=True, exist_ok=True)
     atomic_json(manifest, dict(identity=identity, source=str(source), total_pages=total))
-    pending = [n for n in pages if not (out / f'page-{n:04d}.json').exists()]
+    pending = []
+    for n in pages:
+        try:
+            good = valid_page(json.loads((out / f'page-{n:04d}.json').read_text()), n)
+        except (OSError, ValueError):
+            good = False
+        if not good:
+            pending.append(n)
+    failed = []
     started = time.perf_counter()
     if pending:
         with ProcessPoolExecutor(max_workers=min(args.workers, len(pending)),
-                                 initializer=init_worker, initargs=(str(source), args.dpi)) as pool:
+                                 initializer=init_worker, initargs=(str(source), args.dpi, args.method)) as pool:
             for result in pool.map(read_page, pending):
+                if 'error' in result:
+                    failed.append(result)
+                    print(json.dumps(result, ensure_ascii=False), file=sys.stderr)
+                    continue
                 atomic_json(out / f"page-{result['page']:04d}.json", result)
                 print(f"page {result['page']}/{total}: {result['elapsed_seconds']} s", file=sys.stderr, flush=True)
     empty, low = [], []
     for n in pages:
+        if n in [item['page'] for item in failed]:
+            continue
         result = json.loads((out / f'page-{n:04d}.json').read_text())
         (out / f'page-{n:04d}.txt').write_text(result['text'], encoding='utf-8')
         if not result['text'].strip():
             empty.append(n)
-        if any(line.get('confidence', 1) < 0.9 for line in result.get('lines', [])):
+        if any(line.get('confidence') is not None and line['confidence'] < 0.9 for line in result.get('lines', [])):
             low.append(n)
-    print(json.dumps(dict(output=str(out), selected_pages=pages, processed=len(pending),
-                         cached=len(pages)-len(pending), empty_pages=empty,
+    print(json.dumps(dict(output=str(out), selected_pages=pages, processed=len(pending)-len(failed), attempted=len(pending),
+                         cached=len(pages)-len(pending), failed=failed, empty_pages=empty,
                          low_confidence_pages=low, elapsed_seconds=round(time.perf_counter()-started, 3)), ensure_ascii=False))
+    return 2 if failed else 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
