@@ -98,14 +98,14 @@ def parse_bool(value):
 
 
 def producer_answer(row):
-    for key in ("producer_answer", "bank_answer", "codex_ans", "key_answer"):
+    for key in ("producer_answer", "producer_ans", "bank_answer", "codex_ans", "key_answer"):
         if row.get(key) is not None:
             return norm_text(row.get(key))
     return ""
 
 
 def auditor_answer(row):
-    for key in ("auditor_answer", "agent_answer", "claude_ans", "checker_answer"):
+    for key in ("auditor_answer", "checker_ans", "agent_answer", "claude_ans", "checker_answer"):
         if row.get(key) is not None:
             return norm_text(row.get(key))
     return ""

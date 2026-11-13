@@ -98,7 +98,7 @@ Work in small batches (~3–5 items). For each item, three beats:
 
 ```
 1) python3 audit.py use <set-file>          # pick the set (once per set)
-   python3 audit.py question <n>            # BLIND: prints prompt + choices only
+   python3 audit.py question <n>            # BLIND: shared givens + prompt + choices, never the key
    → solve it yourself, then write your answer + reasoning + confidence to
      audit/solutions/<slug>-ข้อ-NN.md   (the question command prints the exact filename)
    ── you MUST write this file before beat 2 ──
@@ -115,8 +115,20 @@ Work in small batches (~3–5 items). For each item, three beats:
 At the **end of each batch**: `python3 audit.py export` → regenerates `audit/audit_results.xlsx` (cumulative).
 Exporting every batch lets the human audit alongside you and report fixes incrementally instead of waiting for the end.
 
-Record fields: `q`, `codex_ans` (producer's answer), `claude_ans` (yours), `claude_confidence`, `match`,
-`codex_solution_valid`, `bucket`, `note`. The tool auto-adds `set` and an `id` (= the solution filename stem).
+Record fields: `q`, `producer_ans` (the key's answer), `checker_ans` (yours), `checker_confidence`, `match`,
+`producer_solution_valid`, `bucket`, `note`, `checker_model`. The tool auto-adds `set` and an `id` (= the
+solution filename stem). Field names are role names, not model names: either agent family can sit in either
+role. Put the model that actually checked in `checker_model` (or set `AUDIT_CHECKER_MODEL` once for the
+session) — the tool warns when it is missing. The older `codex_ans` / `claude_ans` / `claude_confidence` /
+`codex_solution_valid` names are still accepted and mirrored in the ledger, so existing ledgers and readers
+keep working; never infer the checking model from those names.
+
+**Shared givens.** A question that depends on a passage, table or figure must carry it where `question`
+can show it: a set-level `stimuli` list (`{"id", "text"}`) referenced by the question's `stimulus` id, or
+per-question `stimulus_content`, `context`, `figure_description`, `source_image_paths`. The command prints
+these above the prompt and warns loudly when a referenced stimulus id is missing — if you see that warning,
+stop and send the item back to the producer instead of solving with incomplete givens. When the prompt
+points at a figure, open the listed source image before solving.
 For payloads containing `{`, `(`, or unicode, write the record via a small Python snippet instead of the shell
 (zsh globs on `{`/`(`); see `references/adapting-to-your-data.md`).
 

@@ -59,8 +59,8 @@ with those characters (math, parentheses), append to the ledger via Python inste
 import json, importlib.util
 s = importlib.util.spec_from_file_location('a', 'audit.py'); a = importlib.util.module_from_spec(s); s.loader.exec_module(a)
 sn = a._active()
-r = {"q": 5, "codex_ans": "ข", "claude_ans": "ข", "match": "yes",
-     "codex_solution_valid": "ใช่", "bucket": "pass", "note": "(any text, () {} ok)"}
+r = {"q": 5, "producer_ans": "ข", "checker_ans": "ข", "checker_model": "<model that checked>", "match": "yes",
+     "producer_solution_valid": "ใช่", "bucket": "pass", "note": "(any text, () {} ok)"}
 r["set"] = sn; r = {"id": a._sol_id(sn, r["q"]), **r}
 open(a.MANIFEST, "a", encoding="utf-8").write(json.dumps(r, ensure_ascii=False) + "\n")
 ```

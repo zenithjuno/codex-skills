@@ -210,6 +210,68 @@ def _q_choices(q):
         return q.get("choices", [])
     return q.get("question", {}).get("choices", [])
 
+def _render_any(v):
+    """render ค่าที่อาจเป็น string / list ของ parts / dict {text|parts|content}"""
+    if v is None:
+        return ""
+    if isinstance(v, str):
+        return v
+    if isinstance(v, list):
+        return render_parts(v) if all(isinstance(x, dict) for x in v) else " ".join(str(x) for x in v)
+    if isinstance(v, dict):
+        for key in ("parts", "content", "text", "description"):
+            if v.get(key):
+                return _render_any(v[key])
+    return str(v)
+
+def _set_stimuli(data):
+    """ข้อมูลร่วมระดับชุด: รองรับ list ของ {id,...} และ dict {id: ...}"""
+    st = data.get("stimuli") or data.get("shared_stimuli") or {}
+    if isinstance(st, list):
+        return {str(x.get("id")): x for x in st if isinstance(x, dict) and x.get("id") is not None}
+    return {str(k): v for k, v in st.items()} if isinstance(st, dict) else {}
+
+def _q_givens(q, data):
+    """สิ่งที่โจทย์ให้มานอก prompt/choices — ต้องแสดงตอน BLIND ไม่เช่นนั้นผู้ตรวจขาด givens
+    คืน (รายการ (หัวข้อ, ข้อความ), รายการคำเตือน). อ่านเฉพาะ field ที่เป็นโจทย์ ไม่แตะ field เฉลย"""
+    out, warn = [], []
+    stimuli = _set_stimuli(data)
+    inner = q.get("question", {}) if isinstance(q.get("question"), dict) else {}
+    for key in ("stimulus", "stimulus_id", "stimulus_ref", "shared_stimulus"):
+        v = q.get(key, inner.get(key))
+        if v is None or v == "":
+            continue
+        refs = v if isinstance(v, list) and all(isinstance(x, (str, int)) for x in v) else None
+        looks_inline = isinstance(v, str) and (len(v) > 40 or " " in v.strip())
+        if refs is None and isinstance(v, (str, int)) and (
+                str(v) in stimuli or key != "stimulus" or (stimuli and not looks_inline)):
+            refs = [v]
+        if refs is not None:
+            for r in refs:
+                if str(r) in stimuli:
+                    out.append((f"ข้อมูลร่วม [{r}]", _render_any(stimuli[str(r)])))
+                elif key == "stimulus" and not stimuli:
+                    out.append(("ข้อมูลร่วม", str(r)))
+                else:
+                    warn.append(f"ข้อนี้อ้างข้อมูลร่วม {r!r} แต่ไม่พบในชุด — givens ไม่ครบ อย่าแก้โจทย์จนกว่า producer จะเติม")
+        else:
+            out.append(("ข้อมูลร่วม", _render_any(v)))
+    for key, title in (("stimulus_content", "ข้อมูลร่วม"), ("context", "ข้อมูลประกอบ"),
+                       ("figure_description", "คำบรรยายภาพ"), ("figure", "คำบรรยายภาพ")):
+        v = q.get(key, inner.get(key))
+        if v:
+            out.append((title, _render_any(v)))
+    imgs = q.get("source_image_paths") or q.get("figure_paths") or []
+    if isinstance(imgs, str):
+        imgs = [imgs]
+    if imgs:
+        out.append(("ภาพต้นฉบับ (เปิดดูเมื่อโจทย์อ้างรูปหรือตาราง)", "\n".join(str(x) for x in imgs)))
+    seen, uniq = set(), []
+    for item in out:
+        if item not in seen:
+            seen.add(item); uniq.append(item)
+    return uniq, warn
+
 def _sol_steps(sol):
     """เฉลยรองรับทั้ง steps เก่า, parts ใหม่, และ bank ใหม่ solution.parts"""
     if sol.get(A_STEPS) is not None:
@@ -495,6 +557,9 @@ def cmd_question(n):
     q = _find(_qs(data), n)
     if not q: sys.exit(f"[!] ไม่พบข้อ {n} ในชุดนี้")
     print(f"=== [{name}] ข้อ {n} (BLIND — โจทย์เท่านั้น) ===")
+    givens, given_warnings = _q_givens(q, data)
+    for title, body in givens:
+        print(f"[{title}]\n{body.strip()}\n")
     print(render_parts(_q_parts(q)).strip())
     choices = _q_choices(q)
     if choices:
@@ -504,6 +569,8 @@ def cmd_question(n):
     if _UNKNOWN:
         print(f"\n• เจอ convention ที่ renderer ยังไม่รู้จัก: {sorted(_UNKNOWN)} "
               f"(อาจเป็นมาตรฐานใหม่ — ประเมินก่อนเชื่อโจทย์นี้ อย่าด่วนสรุปว่าผิด)")
+    for w in given_warnings:
+        print(f"\n[!] {w}")
     print(f"\n[เตือน] เขียนวิธีแก้ของคุณลง  audit/solutions/{_sol_md(name, n)}  ก่อน แล้วค่อยรัน `answer`")
 
 def _unc_notes(items, n):
@@ -555,6 +622,13 @@ def cmd_next():
             print(num); return
     print(f"DONE — ชุด {name} ครบทุกข้อแล้ว")
 
+_FIELD_ALIASES = {
+    "producer_ans": "codex_ans",
+    "checker_ans": "claude_ans",
+    "checker_confidence": "claude_confidence",
+    "producer_solution_valid": "codex_solution_valid",
+}
+
 def cmd_record(payload):
     try:
         row = json.loads(payload)
@@ -562,6 +636,19 @@ def cmd_record(payload):
         sys.exit(f"[!] record ต้องเป็น json valid: {e}")
     if "q" not in row:
         sys.exit("[!] ต้องมี field 'q'")
+    # ชื่อ field เป็นกลางต่อ model: producer_ans / checker_ans / checker_confidence /
+    # producer_solution_valid. ชื่อเก่า codex_*/claude_* ยังรับได้และถูกคงไว้ใน ledger
+    for new, old in _FIELD_ALIASES.items():
+        if new in row and old not in row:
+            row[old] = row[new]
+        elif old in row and new not in row:
+            row[new] = row[old]
+    model = os.environ.get("AUDIT_CHECKER_MODEL")
+    if model:
+        row.setdefault("checker_model", model)
+    if not row.get("checker_model"):
+        print("[เตือน] record ไม่มี checker_model — ใส่ชื่อ model ที่ตรวจจริง "
+              "(field checker_model หรือ env AUDIT_CHECKER_MODEL)", file=sys.stderr)
     row.setdefault("set", _active())
     # id = <slug>-ข้อ-NN (ตรงกับชื่อไฟล์ solution) เพื่อเทียบ manifest ↔ solution ได้ง่าย
     if str(row.get("q", "")).isdigit():
@@ -595,15 +682,15 @@ def cmd_export():
     except ImportError:
         sys.exit("[!] ติดตั้งก่อน: pip install openpyxl --break-system-packages")
     rows = _rows()
-    cols = ["id", "set", "q", "codex_ans", "claude_ans", "claude_confidence",
-            "match", "codex_solution_valid", "bucket", "note"]
+    cols = ["id", "set", "q", "producer_ans", "checker_ans", "checker_confidence",
+            "match", "producer_solution_valid", "bucket", "note", "checker_model"]
     wb = Workbook(); ws = wb.active; ws.title = "audit_results"
     ws.append(cols)
     def sk(r):
         qv = str(r.get("q",""))
         return (str(r.get("set","")), int(qv) if qv.isdigit() else 0)
     for r in sorted(rows, key=sk):
-        ws.append([r.get(c, "") for c in cols])
+        ws.append([r.get(c, r.get(_FIELD_ALIASES.get(c, c), "")) for c in cols])
     AUDIT.mkdir(parents=True, exist_ok=True)
     out = AUDIT / "audit_results.xlsx"
     wb.save(out)
