@@ -31,6 +31,7 @@
 | [`feedback-to-leverage`](feedback-to-leverage) | เวลาโดนแก้งานซ้ำ ๆ ให้เปลี่ยนเป็นการ์ดถาวรที่เล็กที่สุด (เทสต์ / กฎ / เอกสาร) แทนการจำเอาเอง |
 | [`retro`](retro) | สั่งเองด้วย `/retro` หลังจบ session ที่ติดขัด — ไล่ดูว่า agent สะดุดตรงไหน แล้วเสนอการแก้สภาพแวดล้อมที่เล็กที่สุด (เช็ก / ตัวชี้ทาง / helper / ลบคำสั่งที่ไม่มีผล) · เสนอเท่านั้น ไม่แก้เอง |
 | [`blind-answer-key-audit`](blind-answer-key-audit) | ตรวจเฉลยด้วยการ **แก้โจทย์ใหม่แบบไม่ดูเฉลย** แล้วค่อยเทียบ |
+| [`skill-creator`](skill-creator) | สร้าง/ปรับ skill ใหม่ พร้อมรัน eval วัดผล benchmark และจูน description ให้ trigger แม่นขึ้น (ของ Anthropic) |
 
 ## สื่อการสอนภาษาไทย (Thai teaching material)
 
@@ -52,6 +53,7 @@
 | [`learner-playtest`](learner-playtest) | เก็บและวิเคราะห์ feedback จาก **ผู้เรียนจริง** (AI ไม่จำลองผู้เล่นแทน) |
 | [`ship-check`](ship-check) | ด่านสุดท้ายก่อนปล่อยให้ผู้เรียนใช้ — สแกนหา ship-blocker + dry-run + เช็กลิสต์ความพร้อม |
 | [`playwright`](playwright) | ขับเบราว์เซอร์จริงจาก terminal เพื่อทดสอบหน้าเว็บ |
+| [`frontend-design`](frontend-design) | แนวทางออกแบบหน้าเว็บ/UI ให้มีทิศทางชัดและไม่ดูเป็นเทมเพลตซ้ำ ๆ (ของ Anthropic) |
 | [`answer-me-with-html`](answer-me-with-html) | ตอบคำถามซับซ้อนเป็นหน้า HTML หน้าเดียว (ผัง ตาราง แถบงบ) — มีโน้ตภาษาไทย งบประมาณ และสมการ |
 
 ---
@@ -124,6 +126,8 @@ for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"
 | `verification-before-completion` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT |
 | `karpathy-guidelines` | จาก [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) เรียบเรียงจากข้อสังเกตของ [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) | MIT |
 | `answer-me-with-html` | จาก [QingYunA/answer-me-with-html](https://github.com/QingYunA/answer-me-with-html) + โน้ตภาษาไทย/งบประมาณ/สมการของเรา | MIT |
+| `frontend-design` | จาก [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) © Anthropic, PBC — ไม่ได้แก้ไข | Apache-2.0 — ดู [`frontend-design/LICENSE.txt`](frontend-design/LICENSE.txt) |
+| `skill-creator` | จาก [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) © Anthropic, PBC — ไม่ได้แก้ไข | Apache-2.0 — ดู [`skill-creator/LICENSE.txt`](skill-creator/LICENSE.txt) |
 
 ### สกิลที่ยืมมา: รับอัปเดตจากต้นทาง
 
@@ -142,5 +146,5 @@ python3 tools/upstream_sync.py pin <skill> <commit>  # หลังแก้จ�
 **ไม่รวมอยู่ใน repo นี้โดยตั้งใจ** (ดู [`.gitignore`](.gitignore)) — เป็นของบุคคลที่สาม ไม่ใช่ผลงานเรา
 และไม่มีสิทธิ์เผยแพร่ต่อ:
 
-- `pdf/` — © Anthropic PBC, all rights reserved
-- `.system/` — สกิลระบบที่มากับ Codex (`skill-creator`, `skill-installer`, `openai-docs`, `imagegen`, `plugin-creator`, `review-agent`)
+- `pdf/` — © Anthropic PBC, all rights reserved (ต่างจาก `frontend-design` และ `skill-creator` ที่ Anthropic เปิดเป็น Apache-2.0)
+- `.system/` — สกิลระบบที่มากับ Codex (`skill-creator` ฉบับของ Codex — คนละตัวกับ `skill-creator/` ของ Anthropic ด้านบน, `skill-installer`, `openai-docs`, `imagegen`, `plugin-creator`, `review-agent`)
