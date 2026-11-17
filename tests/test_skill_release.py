@@ -39,9 +39,9 @@ _home_patches: list = []
 def setUpModule() -> None:
     """Point every test (and every tool subprocess) at a throwaway HOME.
 
-    The tool defaults to ~/.codex/skills and ~/.claude/skills; without this a
-    release run from a test creates real symlinks in the user's Claude skills
-    dir that dangle once the temp repo is deleted.
+    The tool defaults to ~/.codex/skills, ~/.claude/skills and
+    ~/.gemini/config/skills; without this a release run from a test creates real
+    symlinks in the user's skills dirs that dangle once the temp repo is deleted.
     """
     global _isolated_home
     _isolated_home = tempfile.TemporaryDirectory(prefix="skill-release-home-")
@@ -51,6 +51,9 @@ def setUpModule() -> None:
             mock.patch.dict(os.environ, {"HOME": str(home)}),
             mock.patch.object(release_module, "DEFAULT_ROOT", home / ".codex" / "skills"),
             mock.patch.object(release_module, "CLAUDE_SKILLS_DIR", home / ".claude" / "skills"),
+            mock.patch.object(
+                release_module, "GEMINI_SKILLS_DIR", home / ".gemini" / "config" / "skills"
+            ),
         ]
     )
     for patch in _home_patches:
@@ -350,7 +353,7 @@ class ClaudeSymlinkTest(unittest.TestCase):
             "symlinks", "--check", "--claude-dir", str(self.claude),
             check=False,
         )
-        report = json.loads(result.stdout)
+        report = json.loads(result.stdout)["claude_symlinks"]
         self.assertEqual(report["status"], "NEEDS_FIX")
         self.assertEqual(result.returncode, 4)
         self.assertFalse((self.claude / "alpha").exists())
@@ -361,7 +364,7 @@ class ClaudeSymlinkTest(unittest.TestCase):
             "symlinks", "--claude-dir", str(self.claude),
             check=False,
         )
-        report = json.loads(result.stdout)
+        report = json.loads(result.stdout)["claude_symlinks"]
         self.assertEqual(report["status"], "FIXED")
         self.assertEqual(result.returncode, 0)
         self.assertTrue((self.claude / "alpha" / "SKILL.md").is_file())
@@ -408,6 +411,7 @@ class ReleaseRunsSymlinkGuardTest(unittest.TestCase):
             )
         self.assertEqual(report["status"], "DEPLOYED")
         self.assertIn("claude_symlinks", report)
+        self.assertIn("gemini_symlinks", report)
         # The guard links every source skill, not only the one just released.
         self.assertEqual(report["claude_symlinks"]["status"], "FIXED")
         self.assertTrue((claude_dir / "alpha" / "SKILL.md").is_file())

@@ -22,6 +22,7 @@ from typing import Iterable, Optional
 
 DEFAULT_ROOT = Path.home() / ".codex" / "skills"
 CLAUDE_SKILLS_DIR = Path.home() / ".claude" / "skills"
+GEMINI_SKILLS_DIR = Path.home() / ".gemini" / "config" / "skills"
 IGNORED_NAMES = {".DS_Store", "__pycache__"}
 
 
@@ -161,18 +162,19 @@ def source_skill_names(root: Path) -> list[str]:
     return names
 
 
-def sync_claude_symlinks(
+def sync_symlinks(
     root: Path,
-    claude_dir: Optional[Path] = None,
+    target_dir: Path,
     *,
     apply: bool = True,
+    label: str = "target",
 ) -> dict[str, object]:
-    """Ensure every source skill has a matching symlink in the Claude skills dir.
+    """Ensure every source skill has a matching symlink in *target_dir*.
 
-    Codex reads ~/.codex/skills directly, but Claude only sees a skill once it is
-    symlinked into ~/.claude/skills. A skill built but never linked is invisible
-    to Claude — the failure this guards against. On a machine without a Claude
-    skills dir (e.g. Codex-only) this is a silent no-op.
+    Codex reads ~/.codex/skills directly, but other tools (Claude, Antigravity)
+    only see a skill once it is symlinked into their own skills directory.
+    A skill built but never linked is invisible — the failure this guards against.
+    On a machine without the target dir this is a silent no-op.
 
     - MISSING  (no entry at all)            -> create the symlink
     - BROKEN/WRONG (a symlink, but off)     -> replace it (safe: only ever a link)
@@ -181,10 +183,8 @@ def sync_claude_symlinks(
 
     With apply=False it only reports what it would do (report-only / --check).
     """
-    if claude_dir is None:
-        claude_dir = CLAUDE_SKILLS_DIR
-    if not claude_dir.is_dir():
-        return {"status": "SKIPPED", "reason": f"no {claude_dir}"}
+    if not target_dir.is_dir():
+        return {"status": "SKIPPED", "reason": f"no {target_dir}"}
 
     root_real = root.resolve()
     created: list[str] = []
@@ -195,7 +195,7 @@ def sync_claude_symlinks(
     source_names = set(source_skill_names(root))
 
     for name in sorted(source_names):
-        link = claude_dir / name
+        link = target_dir / name
         expected = root / name
         if not link.is_symlink() and not link.exists():
             if apply:
@@ -219,12 +219,12 @@ def sync_claude_symlinks(
 
     # Sweep stale, dangling symlinks that point into our source root but no longer
     # name a live skill (a rename or removal left the old link behind).
-    for entry in sorted(claude_dir.iterdir()):
+    for entry in sorted(target_dir.iterdir()):
         if not entry.is_symlink() or entry.name in source_names or entry.exists():
             continue
         try:
             raw = Path(os.readlink(entry))
-            target = raw if raw.is_absolute() else (claude_dir / raw)
+            target = raw if raw.is_absolute() else (target_dir / raw)
             into_root = str(target.resolve()).startswith(str(root_real) + os.sep)
         except OSError:
             into_root = False
@@ -242,12 +242,53 @@ def sync_claude_symlinks(
 
     return {
         "status": status_word,
-        "claude_dir": str(claude_dir),
+        "dir": str(target_dir),
+        "label": label,
         "created": created,
         "repaired": repaired,
         "removed_broken": removed_broken,
         "conflicts": conflicts,
         "ok_count": ok,
+    }
+
+
+def sync_claude_symlinks(
+    root: Path,
+    claude_dir: Optional[Path] = None,
+    *,
+    apply: bool = True,
+) -> dict[str, object]:
+    """Back-compat wrapper: sync symlinks into the Claude skills dir."""
+    if claude_dir is None:
+        claude_dir = CLAUDE_SKILLS_DIR
+    return sync_symlinks(root, claude_dir, apply=apply, label="claude")
+
+
+def sync_gemini_symlinks(
+    root: Path,
+    gemini_dir: Optional[Path] = None,
+    *,
+    apply: bool = True,
+) -> dict[str, object]:
+    """Sync symlinks into the Antigravity / Gemini global skills dir."""
+    if gemini_dir is None:
+        gemini_dir = GEMINI_SKILLS_DIR
+    # Auto-create the directory if it doesn't exist yet (unlike Claude, which
+    # already has ~/.claude/skills from its installer).
+    if not gemini_dir.is_dir() and gemini_dir.parent.is_dir():
+        gemini_dir.mkdir(parents=True, exist_ok=True)
+    return sync_symlinks(root, gemini_dir, apply=apply, label="gemini")
+
+
+def sync_all_symlinks(
+    root: Path,
+    *,
+    apply: bool = True,
+) -> dict[str, object]:
+    """Run the symlink guard for every known consumer (Claude + Gemini)."""
+    return {
+        "claude_symlinks": sync_claude_symlinks(root, apply=apply),
+        "gemini_symlinks": sync_gemini_symlinks(root, apply=apply),
     }
 
 
@@ -414,7 +455,7 @@ def publish(root: Path, branch: str) -> dict[str, object]:
         "status": "DEPLOYED",
         "head": final["head"],
         "published_commits": pending,
-        "claude_symlinks": sync_claude_symlinks(root),
+        **sync_all_symlinks(root),
     }
 
 
@@ -484,7 +525,7 @@ def release(args: argparse.Namespace) -> dict[str, object]:
         "origin_head": final["origin_head"],
         "scope": scope,
         "adopted_digests": adopted_digests,
-        "claude_symlinks": sync_claude_symlinks(root),
+        **sync_all_symlinks(root),
     }
 
 
@@ -503,13 +544,16 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("publish", help="push commits that already exist locally")
 
     symlinks_command = commands.add_parser(
-        "symlinks", help="ensure ~/.claude/skills mirrors the source skills (create/repair links)"
+        "symlinks", help="ensure ~/.claude/skills and ~/.gemini/config/skills mirror the source skills (create/repair links)"
     )
     symlinks_command.add_argument(
         "--check", action="store_true", help="report only; do not create, repair, or remove links"
     )
     symlinks_command.add_argument(
         "--claude-dir", default=str(CLAUDE_SKILLS_DIR), help="Claude skills dir (default: ~/.claude/skills)"
+    )
+    symlinks_command.add_argument(
+        "--gemini-dir", default=str(GEMINI_SKILLS_DIR), help="Gemini/Antigravity skills dir (default: ~/.gemini/config/skills)"
     )
 
     release_command = commands.add_parser("release")
@@ -528,11 +572,16 @@ def main() -> int:
             symlink_root = Path(args.root).expanduser().resolve()
             if not symlink_root.is_dir():
                 raise ReleaseError(f"skills root does not exist: {symlink_root}")
-            result = sync_claude_symlinks(
+            claude_result = sync_claude_symlinks(
                 symlink_root, Path(args.claude_dir).expanduser(), apply=not args.check
             )
+            gemini_result = sync_gemini_symlinks(
+                symlink_root, Path(args.gemini_dir).expanduser(), apply=not args.check
+            )
+            result = {"claude_symlinks": claude_result, "gemini_symlinks": gemini_result}
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-            return 0 if result["status"] in {"OK", "FIXED", "SKIPPED"} else 4
+            statuses = {claude_result["status"], gemini_result["status"]}
+            return 0 if statuses <= {"OK", "FIXED", "SKIPPED"} else 4
         root = resolve_root(args.root)
         if args.command == "status":
             result = status(root, args.branch)

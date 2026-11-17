@@ -46,23 +46,29 @@ clone, or manual `git pull`/`push` instead of the helper.
    a clean local `HEAD` equals `origin/main`. `PUBLISH_PENDING` and `BLOCKED`
    are not completion; preserve evidence and request resolution.
 
-## Claude symlink guard
+## Claude & Gemini symlink guard
 
-Codex reads `~/.codex/skills` directly, but Claude only sees a skill once it is
-symlinked into `~/.claude/skills`. A skill you build but forget to link is
-invisible to Claude — the whole effort is wasted until the link exists.
+Codex reads `~/.codex/skills` directly, but Claude and Antigravity (Gemini) only
+see a skill once it is symlinked into their respective skills directory:
+
+- **Claude**: `~/.claude/skills`
+- **Antigravity / Gemini**: `~/.gemini/config/skills`
+
+A skill you build but forget to link is invisible to those tools — the whole
+effort is wasted until the link exists.
 
 To make that impossible to forget, every successful `release` and `publish`
 **automatically** re-checks all source skills and creates or repairs any missing
-or broken `~/.claude/skills` link, then reports the result under
-`claude_symlinks` in the JSON output. It sweeps the whole skill set, not just the
-one you released, so a link missed on an earlier release is caught too. On a
-machine with no `~/.claude/skills` (e.g. Codex-only) it is a silent no-op
-(`"status": "SKIPPED"`). It never deletes a real directory: if a real folder
-occupies a skill's name it reports `CONFLICT` for you to resolve by hand.
+or broken symlinks in **both** directories, then reports the results under
+`claude_symlinks` and `gemini_symlinks` in the JSON output. It sweeps the whole
+skill set, not just the one you released, so a link missed on an earlier release
+is caught too. On a machine without a given skills dir (e.g. Codex-only) the
+check for that dir is a silent no-op (`"status": "SKIPPED"`). It never deletes a
+real directory: if a real folder occupies a skill's name it reports `CONFLICT`
+for you to resolve by hand.
 
-Read `claude_symlinks` in the release output. `OK` or `FIXED` is healthy;
-`CONFLICT` needs manual attention.
+Read `claude_symlinks` and `gemini_symlinks` in the release output. `OK` or
+`FIXED` is healthy; `CONFLICT` needs manual attention.
 
 Run the same check on its own at any time (independent of git):
 
