@@ -70,7 +70,9 @@ def read_page(number):
                 image = original.convert('RGB')
         from runtime.line_engine import LineOCR
         if engine is None:
-            engine = LineOCR(ROOT / 'models', threads=1, runtime={'backend': 'onnxruntime'})
+            # Preserve OCR punctuation so the audit can flag malformed amounts.
+            engine = LineOCR(ROOT / 'models', threads=1, runtime={'backend': 'onnxruntime'},
+                             join={'decimal_comma': False})
         result = engine.read(image)
         import numpy as np
         ink = float((np.asarray(image.convert('L')) < 235).mean())
