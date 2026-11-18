@@ -25,7 +25,7 @@ These facts describe the installed release, not whichever release is newest when
 - [Publisher's Thai installation guide](https://iapp.co.th/blog/openthai2p0-ocr-how-to-run)
 - [Publisher's English installation guide](https://iapp.co.th/en/blog/openthai2p0-ocr-how-to-run)
 
-The related [OpenThai2.1-OCR-Markdown-20261118](https://huggingface.co/iapp/OpenThai2.1-OCR-Markdown-20261118) is a **different model**, derived from NVIDIA Nemotron 3.5 Parse, with a different licence and runtime. It is not installed here. Do not silently switch to it as an update of Text.
+The related [OpenThai2.1-OCR-Markdown-20261118](https://huggingface.co/iapp/OpenThai2.1-OCR-Markdown-20261118) is a **different model**, derived from NVIDIA Nemotron 3.5 Parse, with a different licence and runtime. It is installed separately for selected pages. See [Markdown usage and installed sources](markdown.md).
 
 ## Local resources
 
