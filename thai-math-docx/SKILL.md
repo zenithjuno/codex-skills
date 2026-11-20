@@ -11,7 +11,7 @@ description: >-
   math-handout-sandbox.
 ---
 
-<!-- SKILL-VERSION: 2026.11.02 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.20 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 

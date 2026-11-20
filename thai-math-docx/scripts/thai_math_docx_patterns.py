@@ -16,7 +16,7 @@ from docx.oxml import parse_xml
 from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.opc.part import Part
-from docx.shared import Cm
+from docx.shared import Cm, Pt
 
 import thai_math_docx_builder as builder
 import thai_math_docx_layout as layout
@@ -393,3 +393,261 @@ def add_media_block(
         f"unknown media kind {block.media_kind!r}",
         {"capability": "media-kind", "requested_kind": block.media_kind},
     )
+
+
+HEADING_PRESETS: dict[str, dict[str, Any]] = {
+    "section_heading": {
+        "fill": "D9EAD3",
+        "text_color": "1B4D2E",
+        "size_pt": 19,
+        "borders": {
+            "top": {"val": "single", "sz": 6, "space": 4, "color": "6AA84F"},
+            "left": {"val": "single", "sz": 48, "space": 8, "color": "6AA84F"},
+            "bottom": {"val": "single", "sz": 6, "space": 4, "color": "6AA84F"},
+            "right": {"val": "single", "sz": 6, "space": 8, "color": "6AA84F"},
+        },
+        "left_ind": 80,
+    },
+    "sub_heading": {
+        "fill": "F4F9F4",
+        "text_color": "235733",
+        "size_pt": 18,
+        "borders": {
+            "top": {"val": "dashed", "sz": 6, "space": 4, "color": "4E8B5A"},
+            "left": {"val": "single", "sz": 48, "space": 8, "color": "4E8B5A"},
+            "bottom": {"val": "dashed", "sz": 6, "space": 4, "color": "4E8B5A"},
+            "right": {"val": "dashed", "sz": 6, "space": 8, "color": "4E8B5A"},
+        },
+        "left_ind": 80,
+    },
+    "exercise_banner": {
+        "fill": "F7E6EF",
+        "text_color": "7A284E",
+        "size_pt": 18,
+        "borders": {
+            "top": {"val": "single", "sz": 4, "space": 4, "color": "E6BDD0"},
+            "left": {"val": "single", "sz": 24, "space": 8, "color": "B85582"},
+            "bottom": {"val": "single", "sz": 4, "space": 4, "color": "E6BDD0"},
+            "right": {"val": "single", "sz": 4, "space": 8, "color": "E6BDD0"},
+        },
+        "left_ind": 100,
+    },
+}
+
+CALLOUT_PRESETS: dict[str, dict[str, Any]] = {
+    "definition": {
+        "rows": 2,
+        "header_fill": "3B7A57",
+        "header_text_color": "FFFFFF",
+        "body_fill": "F2F7F2",
+        "border_color": "B7D5B9",
+    },
+    "theorem": {
+        "rows": 2,
+        "header_fill": "B85582",
+        "header_text_color": "FFFFFF",
+        "body_fill": "FDF2F7",
+        "border_color": "E6BDD0",
+    },
+    "property": {
+        "rows": 2,
+        "header_fill": "3E6B99",
+        "header_text_color": "FFFFFF",
+        "body_fill": "F1F6FB",
+        "border_color": "BDD1E6",
+    },
+    "caution": {
+        "rows": 1,
+        "accent_color": "D97706",
+        "title_color": "9A5200",
+        "body_fill": "FFF8EB",
+        "border_color": "F3D08A",
+    },
+    "funfact": {
+        "rows": 1,
+        "accent_color": "2A7B76",
+        "title_color": "1D5B57",
+        "body_fill": "F0F9F8",
+        "border_color": "B2DAD7",
+    },
+    "note": {
+        "rows": 1,
+        "accent_color": "5C6F82",
+        "title_color": "374757",
+        "body_fill": "F5F7FA",
+        "border_color": "CDD6E0",
+    },
+    "strategy": {
+        "rows": 1,
+        "accent_color": "6E52B5",
+        "title_color": "4D348C",
+        "body_fill": "F6F3FC",
+        "border_color": "D5C8F0",
+    },
+}
+
+
+def _apply_run_color(paragraph: Any, hex_color: str) -> None:
+    ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    for r in paragraph._p.findall(f"{{{ns_w}}}r"):
+        rPr = r.find(f"{{{ns_w}}}rPr")
+        if rPr is None:
+            rPr = parse_xml(f'<w:rPr xmlns:w="{ns_w}"/>')
+            r.insert(0, rPr)
+        old = rPr.find(f"{{{ns_w}}}color")
+        if old is not None:
+            rPr.remove(old)
+        rPr.append(parse_xml(f'<w:color xmlns:w="{ns_w}" w:val="{hex_color}"/>'))
+
+
+def _set_paragraph_shading_and_borders(
+    paragraph: Any,
+    *,
+    fill: str | None,
+    borders: Mapping[str, Mapping[str, Any]],
+    left_ind: int = 80,
+) -> None:
+    ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    pPr = paragraph._p.get_or_add_pPr()
+    for tag in ("pBdr", "shd", "ind"):
+        old = pPr.find(f"{{{ns_w}}}{tag}")
+        if old is not None:
+            pPr.remove(old)
+    if borders:
+        parts = []
+        for side in ("top", "left", "bottom", "right"):
+            spec = borders.get(side)
+            if spec:
+                parts.append(
+                    f'<w:{side} w:val="{spec.get("val", "single")}" '
+                    f'w:sz="{spec.get("sz", 6)}" '
+                    f'w:space="{spec.get("space", 4)}" '
+                    f'w:color="{spec.get("color", "6AA84F")}"/>'
+                )
+        pPr.append(parse_xml(f'<w:pBdr xmlns:w="{ns_w}">{"".join(parts)}</w:pBdr>'))
+    if fill:
+        pPr.append(
+            parse_xml(f'<w:shd xmlns:w="{ns_w}" w:val="clear" w:color="auto" w:fill="{fill}"/>')
+        )
+    if left_ind:
+        pPr.append(parse_xml(f'<w:ind xmlns:w="{ns_w}" w:left="{left_ind}"/>'))
+
+
+def add_styled_heading(
+    container: Any,
+    text_or_parts: str | Sequence[Mapping[str, Any]],
+    *,
+    kind: str = "section_heading",
+    page_break_before: bool = False,
+    keep_next: bool = True,
+    space_before: int = 6,
+    space_after: int = 6,
+) -> Any:
+    """Add a border+shading heading paragraph (no floating shape) using a named preset."""
+    if kind not in HEADING_PRESETS:
+        raise ValueError(f"unknown heading kind {kind!r}; expected one of {sorted(HEADING_PRESETS)}")
+    preset = HEADING_PRESETS[kind]
+    paragraph = container.add_paragraph()
+    builder.configure_paragraph(paragraph, space_after=space_after)
+    paragraph.paragraph_format.space_before = Pt(space_before)
+    paragraph.paragraph_format.keep_with_next = keep_next
+    paragraph.paragraph_format.page_break_before = page_break_before
+
+    if isinstance(text_or_parts, str):
+        builder.set_thai_label_run(paragraph.add_run(text_or_parts), bold=True, size=preset["size_pt"])
+    else:
+        builder.append_parts(paragraph, list(text_or_parts))
+    _apply_run_color(paragraph, preset["text_color"])
+    _set_paragraph_shading_and_borders(
+        paragraph,
+        fill=preset["fill"],
+        borders=preset["borders"],
+        left_ind=preset["left_ind"],
+    )
+    return paragraph
+
+
+def add_callout_box(
+    container: Any,
+    kind: str,
+    title: str | Sequence[Mapping[str, Any]],
+    body_paragraphs: Sequence[Sequence[Mapping[str, Any]]],
+    *,
+    total_width_cm: float = 17.0,
+) -> Any:
+    """Add a 1-column callout table (2-row header-band or 1-row left-accent) with cantSplit."""
+    if kind not in CALLOUT_PRESETS:
+        raise ValueError(f"unknown callout kind {kind!r}; expected one of {sorted(CALLOUT_PRESETS)}")
+    preset = CALLOUT_PRESETS[kind]
+    ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    row_count = preset["rows"]
+    table = container.add_table(rows=row_count, cols=1)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    layout.set_table_fixed_widths_cm(table, [total_width_cm])
+
+    for row in table.rows:
+        trPr = row._tr.get_or_add_trPr()
+        if trPr.find(f"{{{ns_w}}}cantSplit") is None:
+            trPr.append(parse_xml(f'<w:cantSplit xmlns:w="{ns_w}"/>'))
+
+    if row_count == 2:
+        border_col = preset["border_color"]
+        hdr_cell = table.cell(0, 0)
+        body_cell = table.cell(1, 0)
+        layout.set_cell_shading(hdr_cell, preset["header_fill"])
+        layout.set_cell_margins(hdr_cell, top=55, start=150, bottom=55, end=150)
+        layout.set_cell_borders(
+            hdr_cell,
+            top={"style": "single", "size": 6, "color": border_col},
+            left={"style": "single", "size": 6, "color": border_col},
+            right={"style": "single", "size": 6, "color": border_col},
+            bottom={"style": "single", "size": 4, "color": border_col},
+        )
+        p_hdr = hdr_cell.paragraphs[0]
+        builder.configure_paragraph(p_hdr, space_after=0)
+        p_hdr.paragraph_format.keep_with_next = True
+        if isinstance(title, str):
+            builder.set_thai_label_run(p_hdr.add_run(title), bold=True, size=17)
+        else:
+            builder.append_parts(p_hdr, list(title))
+        _apply_run_color(p_hdr, preset["header_text_color"])
+
+        layout.set_cell_shading(body_cell, preset["body_fill"])
+        layout.set_cell_margins(body_cell, top=90, start=160, bottom=90, end=150)
+        layout.set_cell_borders(
+            body_cell,
+            top={"style": "single", "size": 4, "color": border_col},
+            left={"style": "single", "size": 6, "color": border_col},
+            right={"style": "single", "size": 6, "color": border_col},
+            bottom={"style": "single", "size": 6, "color": border_col},
+        )
+        for idx, parts in enumerate(body_paragraphs):
+            p = body_cell.paragraphs[0] if idx == 0 else body_cell.add_paragraph()
+            builder.configure_paragraph(p, space_after=2 if idx < len(body_paragraphs) - 1 else 0)
+            builder.append_parts(p, list(parts))
+    else:
+        cell = table.cell(0, 0)
+        border_col = preset["border_color"]
+        layout.set_cell_shading(cell, preset["body_fill"])
+        layout.set_cell_margins(cell, top=90, start=160, bottom=90, end=150)
+        layout.set_cell_borders(
+            cell,
+            top={"style": "single", "size": 4, "color": border_col},
+            left={"style": "single", "size": 24, "color": preset["accent_color"]},
+            right={"style": "single", "size": 4, "color": border_col},
+            bottom={"style": "single", "size": 4, "color": border_col},
+        )
+        p_title = cell.paragraphs[0]
+        builder.configure_paragraph(p_title, space_after=2)
+        if isinstance(title, str):
+            builder.set_thai_label_run(p_title.add_run(title), bold=True, size=17)
+        else:
+            builder.append_parts(p_title, list(title))
+        _apply_run_color(p_title, preset["title_color"])
+
+        for idx, parts in enumerate(body_paragraphs):
+            p = cell.add_paragraph()
+            builder.configure_paragraph(p, space_after=2 if idx < len(body_paragraphs) - 1 else 0)
+            builder.append_parts(p, list(parts))
+
+    return table

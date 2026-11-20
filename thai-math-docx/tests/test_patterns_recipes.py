@@ -255,6 +255,42 @@ class FamilyRecipeTests(unittest.TestCase):
         self.assertIn("<m:oMath", document.element.body.xml)
         self.assertIn("แทนค่า", "\n".join(paragraph.text for paragraph in document.paragraphs))
 
+    def test_styled_headings_emit_border_shading_without_floating_shapes(self) -> None:
+        document = Document()
+        h1 = patterns.add_styled_heading(document, "1. เลขยกกำลัง", kind="section_heading")
+        h2 = patterns.add_styled_heading(document, "1.1 สมบัติของเลขยกกำลัง", kind="sub_heading")
+        ex = patterns.add_styled_heading(document, "แบบฝึกหัด 1", kind="exercise_banner", page_break_before=True)
+
+        self.assertIn('w:fill="D9EAD3"', h1._p.xml)
+        self.assertIn('w:sz="48"', h1._p.xml)
+        self.assertIn('w:val="dashed"', h2._p.xml)
+        self.assertIn('w:sz="48"', h2._p.xml)
+        self.assertTrue(ex.paragraph_format.page_break_before)
+        self.assertNotIn("<wp:anchor", document.element.body.xml)
+
+    def test_callout_boxes_support_two_row_and_one_row_presets_with_omml(self) -> None:
+        document = Document()
+        t_def = patterns.add_callout_box(
+            document,
+            "definition",
+            "บทนิยาม",
+            [[{"type": "text", "text": "ให้ "}, {"type": "math", "expr": ["a", "≠", "0"]}]],
+        )
+        t_cau = patterns.add_callout_box(
+            document,
+            "caution",
+            "ข้อควรระวัง",
+            [[{"type": "math", "expr": [{"kind": "sup", "base": "0", "sup": "0"}]}, {"type": "text", "text": " ไม่นิยาม"}]],
+        )
+        self.assertEqual(2, len(t_def.rows))
+        self.assertEqual(1, len(t_cau.rows))
+        self.assertIn("<m:oMath", t_def._tbl.xml)
+        self.assertIn("<m:oMath", t_cau._tbl.xml)
+        self.assertIn("cantSplit", t_def._tbl.xml)
+        self.assertIn("cantSplit", t_cau._tbl.xml)
+        self.assertIn('w:fill="3B7A57"', t_def._tbl.xml)
+        self.assertIn('w:color="D97706"', t_cau._tbl.xml)
+
 
 if __name__ == "__main__":
     unittest.main()
