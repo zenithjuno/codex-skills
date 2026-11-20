@@ -44,8 +44,8 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 - `add_response_area(container, label=…, line_count=…, dots=…)`
 - `add_svg_picture(container, source_path, width_cm=…, alt_text=…)` — native embedded SVG package part
 - `add_media_block(container, block, expert_extension=…)`
-- `add_styled_heading(container, text_or_parts, *, kind="section_heading" | "sub_heading" | "exercise_banner", page_break_before=…, keep_next=…)` — border+shading heading (no floating shape)
-- `add_callout_box(container, kind, title, body_paragraphs, *, total_width_cm=…)` — 1-column callout box (`definition`, `theorem`, `property` = 2-row header-band; `caution`, `funfact`, `note`, `strategy` = 1-row left-accent) with `cantSplit` and editable OMML; presets in `HEADING_PRESETS` / `CALLOUT_PRESETS`
+- `add_styled_heading(container, text_or_parts, *, kind="section_heading" | "sub_heading" | "exercise_banner", page_break_before=…, keep_next=…, icon=…)` — border+shading heading (no floating shape; `exercise_banner` includes inline pencil icon by default)
+- `add_callout_box(container, kind, title, body_paragraphs, *, total_width_cm=…, icon=True)` — 1-column callout box (`definition`, `theorem`, `property` = 2-row header-band; `caution`, `funfact`, `note`, `strategy` = 1-row left-accent) with bundled inline icons (`assets/icons/`), `cantSplit` and editable OMML; presets in `HEADING_PRESETS` / `CALLOUT_PRESETS`
 
 ## recipes — `thai_math_docx_recipes` (whole-document assembly)
 - `build_handout(title, introduction_parts, worked_examples, practice_questions, practice_columns=…)`

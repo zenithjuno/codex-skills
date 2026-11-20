@@ -533,6 +533,37 @@ def _set_paragraph_shading_and_borders(
         pPr.append(parse_xml(f'<w:ind xmlns:w="{ns_w}" w:left="{left_ind}"/>'))
 
 
+ICON_ASSETS_DIR = Path(__file__).resolve().parents[1] / "assets" / "icons"
+
+
+def _prepend_inline_icon(
+    paragraph: Any,
+    icon_name: str,
+    *,
+    size_cm: float = 0.48,
+    vshift_pt: float = -2.0,
+) -> bool:
+    """Prepend a bundled inline PNG icon (rendered from SVG source) before paragraph runs."""
+    icon_path = ICON_ASSETS_DIR / f"{icon_name}.png"
+    if not icon_path.is_file():
+        return False
+    ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    run_icon = paragraph.add_run()
+    run_icon.add_picture(str(icon_path), width=Cm(size_cm))
+    rPr = run_icon._r.get_or_add_rPr()
+    pos = parse_xml(f'<w:position xmlns:w="{ns_w}" w:val="{int(round(vshift_pt * 2))}"/>')
+    rPr.append(pos)
+    run_sp = paragraph.add_run("  ")
+    p_el = paragraph._p
+    pPr = p_el.find(f"{{{ns_w}}}pPr")
+    insert_at = 1 if pPr is not None else 0
+    p_el.remove(run_icon._r)
+    p_el.remove(run_sp._r)
+    p_el.insert(insert_at, run_icon._r)
+    p_el.insert(insert_at + 1, run_sp._r)
+    return True
+
+
 def add_styled_heading(
     container: Any,
     text_or_parts: str | Sequence[Mapping[str, Any]],
@@ -542,6 +573,7 @@ def add_styled_heading(
     keep_next: bool = True,
     space_before: int = 6,
     space_after: int = 6,
+    icon: bool | None = None,
 ) -> Any:
     """Add a border+shading heading paragraph (no floating shape) using a named preset."""
     if kind not in HEADING_PRESETS:
@@ -558,6 +590,9 @@ def add_styled_heading(
     else:
         builder.append_parts(paragraph, list(text_or_parts))
     _apply_run_color(paragraph, preset["text_color"])
+    use_icon = (kind == "exercise_banner") if icon is None else icon
+    if use_icon:
+        _prepend_inline_icon(paragraph, kind, size_cm=0.52)
     _set_paragraph_shading_and_borders(
         paragraph,
         fill=preset["fill"],
@@ -574,6 +609,7 @@ def add_callout_box(
     body_paragraphs: Sequence[Sequence[Mapping[str, Any]]],
     *,
     total_width_cm: float = 17.0,
+    icon: bool = True,
 ) -> Any:
     """Add a 1-column callout table (2-row header-band or 1-row left-accent) with cantSplit."""
     if kind not in CALLOUT_PRESETS:
@@ -611,6 +647,8 @@ def add_callout_box(
         else:
             builder.append_parts(p_hdr, list(title))
         _apply_run_color(p_hdr, preset["header_text_color"])
+        if icon:
+            _prepend_inline_icon(p_hdr, kind, size_cm=0.48)
 
         layout.set_cell_shading(body_cell, preset["body_fill"])
         layout.set_cell_margins(body_cell, top=90, start=160, bottom=90, end=150)
@@ -644,6 +682,8 @@ def add_callout_box(
         else:
             builder.append_parts(p_title, list(title))
         _apply_run_color(p_title, preset["title_color"])
+        if icon:
+            _prepend_inline_icon(p_title, kind, size_cm=0.48)
 
         for idx, parts in enumerate(body_paragraphs):
             p = cell.add_paragraph()

@@ -290,6 +290,8 @@ class FamilyRecipeTests(unittest.TestCase):
         self.assertIn("cantSplit", t_cau._tbl.xml)
         self.assertIn('w:fill="3B7A57"', t_def._tbl.xml)
         self.assertIn('w:color="D97706"', t_cau._tbl.xml)
+        self.assertIn("<wp:inline", t_def._tbl.xml)
+        self.assertIn("<wp:inline", t_cau._tbl.xml)
 
 
 if __name__ == "__main__":
