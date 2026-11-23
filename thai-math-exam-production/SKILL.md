@@ -9,7 +9,7 @@ description: >
   answer-key checking.
 ---
 
-<!-- SKILL-VERSION: 2026.09.17 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.23 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
 
 # Thai Math Exam Production
 
@@ -85,17 +85,26 @@ EXAM-DESIGN.
 
 Draft by workload (Easy 1, Medium 2, Hard 3; target 3–4 units per batch), with
 `assets/BATCH-PROPOSAL.template.md`; the batch checker now verifies the
-arithmetic and asks for an override reason outside the band. Preserve explicit
-batch approval; silence or discussion of one item does not approve its
+arithmetic and asks for an override reason outside the band (such as a
+teacher-approved 4-batch topic-grouped override for an urgent parallel practice
+set). Every batch item traces back to its concrete teaching-sheet example or
+exercise (`แหล่งอ้างอิงในชีทสอน`, what is borrowed vs transformed). When an item
+uses a graph or figure, generate the actual SVG/PNG asset (and render preview)
+during Gate 6 batch drafting rather than waiting until DOCX export. Preserve
+explicit batch approval; silence or discussion of one item does not approve its
 neighbors. A surgical revision preserves unnamed fields. Follow current teacher
 authorization without asking again for decisions already explicitly made.
 
 Before Hard, written, paired or proof items, record the contract's config-first
 fields: role, parts, intended behavior, solution path, structural budget, reuse
 limit, required method and visual clarity. Convert another item to config-first
-if it fails twice. Keep variant ids immutable; never reuse rejected ids. Retired
-variants that still have value go to a teacher-readable `ITEM-VARIANT-VAULT.md`
-with the reason and a reuse direction, so rejection never deletes good work.
+if it fails twice. Every approved variant in `item-variants.json` carries
+`stem`, `choices` (4 choices `ก`–`ง` for objective, `[]` for written/open-ended),
+`answer_key` and `answer_reasoning` from Gate 6 onward so the blind-audit
+exporter and DOCX builder read complete state directly without backfill. Keep
+variant ids immutable; never reuse rejected ids. Retired variants that still
+have value go to a teacher-readable `ITEM-VARIANT-VAULT.md` with the reason and
+a reuse direction, so rejection never deletes good work.
 
 Whole-paper review fixes patterns, not taste: answer-position spread, a special
 value reused across neighbouring items, duplicate-correct choices. Propose a
@@ -138,7 +147,11 @@ Export approved content through `thai-math-docx` and its unified QA: the
 generator reads approved state directly, never retyped text; the answer-key
 builder checks stem and choice fidelity against the approved variants; the
 student paper is questions-only and the answer-key DOCX is produced only when
-the teacher asks. Keep document QA distinct from mathematical correctness and
-from the teacher's Word review, which remains the final visual authority.
-Continue from current files at natural handoff boundaries; never recreate gates
-or control files just because the conversation resumed.
+the teacher asks. When the teacher supplies an optical/printed answer sheet PDF
+for a split objective `(ป)` + written `(อ)` exam, also assemble the final
+print-ready duplex packet (`<ชื่อข้อสอบ> (พร้อมพิมพ์).pdf`: 2 pages `(ป)` + 1 page
+answer sheet + 1 page `(อ)` = 4 pages A4). Keep document QA distinct from
+mathematical correctness and from the teacher's Word review, which remains the
+final visual authority. Continue from current files at natural handoff
+boundaries; never recreate gates or control files just because the conversation
+resumed.

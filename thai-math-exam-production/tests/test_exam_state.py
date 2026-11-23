@@ -143,6 +143,14 @@ def approve_drafting(project_root: Path) -> None:
                 "design_family": f"family-{mapped['item_id']}",
                 "expression_summary": f"approved expression for {mapped['item_id']}",
                 "decision_notes": "approved by teacher",
+                "stem": f"โจทย์อนุมัติของ {mapped['item_id']}",
+                "choices": (
+                    [{"label": lbl, "text": f"ตัวเลือก {lbl}"} for lbl in ("ก", "ข", "ค", "ง")]
+                    if mapped["section"] == "objective"
+                    else []
+                ),
+                "answer_key": "ก" if mapped["section"] == "objective" else "{1}",
+                "answer_reasoning": f"วิธีทำย่อของ {mapped['item_id']}",
                 "config_snapshot": copy.deepcopy(mapped["config"]),
             }
         )
@@ -302,6 +310,21 @@ class ExamProjectTests(unittest.TestCase):
             write(variants_path, variants)
             result = validator.validate_exam_state(root)
         self.assertTrue(any("current variant Q01A must be approved" in issue for issue in result["issues"]))
+
+    def test_drafting_gate_requires_stem_choices_answer_key_and_reasoning_in_1_1_0(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "exam"
+            create_project(root)
+            approve_drafting(root)
+            variants_path = root / "exam-state/item-variants.json"
+            variants = read(variants_path)
+            variants["variants"][0].pop("stem", None)
+            variants["variants"][0].pop("answer_key", None)
+            write(variants_path, variants)
+            result = validator.validate_exam_state(root)
+        self.assertFalse(result["valid"])
+        self.assertTrue(any("Q01A.stem is required at drafting gate" in issue for issue in result["issues"]))
+        self.assertTrue(any("Q01A.answer_key is required at drafting gate" in issue for issue in result["issues"]))
 
     def test_item_meta_queries_current_and_specific_variant(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

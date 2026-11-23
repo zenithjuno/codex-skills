@@ -379,6 +379,11 @@ def _validate_items(
             if variant:
                 _require(variant.get("item_id") == item_id, f"variant {current_variant} belongs to another item", issues)
                 _require(variant.get("status") == "approved", f"current variant {current_variant} must be approved", issues)
+                if project.get("schema_version") != "1.0.0":
+                    _require(_nonempty(variant.get("stem")), f"variant {current_variant}.stem is required at drafting gate", issues)
+                    _require(isinstance(variant.get("choices"), list), f"variant {current_variant}.choices must be a list at drafting gate", issues)
+                    _require(_nonempty(variant.get("answer_key")), f"variant {current_variant}.answer_key is required at drafting gate", issues)
+                    _require(_nonempty(variant.get("answer_reasoning")), f"variant {current_variant}.answer_reasoning is required at drafting gate", issues)
             _require(item.get("status") == "approved", f"item {item_id} must be approved at drafting gate", issues)
     _require(dict(topic_counts) == dict(topic_targets), f"item topic counts {dict(topic_counts)} do not match blueprint {dict(topic_targets)}", issues)
     _require(dict(difficulty_counts) == dict(difficulty_targets), f"item difficulty counts {dict(difficulty_counts)} do not match blueprint {dict(difficulty_targets)}", issues)

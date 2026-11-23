@@ -10,8 +10,27 @@
    Per-gate proposals are `GATE-N` markdown docs, archived once approved.
    Existing project control is reused; multiple sessions alone do not require
    another MATERIAL-CONTROL when exam state already supplies the boundary.
-2. Analyze the reference exam item by item: topic, skill, intended trap,
-   difficulty, ambiguity and keep/adapt/rebuild/merge/replace decision.
+2. Analyze the reference exam and the classroom teaching sheet item by item:
+   topic, skill, intended trap, difficulty, ambiguity and
+   keep/adapt/rebuild/merge/replace decision.
+   - **Durable Gate 1 source files (model-independent alignment):** Write and
+     commit `source/SHEET-COVERAGE-<slug>.md` (every teaching definition,
+     worked example, exercise number, and page range from the teacher's sheet)
+     and `source/PAST-EXAM-<yr>-<slug>.md` (item-by-item audit of prior midterm,
+     final, or quiz items) before proposing the blueprint. Never leave `source/`
+     files untracked or rely on transient model context.
+   - **Classroom Emphasis & Ceiling table:** In `source/SHEET-COVERAGE-<slug>.md`
+     (and summarized in `EXAM-DESIGN.md` § `Source boundary`), explicitly record:
+     (1) **Heavily taught methods** (eligible for Medium/Hard and written items),
+     (2) **Lightly taught / edge methods** (e.g. taught in only 1–2 examples —
+     may appear only as Easy/Medium objective items, never as the primary bottle-neck
+     of a written or Hard item unless the teacher asks),
+     (3) **Multi-method requirement** (when the sheet teaches ≥ 2 methods for one
+     concept, such as factoring vs completing the square for range, the exam must
+     test both across distinct slots), and
+     (4) **Answer-form ceiling** (e.g. inverse relations `r⁻¹` stop at a single
+     swapped equation `y = f(x)` with simplified `x`-domain condition, not a
+     `±` split into two branches, unless the sheet taught the split).
    - Split a large source audit into evidence-gathering assignments with a shared
      contract (objective, scope hypothesis, authority, vocabulary, do-not-touch
      list) and one write-only output file each; the primary agent integrates,
@@ -39,10 +58,22 @@
 Create every slot before drafting. Mark Hard, written, paired and proof slots
 config-first. Draft one batch at a time by workload units (Easy 1, Medium 2,
 Hard 3; target 3–4 units per batch) and show metadata, current variant,
-prompt/choices/key, measured skill and distractor misconceptions. Use
-`assets/BATCH-PROPOSAL.template.md`; the batch's Workload line is the enforcement
-point for the workload rule (checked by `check_exam_design.py --batch` and teacher
-review, not the JSON validator).
+teaching-sheet provenance (`แหล่งอ้างอิงในชีทสอน`: exact example/exercise +
+page, what is borrowed vs transformed), prompt/choices/key, measured skill and
+distractor misconceptions. Use `assets/BATCH-PROPOSAL.template.md`; the batch's
+Workload line is the enforcement point for the workload rule (checked by
+`check_exam_design.py --batch` and teacher review, not the JSON validator).
+
+When an item uses a coordinate graph or diagram, **generate and preview the
+actual SVG/PNG figure during Gate 6 batch drafting** (under `assets/figures/`)
+rather than waiting until DOCX export. The teacher reviews the actual curve,
+key points, open/closed endpoints and tick labels alongside the item wording.
+
+When locking an approved batch into `item-variants.json`, populate `stem`,
+`choices` (`4` choice objects `ก`–`ง` for objective items; `[]` for written or
+open-ended items), `answer_key` and `answer_reasoning` immediately. `validate_exam_state.py`
+enforces these fields at the `drafting` gate so `export_blind_audit_snapshot.py`
+and the DOCX generator never need a manual backfill at Gate 9 or Gate 10.
 
 Apply [item-design-principles.md](item-design-principles.md) while drafting:
 difficulty by decisions, honest rational-root work, diagnostic distractors,
@@ -137,6 +168,12 @@ rules that the approved runs settled:
   DOCX preference note governs layout.
 - Student paper is questions-only with response areas for written items; the
   answer-key DOCX is a separate output produced only on the teacher's instruction.
+- When an exam is split into a 2-page objective paper `(ป)` and a 1-page written
+  paper `(อ)` and the teacher supplies a 1-page optical/standard answer sheet PDF
+  (such as `กระดาษคำตอบ ... .pdf`), also merge the **4-page print-ready duplex
+  packet** (`<ชื่อข้อสอบ> (พร้อมพิมพ์).pdf` = 2 pages `(ป)` + 1 page answer sheet
+  + 1 page `(อ)`), verify page count and visual rendering, and copy the finished
+  deliverables to the teacher's requested exam folder.
 
 Approved `GATE-N-*.md` proposals stay at the project root as an immutable review
 trail (the teacher links to them during later gates); archive only superseded
@@ -159,7 +196,7 @@ Practice sets receive their own blind audit and DOCX QA.
 | Gate 3 — difficulty taxonomy | ยืนยันว่าจะสืบทอด taxonomy เดิมหรือปรับใหม่ พร้อมเหตุผล |
 | Gate 4 — blueprint | ระบุส่วนที่ต้องคงสัดส่วน และส่วนที่อนุญาตให้ปรับ |
 | Gate 5 — item map | เพิ่ม `anchor` ต่อข้อ พร้อม preserve / transform / leakage risk และ equivalence target |
-| Gate 6 — batch drafting | workload 3–4 หน่วย, ใช้ BATCH-PROPOSAL template, อนุมัติราย batch, ระบุ anchor+สิ่งที่คง/เปลี่ยนต่อข้อ; **ทุกข้อฝัง `### ชุดอ้างอิง A` และ `### ชุดคู่ขนาน B ที่เสนอ` ติดกัน** (โจทย์ ตัวเลือก เฉลย วิธีทำ ทั้งสองฝั่ง) ครูตัดสินจากไฟล์เดียว; บันทึก normalized work form เทียบ anchor |
+| Gate 6 — batch drafting | workload 3–4 หน่วย (หรือขอ override แบบจัดตามหมวดหัวข้อ 3–4 batch เมื่อครูต้องการชุดฝึกคู่ขนานเร่งด่วน โดยระบุเหตุผล override ในบรรทัด Workload), ใช้ BATCH-PROPOSAL template, อนุมัติราย batch, ระบุ anchor+สิ่งที่คง/เปลี่ยนต่อข้อ; **ทุกข้อฝัง `### ชุดอ้างอิง A` และ `### ชุดคู่ขนาน B ที่เสนอ` ติดกัน** (โจทย์ ตัวเลือก เฉลย วิธีทำ ทั้งสองฝั่ง) ครูตัดสินจากไฟล์เดียว; สร้างรูปกราฟจริงตั้งแต่รอบเสนอ batch; บันทึก normalized work form เทียบ anchor |
 | Gate 7 — working solutions | แก้ทุกข้อใหม่จากศูนย์ และบันทึกเส้นทางแก้จริงเพื่อเทียบภาระคิด |
 | Gate 8 — whole-paper review | ตรวจความเทียบเคียงรายคู่ (5 มิติ) และทั้งฉบับ + ตรวจ leakage และ surface anchors ที่ซ้ำ; **cross-tab ตำแหน่งคำตอบ A↔B รายคู่** — คู่ที่ surface ใกล้กันและตำแหน่งซ้ำต้องสลับตัวเลือก (variant ใหม่) หรือบันทึกเหตุผล |
 | Gate 9 — blind audit | ผู้ตรวจอิสระไม่เห็นเฉลย และไม่ใช้คำตอบของชุดอ้างอิงเป็นฐาน; snapshot จาก exporter พร้อม hash |

@@ -83,6 +83,43 @@ relabelling the difficulty.
   integers, +, −, ×, ÷), not logical negation, unless the teacher asks.
 - When a secondary step uses a special form, keep that form familiar (`x² − 4`
   rather than `9x² − 4`) so it does not outshine the primary strategy.
+- **Classroom emphasis and answer-form ceiling:** Keep heavily taught sheet
+  methods as the core of Medium/Hard and written items; methods taught in only
+  1–2 examples stay in Easy/Medium objective slots unless the teacher asks
+  otherwise. When the teaching sheet covers two main methods for one concept
+  (e.g., factoring vs completing the square for quadratic range), cover both
+  across distinct exam slots. Match the sheet's answer-form ceiling (for
+  example, when the sheet stops inverse relations at a single equation
+  `y = f(x)` rather than splitting `±` into two branch equations, do not require
+  a two-branch split on the exam).
+- **Inverse relations with domain restrictions (`r⁻¹`):** When a relation
+  `r = {(x, y) ∣ y = f(x) และ a < x ≤ b}` is inverted by swapping `x ↔ y`
+  (`x = f(y) และ a < y ≤ b`) and then rewritten as `y = f⁻¹(x)`, the condition
+  in the final answer must also be reduced to the independent variable **`x`**
+  (e.g. `f(a) < x ≤ f(b)`), never left half-finished in `y` (`a < y ≤ b`). The
+  half-finished `y`-condition is a diagnostic distractor, not the key.
+
+## Coordinate-graph and figure items
+
+- **Generate figures at Gate 6 (batch drafting):** Whenever an item reads or
+  reflects a graph, generate the actual SVG/PNG asset and visual preview during
+  batch drafting so the teacher approves the curve and endpoints together with
+  the stem and choices.
+- **Include smooth curves, not only straight segments:** For continuous
+  domain/range reading (`D_r, R_r`) and inverse graph reflection (`r⁻¹` across
+  `y = x`), include smooth curves (such as parabolic arcs sampled smoothly) that
+  pass through **at least 3–4 explicit integer lattice key points** rather than
+  relying solely on piecewise straight line segments. Mark the integer key
+  points with small solid dots when students need to read or reflect coordinates.
+- **Grid margin, origin label, and open-endpoint layering:**
+  - Leave at least **1 grid unit of margin** outside every endpoint or vertex
+    (e.g. if an endpoint reaches `y = −4`, extend the `y`-axis grid to `[−5, 5]`
+    so the open/closed circle never touches the outer border).
+  - Omit the redundant origin `0` label when `−1` ticks are present on both axes
+     so `0` never collides with `−1`.
+  - Draw open endpoints (`fill="#ffffff"`) on the topmost SVG layer above axes
+    and grid lines so an open endpoint lying on an axis (such as `(1, 0)`) is
+    cleanly hollow and never bisected by the axis line.
 
 ## Anti back-substitution
 
@@ -102,6 +139,10 @@ try when choosing candidates is the skill.
   (“ในระบบจำนวนจริง”).
 - Do not ask two results in one stem (excluded values and the solution set);
   choose the result that the item role measures.
+- **Plain, direct written prompts (`W01, W02`):** State the command directly
+  (e.g., “จงหาโดเมนและเรนจ์ของความสัมพันธ์ `r` พร้อมทั้งแสดงวิธีทำอย่างละเอียด”)
+  without parenthetical method hints or condition reminders such as “(ระวังเงื่อนไข...)”
+  unless the teacher explicitly requests a scaffolded prompt.
 
 ## Whole-paper patterns
 

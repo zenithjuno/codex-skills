@@ -39,6 +39,16 @@ never a compatibility target.
 - Unequal data tables and deliberately smaller tables need an explicit task-level
   allocation.
 - Dotted response lines are literal `.` in `TH Sarabun New` 16 pt, not Cambria.
+- **Exam choice alignment and spacing:**
+  - Align horizontal multiple-choice rows (`ก. ข. ค. ง.`) with explicit **Word tab stops (`<w:tabs><w:tab w:val="left" w:pos="..."/></w:tabs>`) and `\t` characters** — never with runs of multiple spaces (`"   "`), which drift with variable equation widths.
+  - Choose the choice grid per item to match expression length:
+    - **`4 × 1` (single line):** 3 left tab stops (e.g. `2.3 / 4.5 / 6.7 cm` in a 2-column exam) for short numerals, interval pairs, or `(a, b)` coordinates.
+    - **`2 × 2` (two lines of two choices):** 1 left tab stop near half column width (e.g. `3.85–4.4 cm`) for medium algebraic or set expressions.
+    - **`1 × 4` (stacked one per line):** for full set-builder choices `{ (x, y) ∣ ... }`.
+  - Keep choices visually attached to their stem (`space_after = 0 pt` on the stem and on intermediate choice lines), and place **`space_after = 6 pt` on the final paragraph of each item** (the last choice line, or the stem on open-ended items without separate answer lines) so items are clearly separated for readability.
+- **Unbroken inline equations and sets:**
+  - Never let Word wrap in the middle of a set (`A = {1, 2, 3, 4}`), a condition (`n(A ∩ C) = 3`), or an equation (`y = √(x − 2)`). When a stem + math expression would wrap mid-equation in a column, place a clean paragraph break (`space_after = 0 pt`, small left indent such as `0.15 cm`) before the math block so the entire set or equation stays on one line.
+  - In narrow two-column objective exams, omit redundant `∈ ℝ × ℝ` in set-builder notation (`r = {(x, y) ∣ y = ...}` instead of `r = {(x, y) ∈ ℝ × ℝ ∣ y = ...}`) unless the item specifically contrasts universes (such as `ℤ × ℤ` vs `ℝ × ℝ`).
 
 Use the named layout profiles and shared layout layer rather than recreating
 these measurements in a generator.

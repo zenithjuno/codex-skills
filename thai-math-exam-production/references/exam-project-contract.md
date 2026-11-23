@@ -21,7 +21,7 @@ handoff remain with their named skills.
     WORKING-SOLUTIONS.md     producer reasoning and answer summary
     ANSWER-KEY.md            teacher-facing self-contained key (added before export)
     blind-audit/data/        exporter output: questions_/solutions_/manifest_<set>.json
-  source/                    audit parts, e.g. source/audit-parts/A-…md (write-only per assignment)
+  source/                    durable Gate 1 source audits (SHEET-COVERAGE-<slug>.md, PAST-EXAM-<yr>-<slug>.md, audit-parts/) — tracked in git
   assets/
   deliverables/
   qa/
@@ -115,6 +115,20 @@ object (`preserve`, `transform`, `avoid`, `equivalence_target`, `leakage_risk`).
 
 Each `item-variants.json` record contains a unique `variant_id`, `item_id`,
 status, design family, expression/summary, decision notes and config snapshot.
+
+Once an item reaches the `drafting` gate (`status: "approved"` on the selected
+`current_variant`), the variant record must also contain:
+
+- `stem`: full approved question wording (non-empty string);
+- `choices`: array of choice objects `[{"label": "ก", "text": "..."}, ...]` for
+  objective items, or `[]` for written / open-ended items;
+- `answer_key`: approved answer label or solution expression (non-empty string);
+- `answer_reasoning`: concise producer solution path used by
+  `export_blind_audit_snapshot.py` (non-empty string).
+
+Enforcing these fields at Gate 6 (`drafting`) ensures that
+`export_blind_audit_snapshot.py` and the DOCX generator work directly from
+`item-variants.json` without manual backfill at Gate 9 or Gate 10.
 
 Statuses: `proposed`, `approved`, `approved-provisional`, `rejected`,
 `superseded`. A current item cannot point at a rejected or superseded variant.
