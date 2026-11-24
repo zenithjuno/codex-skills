@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit or normalize OMML equation sizes: fraction (<m:f>) = 13 pt (sz=26), non-fraction = 12 pt (sz=24)."""
+"""Audit or normalize OMML equation sizes: body fraction (<m:f>) = 14 pt (sz=28), body non-fraction = 12 pt (sz=24), sub-example (szCs=28) = 10 pt (sz=20)."""
 
 from __future__ import annotations
 
@@ -35,6 +35,7 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
     omath_total = 0
     frac_total = 0
     nonfrac_total = 0
+    subex_total = 0
     fixed_equations = 0
 
     with zipfile.ZipFile(docx_path, "r") as zin:
@@ -49,11 +50,28 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
         for omath in root.findall(f".//{M}oMath"):
             omath_total += 1
             has_frac = omath.find(f".//{M}f") is not None
-            if has_frac:
-                frac_total += 1
+            # Detect sub_example / caption tier via szCs="28" on any non-Thai math run
+            is_subex = False
+            for mr_probe in omath.findall(f".//{M}r"):
+                if THAI_RE.search(_text(mr_probe)):
+                    continue
+                rPr_p = mr_probe.find(f"{W}rPr")
+                szcs_p = None if rPr_p is None else rPr_p.find(f"{W}szCs")
+                if szcs_p is not None and szcs_p.get(f"{W}val") == "28":
+                    is_subex = True
+                    break
+
+            if is_subex:
+                subex_total += 1
+                expected_sz = "24" if has_frac else "20"
+                expected_cs = "28"
             else:
-                nonfrac_total += 1
-            expected_sz = "26" if has_frac else "24"
+                if has_frac:
+                    frac_total += 1
+                else:
+                    nonfrac_total += 1
+                expected_sz = "28" if has_frac else "24"
+                expected_cs = "32"
             eq_bad = False
 
             for math_run in omath.findall(f".//{M}r"):
@@ -74,10 +92,10 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
                         sz_cs = rPr.find(f"{W}szCs")
                         if sz_cs is None:
                             sz_cs = ET.SubElement(rPr, f"{W}szCs")
-                        sz_cs.set(f"{W}val", "32")
+                        sz_cs.set(f"{W}val", expected_cs)
                         part_changed = True
 
-            # Also keep ctrlPr sz aligned when fixing so Word UI shows consistent 13pt / 12pt
+            # Also keep ctrlPr sz aligned when fixing so Word UI shows consistent 14pt / 12pt / 10pt
             if fix and eq_bad:
                 for cp in omath.findall(f".//{M}ctrlPr"):
                     rPr = cp.find(f"{W}rPr")
@@ -89,7 +107,7 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
                         sz_cs = rPr.find(f"{W}szCs")
                         if sz_cs is None:
                             sz_cs = ET.SubElement(rPr, f"{W}szCs")
-                        sz_cs.set(f"{W}val", "32")
+                        sz_cs.set(f"{W}val", expected_cs)
                 fixed_equations += 1
 
             if eq_bad:
@@ -114,6 +132,7 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
         "omath_total": omath_total,
         "fraction_equations": frac_total,
         "non_fraction_equations": nonfrac_total,
+        "sub_example_equations": subex_total,
         "mismatch_count": len(mismatches),
         "fixed_equations": fixed_equations,
         "mismatches": mismatches[:20],
@@ -121,7 +140,7 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Audit or fix OMML math font sizes (fraction=13pt/sz=26, non-fraction=12pt/sz=24).")
+    parser = argparse.ArgumentParser(description="Audit or fix OMML math font sizes (fraction=14pt/sz=28, non-fraction=12pt/sz=24, sub-example=10pt/sz=20).")
     parser.add_argument("docx", type=Path, help="Path to .docx file")
     parser.add_argument("--fix", action="store_true", help="Normalize mismatched OMML sizes")
     parser.add_argument("-i", "--in-place", action="store_true", help="Overwrite input file when using --fix")
@@ -135,20 +154,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.fix:
         print(
             f"FIXED {args.output or args.docx}: {report['fixed_equations']}/{report['omath_total']} equations normalized "
-            f"(fractions={report['fraction_equations']} @ 13pt, non-fractions={report['non_fraction_equations']} @ 12pt)"
+            f"(fractions={report['fraction_equations']} @ 14pt, non-fractions={report['non_fraction_equations']} @ 12pt, "
+            f"sub-examples={report['sub_example_equations']} @ 10pt)"
         )
         return 0
     if report["mismatch_count"]:
         print(
             f"FAIL {args.docx}: {report['mismatch_count']}/{report['omath_total']} OMML equations have wrong size "
-            f"(expected fraction=13pt/sz=26, non-fraction=12pt/sz=24)"
+            f"(expected fraction=14pt/sz=28, non-fraction=12pt/sz=24, sub-example=10pt/sz=20)"
         )
         for m in report["mismatches"]:
             print(f"  - {m['part']} expected sz={m['expected_sz']}: {m['snippet']!r}")
         return 1
     print(
         f"PASS {args.docx}: all {report['omath_total']} OMML equations match size policy "
-        f"(fractions={report['fraction_equations']} @ 13pt, non-fractions={report['non_fraction_equations']} @ 12pt)"
+        f"(fractions={report['fraction_equations']} @ 14pt, non-fractions={report['non_fraction_equations']} @ 12pt, "
+        f"sub-examples={report['sub_example_equations']} @ 10pt)"
     )
     return 0
 

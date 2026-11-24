@@ -184,14 +184,19 @@ def audit_word_roots(
 
         for omath_el in root.findall(".//m:oMath", NS):
             has_frac = omath_el.find(".//m:f", NS) is not None
-            expected_sz = "26" if has_frac else "24"
             for math_run in omath_el.findall(".//m:r", NS):
                 text = text_content(math_run)
                 if THAI_RE.search(text):
                     continue
                 w_rpr = math_run.find("w:rPr", NS)
                 sz = None if w_rpr is None else w_rpr.find("w:sz", NS)
+                sz_cs = None if w_rpr is None else w_rpr.find("w:szCs", NS)
                 actual_sz = "24" if sz is None else (sz.get(w_attr("val")) or "24")
+                actual_cs = "32" if sz_cs is None else (sz_cs.get(w_attr("val")) or "32")
+                if actual_cs == "28":
+                    expected_sz = "24" if has_frac else "20"
+                else:
+                    expected_sz = "28" if has_frac else "24"
                 if actual_sz != expected_sz:
                     math_size_mismatches.append((name, actual_sz, expected_sz, text_content(omath_el).strip()))
                     break
@@ -257,7 +262,12 @@ def audit_word_roots(
         )
     for name, actual_sz, expected_sz, text in math_size_mismatches:
         snippet = text if len(text) <= 40 else text[:37] + "..."
-        kind = "fraction (13 pt / sz=26)" if expected_sz == "26" else "non-fraction (12 pt / sz=24)"
+        kind_map = {
+            "28": "fraction (14 pt / sz=28)",
+            "24": "non-fraction (12 pt / sz=24)",
+            "20": "sub-example (10 pt / sz=20)",
+        }
+        kind = kind_map.get(expected_sz, f"sz={expected_sz}")
         failures.append(
             f"{name}: OMML math size mismatch (got sz={actual_sz}, expected {kind}): {snippet!r}",
         )

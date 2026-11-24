@@ -535,20 +535,25 @@ def expr_fragment(expr: dict[str, Any]) -> str:
     raise ValueError(f"Unsupported OMML expression kind: {kind}")
 
 
-def math_omml(expr: dict[str, Any] | list[Any] | str) -> str:
+def math_omml(expr: dict[str, Any] | list[Any] | str, *, tier: str = "body") -> str:
     if isinstance(expr, dict):
         body = expr_fragment(expr)
     elif isinstance(expr, list):
         body = items_fragment(expr)
     else:
         body = item_to_omml_fragment(expr)
-    if "<m:f>" in body or "<m:f " in body:
-        body = body.replace('<w:sz w:val="24"/>', '<w:sz w:val="26"/>')
+    has_frac = "<m:f>" in body or "<m:f " in body
+    if tier == "sub_example":
+        target_sz = "24" if has_frac else "20"
+        body = body.replace('<w:sz w:val="24"/>', f'<w:sz w:val="{target_sz}"/>')
+        body = body.replace('<w:szCs w:val="32"/>', '<w:szCs w:val="28"/>')
+    elif has_frac:
+        body = body.replace('<w:sz w:val="24"/>', '<w:sz w:val="28"/>')
     return f'<m:oMath xmlns:m="{M_NS}" xmlns:w="{W_NS}">{body}</m:oMath>'
 
 
-def append_math(paragraph: Any, expr: dict[str, Any] | list[Any] | str) -> None:
-    paragraph._p.append(parse_xml(math_omml(expr)))
+def append_math(paragraph: Any, expr: dict[str, Any] | list[Any] | str, *, tier: str = "body") -> None:
+    paragraph._p.append(parse_xml(math_omml(expr, tier=tier)))
 
 
 INSERTION_ANCHOR_TEXT = "\u00a0\u00a0"
