@@ -1,21 +1,13 @@
 ---
 name: learner-playtest
 description: >
-  Use to collect and analyze HUMAN feedback on an educational ("สื่อการเรียนรู้")
-  browser game, to guide further development. Three modes: 'survey' produces a
-  ready-to-paste Google Form question set (learner self-report + a short
-  comprehension check) that the user pastes into Google Forms by hand — no API,
-  no dependency; 'observe' produces a form for a teacher to fill in while
-  watching one learner play; 'analyze' turns Google Form responses (exported to
-  a Sheet/CSV) or session notes into a structured report with a verdict. The
-  central question is whether THIS learner actually learned the target thing and
-  where they got stuck — not just whether it was fun. The skill itself does not
-  simulate a player and does not create the live Google Form; it writes question
-  sets and analyses, and writes report files only on approval.
+  Collect and analyze human learner feedback on an educational ("สื่อการเรียนรู้") browser
+  game (`survey` Google Form questions, `observe` checklist, `analyze` exported Sheet/CSV
+  notes) to test whether learners actually learned. Does not simulate players or create live Forms.
 metadata:
   short-description: Human feedback (Google Form / observation) for learning games
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: learner-playtest | canonical: ~/.codex/skills/learner-playtest | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: learner-playtest | canonical: ~/.codex/skills/learner-playtest | bump this date on every edit -->
 
 # Learner Playtest
 

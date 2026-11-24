@@ -1,6 +1,6 @@
 ---
 name: gas-html-guard
-description: Fast anti-slop and syntax back-pressure gate for Google Apps Script (.gs) and standalone HTML/JS projects. Runs deterministic checks (JS syntax via `node --check` including inline `<script>` in `.html` and GAS `<?!= ?>` templates, `.gs` and HTML-partial global scope collisions, GAS loop I/O, unsafe `getContent()` in `include()`, missing `withFailureHandler`, empty `catch`, raw `innerHTML`, and monolith/god-function size guards) with compact token-efficient output. Use before `clasp push`, deploy, commit, or after editing `.gs`/`.html`/`.js` code — triggers include "ตรวจโค้ด GAS/HTML", "anti-slop", "gas-html-guard", "เช็กก่อน push", "เช็ก syntax .gs/.html".
+description: Fast anti-slop & syntax gate for Google Apps Script (`.gs`) and HTML/JS (`node --check` incl. inline `<script>` and `<?!= ?>`, global scope collisions, loop I/O, unsafe `getContent()`, missing `withFailureHandler`, empty `catch`, `CODEMAP_STALE`). Triggers: "ตรวจโค้ด GAS/HTML", "anti-slop", "gas-html-guard", "เช็กก่อน push", "เช็ก syntax .gs/.html".
 ---
 <!-- SKILL-VERSION: 2026.11.25 | name: gas-html-guard | canonical: ~/.codex/skills/gas-html-guard | bump this date on every edit -->
 

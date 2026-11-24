@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -529,6 +530,74 @@ def release(args: argparse.Namespace) -> dict[str, object]:
     }
 
 
+def parse_skill_frontmatter(text: str) -> tuple[str, int, bool]:
+    """Return (normalized_description, total_lines, has_skill_version) for a SKILL.md."""
+    total_lines = len(text.splitlines())
+    has_version = "SKILL-VERSION:" in text
+    m = re.match(r"^---\n([\s\S]*?)\n---", text)
+    if not m:
+        return "", total_lines, has_version
+    fm = m.group(1)
+    dm = re.search(r"^description:\s*(.*)$", fm, re.MULTILINE)
+    if not dm:
+        return "", total_lines, has_version
+    first_val = dm.group(1).strip()
+    if first_val in (">", ">-", "|", "|-"):
+        rest = fm[dm.end() :]
+        collected: list[str] = []
+        for line in rest.splitlines():
+            if not line.strip():
+                continue
+            if line.startswith((" ", "\t")):
+                collected.append(line.strip())
+            else:
+                break
+        desc = " ".join(collected)
+    else:
+        desc = first_val
+        if (desc.startswith("'") and desc.endswith("'")) or (desc.startswith('"') and desc.endswith('"')):
+            desc = desc[1:-1]
+    return re.sub(r"\s+", " ", desc).strip(), total_lines, has_version
+
+
+def audit_skills(root: Path, max_desc_chars: int = 420, max_body_lines: int = 250) -> dict[str, object]:
+    """Audit skill frontmatter description sizes, body lengths, and SKILL-VERSION headers."""
+    names = source_skill_names(root)
+    total_desc_chars = 0
+    desc_over_budget: list[dict[str, object]] = []
+    body_over_budget: list[dict[str, object]] = []
+    missing_version: list[str] = []
+
+    for name in names:
+        skill_dir = root / name
+        vendored = (skill_dir / "UPSTREAM.md").is_file()
+        text = (skill_dir / "SKILL.md").read_text(encoding="utf-8", errors="ignore")
+        desc, body_lines, has_version = parse_skill_frontmatter(text)
+        desc_chars = len(desc)
+        total_desc_chars += desc_chars
+        if vendored:
+            continue
+        if desc_chars > max_desc_chars:
+            desc_over_budget.append({"skill": name, "chars": desc_chars, "max": max_desc_chars})
+        if body_lines > max_body_lines:
+            body_over_budget.append({"skill": name, "lines": body_lines, "max": max_body_lines})
+        if not has_version:
+            missing_version.append(name)
+
+    status_word = "WARN" if desc_over_budget else "OK"
+    return {
+        "status": status_word,
+        "skill_count": len(names),
+        "total_description_chars": total_desc_chars,
+        "est_always_on_tokens": total_desc_chars // 4,
+        "max_desc_chars": max_desc_chars,
+        "max_body_lines": max_body_lines,
+        "desc_over_budget": desc_over_budget,
+        "body_over_budget": body_over_budget,
+        "missing_version": missing_version,
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=str(DEFAULT_ROOT), help="local source checkout (default: ~/.codex/skills)")
@@ -556,6 +625,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--gemini-dir", default=str(GEMINI_SKILLS_DIR), help="Gemini/Antigravity skills dir (default: ~/.gemini/config/skills)"
     )
 
+    audit_command = commands.add_parser(
+        "audit", help="audit skill frontmatter description token tax, body size, and SKILL-VERSION"
+    )
+    audit_command.add_argument("--max-desc-chars", type=int, default=420, help="Max non-vendored description chars (default: 420)")
+    audit_command.add_argument("--max-body-lines", type=int, default=250, help="Advisory SKILL.md line threshold (default: 250)")
+    audit_command.add_argument("--strict", action="store_true", help="Exit 1 if any non-vendored description exceeds budget")
+
     release_command = commands.add_parser("release")
     release_command.add_argument("--skill", action="append", default=[], help="top-level skill folder; repeatable")
     release_command.add_argument("--path", action="append", default=[], help="extra tracked path; repeatable")
@@ -582,6 +658,17 @@ def main() -> int:
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
             statuses = {claude_result["status"], gemini_result["status"]}
             return 0 if statuses <= {"OK", "FIXED", "SKIPPED"} else 4
+        if args.command == "audit":
+            audit_root = Path(args.root).expanduser().resolve()
+            if not audit_root.is_dir():
+                raise ReleaseError(f"skills root does not exist: {audit_root}")
+            result = audit_skills(
+                audit_root, max_desc_chars=args.max_desc_chars, max_body_lines=args.max_body_lines
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            if args.strict and result["desc_over_budget"]:
+                return 1
+            return 0
         root = resolve_root(args.root)
         if args.command == "status":
             result = status(root, args.branch)

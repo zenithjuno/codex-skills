@@ -1,19 +1,13 @@
 ---
 name: learning-game-design
 description: >
-  Use when designing an educational ("สื่อการเรียนรู้") game through a
-  discussion-first, lightweight design workflow. The user is a non-developer
-  teacher/author building a browser game (HTML/JS front-end, optional Google
-  Sheet for player stats). This skill helps think through the design in chat —
-  learning objective, target learner, core loop, content architecture, minimal
-  tech, and how success will be judged — then writes ONE lean design spec only
-  after explicit approval. It is deliberately lightweight: not a full Game
-  Design Document, no studio pipeline. Bias every decision toward minimal
-  dependencies, low spec, and something a solo non-dev can maintain.
+  Discussion-first lightweight design workflow for solo non-dev teachers building an
+  educational ("สื่อการเรียนรู้") HTML/JS browser game (optional Google Sheet stats); writes
+  one lean design spec only after explicit approval, biased toward minimal dependencies.
 metadata:
   short-description: Discussion-first lite design for learning games
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: learning-game-design | canonical: ~/.codex/skills/learning-game-design | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: learning-game-design | canonical: ~/.codex/skills/learning-game-design | bump this date on every edit -->
 
 # Learning Game Design
 

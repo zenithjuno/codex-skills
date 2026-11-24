@@ -1,15 +1,11 @@
 ---
 name: task-scoping
 description: >
-  Use before non-trivial coding work to turn the request into a compact task
-  contract and choose the lightest safe workflow: S for a clear local change,
-  M for a short direction-and-verification plan, or L for a substantial,
-  high-risk, ambiguous, multi-system, or multi-session build routed to
-  grill-to-build. Trigger on coding features, fixes, refactors, migrations, or
-  requests that need direction before editing but may not justify a full design
-  process. Skip genuinely obvious one-line changes.
+  Pre-coding task scoping: turns non-trivial requests into a compact contract and routes to
+  S (local change), M (short direction + verify plan), or L (`grill-to-build`). Skip for
+  obvious one-line changes.
 ---
-<!-- SKILL-VERSION: 2026.08.02 | name: task-scoping -->
+<!-- SKILL-VERSION: 2026.11.25 | name: task-scoping -->
 
 # Task Scoping
 

@@ -1,20 +1,13 @@
 ---
 name: game-content-audit
 description: >
-  Use to audit the content and data of an educational ("สื่อการเรียนรู้")
-  browser game BEFORE shipping or after changing the engine. Two targets:
-  (1) the HTML/JS question-generator code — reviewed by reading it for coverage,
-  difficulty spread, and especially answer-correctness; and (2) data files —
-  a sample of generated questions and the player-stat table (e.g. exported from
-  Google Sheet) — checked mechanically by the bundled Python script
-  (scripts/audit_game_content.py, stdlib only, no node). This skill is
-  READ-ONLY: it produces a PASS / CONCERNS / FAIL report and never edits game
-  files. Anything it cannot verify it flags as MANUAL CHECK NEEDED rather than
-  assuming pass.
+  Read-only content and data audit for educational ("สื่อการเรียนรู้") browser games
+  before shipping or after engine edits: checks question generator coverage/correctness
+  and runs `scripts/audit_game_content.py` on question samples/player stats. Produces PASS/CONCERNS/FAIL.
 metadata:
   short-description: Read-only content & data audit for learning games
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: game-content-audit | canonical: ~/.codex/skills/game-content-audit | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: game-content-audit | canonical: ~/.codex/skills/game-content-audit | bump this date on every edit -->
 
 # Game Content Audit
 

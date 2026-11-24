@@ -1,22 +1,13 @@
 ---
 name: ship-check
 description: >
-  Use as the final read-only gate before publishing or sharing an educational
-  ("สื่อการเรียนรู้") HTML/JS browser game made by a solo non-developer. It
-  answers one question: "is this safe to put in front of learners yet?" Three
-  parts: (1) a static scan script (scripts/ship_static_scan.py, stdlib only)
-  that flags ship-blockers in the HTML/JS — dev leftovers, insecure/localhost
-  URLs, missing mobile/charset/lang meta, external network dependencies that
-  break offline use; (2) a functional dry-run — the AI plays the game live if a
-  browser/preview tool is available, otherwise a static review plus a manual
-  dry-run checklist the user runs; (3) a readiness checklist that confirms the
-  other skills are green (content audited, playtested, objective deliverable,
-  player data works). Produces a PASS / CONCERNS / FAIL verdict and never edits
-  game files.
+  Final read-only gate before sharing an educational ("สื่อการเรียนรู้") HTML/JS browser game
+  by a solo non-dev: runs `scripts/ship_static_scan.py`, functional dry-run, and readiness
+  checklist (`game-content-audit`, `learner-playtest`, offline/Sheet safety) for PASS/CONCERNS/FAIL.
 metadata:
   short-description: Read-only pre-publish gate for HTML learning games
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: ship-check | canonical: ~/.codex/skills/ship-check | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: ship-check | canonical: ~/.codex/skills/ship-check | bump this date on every edit -->
 
 # Ship Check
 

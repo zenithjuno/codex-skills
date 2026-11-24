@@ -1,8 +1,8 @@
 ---
 name: docx-manual-toc
-description: Update or extend a hand-typed (tab-aligned, no TOC field, no Heading styles) contents page in an existing Word DOCX, with page numbers taken from a PDF exported by Microsoft Word itself. Use when a teacher asks to ทำสารบัญ, อัปเดตสารบัญ, แก้เลขหน้าสารบัญ, เพิ่มหัวข้อในสารบัญ, or fix contents page numbers after a sheet or book grew — especially when they do not want Heading styles or an automatic TOC. Matches the existing line style and tab alignment, checks every entry against Word pagination, and handles blank pages created by front-matter section breaks.
+description: Update hand-typed, tab-aligned contents pages (no TOC field/Heading styles) in Word DOCX using Microsoft Word PDF page numbers. Triggers: "ทำสารบัญ", "อัปเดตสารบัญ", "แก้เลขหน้าสารบัญ", "เพิ่มหัวข้อในสารบัญ", or fixing contents page numbers.
 ---
-<!-- SKILL-VERSION: 2026.10.19 | name: docx-manual-toc | canonical: ~/.codex/skills/docx-manual-toc | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: docx-manual-toc | canonical: ~/.codex/skills/docx-manual-toc | bump this date on every edit -->
 
 # DOCX manual contents page
 

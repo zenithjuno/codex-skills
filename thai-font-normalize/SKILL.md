@@ -1,16 +1,11 @@
 ---
 name: thai-font-normalize
 description: >
-  Normalize Thai fonts in generated Word .docx files to TH Sarabun New so that Thai
-  text renders correctly in Word, in PDF export, and after Clear Formatting or applying
-  paragraph styles. Use this skill WHENEVER generating, editing, or producing a .docx
-  that contains Thai text — even if the user does not explicitly mention fonts. This
-  prevents the common failure where Thai falls back to Angsana New. The skill both
-  (a) writes correct OOXML during generation and (b) runs a bundled verification script
-  on the finished file as a mandatory final pass. Default Thai font: TH Sarabun New,
-  Complex Script size 16pt.
+  Normalize Thai fonts in `.docx` files to TH Sarabun New (16pt CS) via OOXML generation
+  plus a mandatory final verification script so Thai never falls back to Angsana New. Use
+  whenever creating or editing a Thai `.docx`.
 ---
-<!-- SKILL-VERSION: 2026.08.09 | name: thai-font-normalize | canonical: ~/.codex/skills/thai-font-normalize | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-font-normalize | canonical: ~/.codex/skills/thai-font-normalize | bump this date on every edit -->
 
 # Thai Font Normalization
 

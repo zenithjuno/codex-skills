@@ -1,21 +1,11 @@
 ---
 name: blind-answer-key-audit
 description: >-
-  Audit an answer key (exam solutions, model answers, a generated question bank) for
-  correctness by BLIND re-solving — an independent solver answers each item WITHOUT seeing
-  the provided key, then diffs against it, marking agreements as pass and disagreements as
-  flags for a human to adjudicate. Use this WHENEVER you need to verify or QA answers/solutions
-  produced by someone else (another AI such as Codex, a textbook, a teacher, an auto-generator)
-  and correctness matters — to catch wrong keys, contradictory questions, no-valid-option items,
-  and duplicate/typo choices before learners or users see them. Triggers include: "ตรวจเฉลย",
-  "audit answer key", "verify these solutions", "blind check", "cross-check the answers",
-  "QA this question bank", "is this answer key correct", and any producer↔checker AI workflow.
-  Roles are swappable — the same process works whether THIS agent produced the answers or is
-  the one checking them. Prefer this over ad-hoc "just re-grade it" because the blind discipline
-  is what prevents anchoring and catches correlated errors.
+  Audit answer keys, solutions, or question banks via blind re-solving (independent solver answers without seeing the key, then diffs for human adjudication). Triggers: "ตรวจเฉลย", "audit answer key", "verify these solutions", "blind check", "cross-check the answers", "QA this question bank", "is this answer key correct", producer-checker QA.
 metadata:
   short-description: Blind re-solve audit of an answer key, with human-in-the-loop flag report
 ---
+<!-- SKILL-VERSION: 2026.11.25 | name: blind-answer-key-audit | canonical: ~/.codex/skills/blind-answer-key-audit | bump this date on every edit -->
 
 # Blind Answer-Key Audit
 

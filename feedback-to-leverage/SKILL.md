@@ -1,14 +1,11 @@
 ---
 name: feedback-to-leverage
 description: >
-  Use when a human corrects, rejects, redirects, or repeatedly fixes coding work,
-  documentation, architecture, workflow, or tool usage. Fix the immediate issue,
-  classify why it happened, and place the smallest justified durable safeguard in
-  a test, static rule, source-of-truth document, project map/index, decision record,
-  template, or helper script. Integrate with build control without creating a new
-  feedback log. Skip system changes for genuinely one-off preference corrections.
+  Use when a human corrects, rejects, or repeatedly fixes coding, docs, workflow, or tool
+  usage: fix the issue, classify root cause, and add the smallest durable safeguard (test,
+  lint rule, index, or helper script). Skip for genuinely one-off preference tweaks.
 ---
-<!-- SKILL-VERSION: 2026.08.02 | name: feedback-to-leverage -->
+<!-- SKILL-VERSION: 2026.11.25 | name: feedback-to-leverage -->
 
 # Feedback to Leverage
 

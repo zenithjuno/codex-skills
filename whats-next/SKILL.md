@@ -1,18 +1,13 @@
 ---
 name: whats-next
 description: >
-  Use when the user is unsure what to do next on their educational
-  ("สื่อการเรียนรู้") HTML/JS browser game, or is starting out and wants
-  orientation. This is the map for the learning-game toolset. It is READ-ONLY:
-  it inspects the project (design spec, game files, playtests, reports), figures
-  out which lifecycle stage the project is in, and recommends ONE concrete next
-  action and the skill to run for it. Designed for a solo non-developer — plain
-  language, no jargon, never more than one main recommendation. Use on phrases
-  like "what now", "where am I", "ทำอะไรต่อดี", "เริ่มยังไง", "next step".
+  Read-only orientation map for a solo non-dev building an educational ("สื่อการเรียนรู้")
+  HTML/JS browser game: checks project stage and recommends ONE concrete next action/skill.
+  Triggers: "what now", "where am I", "ทำอะไรต่อดี", "เริ่มยังไง", "next step".
 metadata:
   short-description: Non-dev orientation — what to do next on the learning game
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: whats-next | canonical: ~/.codex/skills/whats-next | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: whats-next | canonical: ~/.codex/skills/whats-next | bump this date on every edit -->
 
 # What's Next
 

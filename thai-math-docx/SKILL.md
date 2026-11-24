@@ -1,17 +1,12 @@
 ---
 name: thai-math-docx
 description: >-
-  Create, edit, repair, render or audit Thai mathematics Word .docx files with
-  editable OMML equations, Thai/Latin font defaults and document QA. Use for
-  exams, teaching handouts, answer keys and reconstruction from PDFs or images.
-  Also create or resize teacher-requested mathematics figures for handouts or
-  later Word reuse, using physical print-size preferences and the tested
-  coordinate-graph prototype. For Thai Word documents without mathematical
-  notation, use thai-docx. Pedagogical discussion before production belongs in
-  math-handout-sandbox.
+  Create, edit, repair, render, or audit Thai math Word `.docx` files (editable OMML
+  equations, math figures, exams, handouts, answer keys). For Thai Word docs without math
+  notation, use `thai-docx`; for pedagogical discussion first, use `math-handout-sandbox`.
 ---
 
-<!-- SKILL-VERSION: 2026.11.23 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-math-docx | canonical: ~/.codex/skills/thai-math-docx | bump this date on every edit -->
 
 # Thai Math DOCX
 

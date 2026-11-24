@@ -1,17 +1,12 @@
 ---
 name: thai-docx
 description: >
-  Create, edit, repair, audit, or preview Thai Word documents without mathematical
-  notation: reports, letters, memos, school forms, minutes, and prose tables,
-  including Thai official documents (บันทึกข้อความ, หนังสือภายใน, หนังสือราชการ),
-  which have their own standing layout preferences.
-  Use TH Sarabun New with editable, insertion-safe Thai text; repair legacy Thai
-  fonts in imported DOCX. For mathematical notation or editable equations, use
-  thai-math-docx instead. Administrative numbers and prose such as คะแนน ≥ 80
-  belong here.
+  Create, edit, repair, audit, or preview Thai Word `.docx` without math notation (reports,
+  letters, บันทึกข้อความ, หนังสือราชการ, prose tables, คะแนน ≥ 80) using TH Sarabun New.
+  For math notation/OMML equations, use `thai-math-docx`.
 ---
 
-<!-- SKILL-VERSION: 2026.11.11 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-docx | canonical: ~/.codex/skills/thai-docx | bump this date on every edit -->
 
 # Thai DOCX (no math)
 

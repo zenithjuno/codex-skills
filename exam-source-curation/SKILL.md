@@ -1,18 +1,13 @@
 ---
 name: exam-source-curation
 description: >
-  Turn a corpus of past exam papers or practice sets, in any subject, into a
-  teacher-approved tutoring path: source intake with provenance and duplicate
-  resolution, independent answer checks, decision-based pattern taxonomy, honest
-  cross-set evidence, candidate selection, prerequisite sequence, and foundation
-  targets traced back to the selected items. Use when a teacher brings several
-  exam or practice sources and wants to คัดข้อสอบ, จัดแนวข้อสอบ, เลือกข้อไปสอน/ติว,
-  ทำคอร์สติวจากข้อสอบเก่า, or classify recurring patterns across papers. Not for
-  writing a new exam (thai-math-exam-production), designing a single handout
-  (math-handout-sandbox), or checking one answer key alone (blind-answer-key-audit).
+  Curate past exam papers into a teacher-approved tutoring path (source intake, pattern
+  taxonomy, selection, sequence, foundation targets). Triggers: "คัดข้อสอบ", "จัดแนวข้อสอบ",
+  "เลือกข้อไปสอน/ติว", "ทำคอร์สติวจากข้อสอบเก่า". Not for writing new exams
+  (thai-math-exam-production), single handouts (math-handout-sandbox), or solo answer checks (blind-answer-key-audit).
 ---
 
-<!-- SKILL-VERSION: 2026.10.02 | name: exam-source-curation | canonical: ~/.codex/skills/exam-source-curation | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: exam-source-curation | canonical: ~/.codex/skills/exam-source-curation | bump this date on every edit -->
 
 # Exam Source Curation
 

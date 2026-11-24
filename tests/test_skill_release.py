@@ -427,5 +427,43 @@ class ReleaseRunsSymlinkGuardTest(unittest.TestCase):
         self.assertEqual(report["claude_symlinks"]["status"], "SKIPPED")
 
 
+class SkillAuditTest(unittest.TestCase):
+    def test_audit_flags_oversized_non_vendored_and_skips_upstream(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="skill-audit-") as tmp:
+            root = Path(tmp)
+            # Clean skill
+            ok_dir = root / "ok-skill"
+            ok_dir.mkdir()
+            (ok_dir / "SKILL.md").write_text(
+                "---\nname: ok-skill\ndescription: Short trigger.\n---\n<!-- SKILL-VERSION: 2026.11.25 -->\n# Ok\n",
+                encoding="utf-8",
+            )
+            # Oversized non-vendored skill
+            big_dir = root / "big-skill"
+            big_dir.mkdir()
+            (big_dir / "SKILL.md").write_text(
+                f"---\nname: big-skill\ndescription: >\n  {'word ' * 110}\n---\n# Big\n",
+                encoding="utf-8",
+            )
+            # Oversized vendored skill (has UPSTREAM.md) -> skipped from warnings
+            up_dir = root / "vendored-skill"
+            up_dir.mkdir()
+            (up_dir / "UPSTREAM.md").write_text("repo: https://example.invalid\n", encoding="utf-8")
+            (up_dir / "SKILL.md").write_text(
+                f"---\nname: vendored-skill\ndescription: {'x' * 600}\n---\n# Vendored\n",
+                encoding="utf-8",
+            )
+
+            proc_ok = command(sys.executable, str(TOOL), "--root", str(root), "audit", check=False)
+            self.assertEqual(proc_ok.returncode, 0)
+            data = json.loads(proc_ok.stdout)
+            self.assertEqual(data["status"], "WARN")
+            self.assertEqual([d["skill"] for d in data["desc_over_budget"]], ["big-skill"])
+            self.assertEqual(data["missing_version"], ["big-skill"])
+
+            proc_strict = command(sys.executable, str(TOOL), "--root", str(root), "audit", "--strict", check=False)
+            self.assertEqual(proc_strict.returncode, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

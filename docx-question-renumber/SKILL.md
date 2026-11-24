@@ -1,8 +1,8 @@
 ---
 name: docx-question-renumber
-description: Renumber hand-typed question labels in an existing Word DOCX — main items "1. 2. 3." and sub-items "1) 2) 3)" — after a teacher has added, removed or reordered questions, and set every label to one font, size and weight. Use when a teacher asks to รันเลขข้อใหม่, เรียงเลขข้อใหม่, แก้เลขข้อ, renumber questions/examples, or fix "x." placeholders and duplicate/skipped numbers in a teaching sheet or book. Works on typed labels (not Word list numbering), keeps everything else untouched, writes a new file beside the original, and checks pagination with Microsoft Word.
+description: Renumber hand-typed question labels ("1. 2. 3." and "1) 2) 3)") in an existing Word DOCX and normalize label typography without using Word list numbering. Triggers: "รันเลขข้อใหม่", "เรียงเลขข้อใหม่", "แก้เลขข้อ", renumber questions/examples, fix "x." placeholders.
 ---
-<!-- SKILL-VERSION: 2026.10.19 | name: docx-question-renumber | canonical: ~/.codex/skills/docx-question-renumber | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: docx-question-renumber | canonical: ~/.codex/skills/docx-question-renumber | bump this date on every edit -->
 
 # DOCX question renumber
 

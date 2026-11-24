@@ -1,8 +1,8 @@
 ---
 name: thai-plan-book-layout
-description: Production print layout for a Thai government/school plan or report book in Word DOCX — แผนปฏิบัติการประจำปี, รายงานผลการดำเนินงาน, SAR-style books — to the standard a teacher signed off (TH Sarabun New, A4, ก ข ค / 1 2 3 page numbers, Thai-distributed prose with 1.25 cm indent, centred numbers, grey repeating table headers, merged PDF-split tables, memo page with real Garuda, cover with real logos). Use when a teacher asks to จัดหน้าเล่มแผน, จัดหน้าเล่มให้สวย/พร้อมพิมพ์, ทำเล่มให้ได้ PDF ระดับ production, แก้ตารางพัง/ตัดหน้าแปลก/ย่อหน้าพรืด, เลขหน้า ก ข ค, เรียงหน้าต้นเล่ม, ออกแบบปกเล่มแผน, or to check a finished book before printing/uploading. Format-only pass with text/number guards; Word PDF is the pagination truth. Not for creating content (thai-docx), math sheets (thai-math-docx), or PDF→DOCX extraction (thai-pdf-to-docx — run this skill after it).
+description: Production print layout for Thai government/school plan/report DOCX (แผนปฏิบัติการ/SAR: A4, TH Sarabun New, ก ข ค/1 2 3, cover/memo, table headers). Triggers: จัดหน้าเล่มแผน, จัดหน้าเล่มให้สวย/พร้อมพิมพ์, ทำเล่มให้ได้ PDF ระดับ production, แก้ตารางพัง/ตัดหน้าแปลก/ย่อหน้าพรืด, เลขหน้า ก ข ค, เรียงหน้าต้นเล่ม, ออกแบบปกเล่มแผน. Not for new content (`thai-docx`) or PDF extraction (`thai-pdf-to-docx`).
 ---
-<!-- SKILL-VERSION: 2026.10.22 | name: thai-plan-book-layout | canonical: ~/.codex/skills/thai-plan-book-layout | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-plan-book-layout | canonical: ~/.codex/skills/thai-plan-book-layout | bump this date on every edit -->
 
 # Thai plan book layout
 

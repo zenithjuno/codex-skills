@@ -1,18 +1,12 @@
 ---
 name: build-changelog
 description: >
-  Use during the BUILD phase of a Mode L planned coding project to operate bounded-context
-  build control: keep one hot `BUILD-CONTROL-{slug}.md` containing the Project Map,
-  current stage, version-control coordinates, active-contract routing, open changes,
-  and cold-log index; append PRG/CHG audit entries to phase-sharded `BUILD-LOG` files;
-  enforce addressed stage/change gates; and checkpoint only declared repository paths.
-  Prefer it whenever coding from a BLUEPRINT/CONSTRUCTION_PLAN, resuming a long build,
-  avoiding repeated full-log reads, recording staged progress, or handling a deviation.
-  Apply the same current-state-versus-cold-history principle more lightly to non-coding
-  staged work. Triggers include "start/resume the build", "build log", "build control",
-  "record this stage/change", "บันทึก build", and "continue the construction plan".
+  Operate bounded-context build control (`BUILD-CONTROL-{slug}.md`, phase-sharded `BUILD-LOG`,
+  stage/CHG gates, scoped checkpoints) during Mode L builds from BLUEPRINT/CONSTRUCTION_PLAN.
+  Triggers: "start/resume the build", "build log", "build control", "record this stage/change",
+  "บันทึก build", "continue the construction plan".
 ---
-<!-- SKILL-VERSION: 2026.09.12 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: build-changelog | canonical: ~/.codex/skills/build-changelog | bump this date on every edit -->
 
 # Build Control and Changelog
 

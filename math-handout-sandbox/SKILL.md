@@ -2,15 +2,11 @@
 name: math-handout-sandbox
 description: >
   Design and review Thai mathematics teaching materials through a teacher-led,
-  discussion-first workflow. Use when a teacher brings images, worksheets,
-  worked or faded examples, exercise lists, handout drafts, or lesson ideas and
-  wants a quick pedagogical review, a project-aware design discussion, or
-  approved production routing. Analyze teaching flow, misconceptions,
-  mathematical correctness, and variants before creating an SVG, DOCX, slide,
-  or worksheet. Do not use for direct Thai DOCX repair or one-off formatting.
+  discussion-first workflow before creating SVG, DOCX, slides, or worksheets. Not for
+  direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.11.24 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 

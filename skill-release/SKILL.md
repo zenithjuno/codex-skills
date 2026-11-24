@@ -3,7 +3,7 @@ name: skill-release
 description: Publish any update, addition, repair, rename, or removal of a user-managed Codex/Claude skill from the local `~/.codex/skills` source checkout to its GitHub mirror. Use whenever an agent changes a skill folder or asks to commit, push, install, sync, release, or make a skill available to other sessions. Enforce scoped preflight, verification, commit/push, and clean local-mirror proof through the shared release helper.
 ---
 
-<!-- SKILL-VERSION: 2026.09.07 | name: skill-release | canonical: ~/.codex/skills/skill-release | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: skill-release | canonical: ~/.codex/skills/skill-release | bump this date on every edit -->
 
 # Skill Release
 
@@ -24,7 +24,11 @@ clone, or manual `git pull`/`push` instead of the helper.
 
    Proceed only on `READY`. It fast-forwards a clean local source automatically.
    On `BLOCKED`, stop and report the reason; never overwrite or reset files.
-3. Make the scoped change and run the owning skill's relevant tests/validator.
+3. Make the scoped change and run the owning skill's relevant tests/validator plus the frontmatter token audit:
+
+   ```bash
+   python3 tools/skill_release.py audit --strict
+   ```
 4. Release only after fresh verification:
 
    ```bash

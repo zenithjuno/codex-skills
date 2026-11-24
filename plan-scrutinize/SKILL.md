@@ -1,8 +1,8 @@
 ---
 name: plan-scrutinize
-description: 'Outsider cold-read of a plan, BLUEPRINT, or design spec BEFORE any building, to catch the expensive errors — building the wrong thing, scope that drifted past the original problem, assumptions that break against reality — while a fix still costs one sentence. Pairs with grill-to-build: grill-to-build authors the plan collaboratively; plan-scrutinize reads the finished plan cold and pressure-tests it as an outsider. Trigger on /plan-scrutinize and proactively whenever the user wants to sanity-check, pressure-test, cold-review, audit, or get a second opinion on a plan, blueprint, spec, or design BEFORE executing it — including Thai phrasings like "ตรวจแผนก่อน", "scrutinize แผน", "เช็คแผนก่อนลงมือ", "sanity check แผนหน่อย", "แผนนี้มีอะไร drift ไหม", "พร้อม build ยัง". Do NOT use this to author a plan (that is grill-to-build) or to review an already-built artifact (that is a post-build review). This reviews the plan, not the product. Always writes a standalone PLAN-SCRUTINY-<slug>.md report — the shared medium the plan author (AI or human) and the scrutinizer both read and answer in.'
+description: 'Outsider cold-read of a plan, BLUEPRINT, or spec BEFORE building (writes PLAN-SCRUTINY-<slug>.md). Triggers: /plan-scrutinize, "ตรวจแผนก่อน", "scrutinize แผน", "เช็คแผนก่อนลงมือ", "sanity check แผนหน่อย", "แผนนี้มีอะไร drift ไหม", "พร้อม build ยัง". Not for authoring plans (use grill-to-build) or post-build review.'
 ---
-<!-- SKILL-VERSION: 2026.06.29 | name: plan-scrutinize | canonical: ~/.codex/skills/plan-scrutinize | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: plan-scrutinize | canonical: ~/.codex/skills/plan-scrutinize | bump this date on every edit -->
 
 # Plan Scrutinize
 

@@ -1,16 +1,12 @@
 ---
 name: thai-pdf-to-docx
 description: >
-  Convert an existing Thai PDF book/report (tens of pages, numbers that matter) into an
-  editable DOCX plus a machine-readable XLSX of its tables, faithful to the source (typos and
-  non-adding totals kept and reported, never silently fixed). Probes the PDF, extracts text
-  and tables with scripts, has a cheaper model transcribe scanned pages, proves the numbers
-  with QA scripts, and gives a reviewer a short risk-based checklist. Use for "แปลง PDF เป็น
-  Word/Excel", "ถอดเล่ม PDF", PDF-to-docx of school/government plans and reports. Not for
-  authoring new Thai documents (thai-docx) or math worksheets (thai-math-docx).
+  Convert Thai PDF books/reports into faithful editable DOCX + XLSX tables (preserving
+  source typos/totals with QA proofs). Triggers: "แปลง PDF เป็น Word/Excel", "ถอดเล่ม PDF".
+  Not for new Thai docs (`thai-docx`) or math sheets (`thai-math-docx`).
 ---
 
-<!-- SKILL-VERSION: 2026.10.19 | name: thai-pdf-to-docx | canonical: ~/.codex/skills/thai-pdf-to-docx | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-pdf-to-docx | canonical: ~/.codex/skills/thai-pdf-to-docx | bump this date on every edit -->
 
 # Thai PDF to DOCX + XLSX
 
