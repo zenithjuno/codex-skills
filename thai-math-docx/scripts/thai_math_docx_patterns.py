@@ -691,3 +691,114 @@ def add_callout_box(
             builder.append_parts(p, list(parts))
 
     return table
+
+
+def add_comparison_table(
+    container: Any,
+    headers: Sequence[str | Sequence[Part]],
+    rows: Sequence[Sequence[str | Sequence[Part]]],
+    *,
+    col_widths_cm: Sequence[float] | None = None,
+    header_fill: str = "3E6B99",
+    header_text_color: str = "FFFFFF",
+    label_fill: str = "EEF4FA",
+    stripe_fill: str = "F7FAFD",
+    border_color: str = "BDD1E6",
+    align_first_col: Any = WD_ALIGN_PARAGRAPH.CENTER,
+) -> Any:
+    """Add a styled row-by-row comparison table with verified Thai Complex Script
+    font routing (TH Sarabun New 16 pt + <w:cs/> + bidi='th-TH') and OMML support.
+    """
+    ncols = len(headers)
+    if ncols < 2:
+        raise ValueError("add_comparison_table requires at least 2 columns")
+
+    if col_widths_cm is None:
+        if ncols == 3:
+            col_widths_cm = [3.8, 6.35, 6.35]
+        else:
+            w = round(16.5 / ncols, 2)
+            col_widths_cm = [w] * ncols
+    if len(col_widths_cm) != ncols:
+        raise ValueError("col_widths_cm length must match headers length")
+
+    ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    table = container.add_table(rows=1 + len(rows), cols=ncols)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.autofit = False
+    builder.set_table_fixed_widths_cm(table, list(col_widths_cm))
+
+    for row in table.rows:
+        trPr = row._tr.get_or_add_trPr()
+        if trPr.find(f"{{{ns_w}}}cantSplit") is None:
+            trPr.append(parse_xml(f'<w:cantSplit xmlns:w="{ns_w}"/>'))
+    layout.set_repeat_table_header(table.rows[0])
+
+    outer_border = {"style": "single", "size": 6, "color": border_color}
+    inner_border = {"style": "single", "size": 4, "color": border_color}
+
+    def _populate_cell(
+        cell: Any,
+        content: str | Sequence[Part],
+        *,
+        bold_default: bool = False,
+        text_color: str | None = None,
+        align: Any = WD_ALIGN_PARAGRAPH.LEFT,
+    ) -> None:
+        p = cell.paragraphs[0]
+        builder.configure_paragraph(p, space_after=1)
+        p.alignment = align
+        if isinstance(content, str):
+            builder.set_thai_label_run(p.add_run(content), bold=bold_default, size=16)
+        else:
+            builder.append_parts(p, list(content))
+            if bold_default:
+                for run in p.runs:
+                    run.bold = True
+        if text_color:
+            _apply_run_color(p, text_color)
+
+    for ci, hdr in enumerate(headers):
+        cell = table.cell(0, ci)
+        layout.set_cell_shading(cell, header_fill)
+        layout.set_cell_margins(cell, top=70, start=140, bottom=70, end=140)
+        layout.set_cell_borders(
+            cell,
+            top=outer_border,
+            bottom=inner_border,
+            left=outer_border if ci == 0 else inner_border,
+            right=outer_border if ci == ncols - 1 else inner_border,
+        )
+        _populate_cell(
+            cell,
+            hdr,
+            bold_default=True,
+            text_color=header_text_color,
+            align=WD_ALIGN_PARAGRAPH.CENTER,
+        )
+
+    for ri, row_data in enumerate(rows):
+        is_last = ri == len(rows) - 1
+        row_fill = "FFFFFF" if ri % 2 == 0 else stripe_fill
+        for ci, val in enumerate(row_data):
+            cell = table.cell(1 + ri, ci)
+            fill = label_fill if ci == 0 else row_fill
+            layout.set_cell_shading(cell, fill)
+            layout.set_cell_margins(cell, top=70, start=140, bottom=70, end=140)
+            layout.set_cell_borders(
+                cell,
+                top=inner_border,
+                bottom=outer_border if is_last else inner_border,
+                left=outer_border if ci == 0 else inner_border,
+                right=outer_border if ci == ncols - 1 else inner_border,
+            )
+            align = align_first_col if ci == 0 else WD_ALIGN_PARAGRAPH.LEFT
+            _populate_cell(
+                cell,
+                val,
+                bold_default=(ci == 0),
+                text_color="1F3A56" if ci == 0 else None,
+                align=align,
+            )
+
+    return table

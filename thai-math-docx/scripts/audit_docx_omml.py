@@ -143,6 +143,7 @@ def audit_word_roots(
     redundant_radicand_delimiters: list[tuple[str, str]] = []
     numerator_unary_minus: list[tuple[str, str]] = []
     math_size_mismatches: list[tuple[str, str, str, str]] = []
+    table_thai_font_mismatches: list[tuple[str, str, str]] = []
 
     for name, root in word_roots:
         files_seen.append(name)
@@ -195,6 +196,26 @@ def audit_word_roots(
                     math_size_mismatches.append((name, actual_sz, expected_sz, text_content(omath_el).strip()))
                     break
 
+        for tbl_run in root.findall(".//w:tbl//w:tc//w:p/w:r", NS):
+            text = text_content(tbl_run)
+            if not THAI_RE.search(text):
+                continue
+            w_rpr = tbl_run.find("w:rPr", NS)
+            if w_rpr is None:
+                continue
+            r_fonts = w_rpr.find("w:rFonts", NS)
+            cs_toggle = w_rpr.find("w:cs", NS)
+            lang = w_rpr.find("w:lang", NS)
+            reasons: list[str] = []
+            if r_fonts is not None and r_fonts.get(w_attr("cs")) != "TH Sarabun New":
+                reasons.append(f"w:cs={r_fonts.get(w_attr('cs'))!r}")
+            if cs_toggle is None:
+                reasons.append("missing <w:cs/>")
+            if lang is None or lang.get(w_attr("bidi")) != "th-TH":
+                reasons.append("missing w:lang w:bidi='th-TH'")
+            if reasons:
+                table_thai_font_mismatches.append((name, ", ".join(reasons), text.strip()))
+
     image_count = counts["word_drawing"] + counts["word_pict"] + counts["vml_image"]
     failures: list[str] = []
     notes: list[str] = []
@@ -239,6 +260,11 @@ def audit_word_roots(
         kind = "fraction (13 pt / sz=26)" if expected_sz == "26" else "non-fraction (12 pt / sz=24)"
         failures.append(
             f"{name}: OMML math size mismatch (got sz={actual_sz}, expected {kind}): {snippet!r}",
+        )
+    for name, reason, text in table_thai_font_mismatches:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        failures.append(
+            f"{name}: Thai run inside table cell lacks Complex Script font routing ({reason}): {snippet!r}",
         )
 
     metrics = {key: counts[key] for key in REPORT_COUNT_KEYS}
