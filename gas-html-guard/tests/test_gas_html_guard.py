@@ -1,7 +1,8 @@
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-import sys
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
@@ -130,6 +131,57 @@ class GasHtmlGuardTests(unittest.TestCase):
         })
         self.assertEqual(count, 1)
         self.assertEqual(code, 0, f"Unexpected findings: {findings}")
+
+    def test_changed_flag_suppresses_legacy_warns_but_never_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            legacy_gs = root / "Legacy.gs"
+            legacy_gs.write_text("function oldFn() {\n  try { a(); } catch (e) {}\n}\n", encoding="utf-8")
+            clean_gs = root / "Clean.gs"
+            clean_gs.write_text("function okFn() {\n  return 1;\n}\n", encoding="utf-8")
+
+            subprocess.run(["git", "-C", str(root), "init"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "test@example.com"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "Test"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "add", "."], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-m", "init"], check=True, capture_output=True)
+
+            # Edit Clean.gs cleanly -> --changed should PASS and suppress Legacy.gs EMPTY_CATCH
+            clean_gs.write_text("function okFn() {\n  return 2;\n}\n", encoding="utf-8")
+            code, findings, _, suppressed = guard.run_guard(root, 600, 120, False, changed_only=True)
+            self.assertEqual(code, 0, f"Unexpected findings: {findings}")
+            self.assertEqual(suppressed, 1)
+
+            # Add new EMPTY_CATCH in Clean.gs -> --changed catches it (code 1)
+            clean_gs.write_text("function okFn() {\n  try { x(); } catch (e) {}\n  return 2;\n}\n", encoding="utf-8")
+            code, findings, _, _ = guard.run_guard(root, 600, 120, False, changed_only=True)
+            self.assertEqual(code, 1)
+            self.assertTrue(any(f.path == "Clean.gs" and f.rule == "EMPTY_CATCH" for f in findings))
+
+            # Introduce syntax error in untouched Legacy.gs -> FAIL must NEVER be suppressed
+            legacy_gs.write_text("function oldFn( {\n  try { a(); } catch (e) {}\n}\n", encoding="utf-8")
+            code, findings, _, _ = guard.run_guard(root, 600, 120, False, changed_only=True)
+            self.assertEqual(code, 2)
+            self.assertTrue(any(f.rule == "SYNTAX" and f.severity == "FAIL" for f in findings))
+
+    def test_codemap_stale_warning_only_for_auto_marker(self):
+        code, findings, _ = self._run_on_files({
+            "Code.gs": "function x() {\n  return 1;\n}\n",
+            "CODEMAP.md": (
+                "# CODEMAP\n<!-- workspace-hygiene:codemap:start -->\n"
+                "## `Code.gs` (10L)\n"
+                "<!-- workspace-hygiene:codemap:end -->\n"
+            ),
+        })
+        self.assertEqual(code, 1)
+        self.assertTrue(any(f.rule == "CODEMAP_STALE" for f in findings))
+
+        # Hand-crafted CODEMAP without marker must not trigger CODEMAP_STALE
+        code2, findings2, _ = self._run_on_files({
+            "Code.gs": "function x() {\n  return 1;\n}\n",
+            "CODEMAP.md": "# Hand-written map\n## `Code.gs` (10L)\n",
+        })
+        self.assertEqual(code2, 0, f"Unexpected findings: {findings2}")
 
 
 if __name__ == "__main__":

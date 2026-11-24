@@ -16,6 +16,7 @@ python3 ~/.codex/skills/gas-html-guard/scripts/gas_html_guard.py <src-dir-or-fil
 ```
 
 Optional flags:
+- `--changed` — keep all `FAIL` checks across the whole project, but report `WARN` only on git-changed lines/files (cuts legacy noise to 0)
 - `--max-lines 600` — warn when a code file exceeds this line count (default: 600)
 - `--max-func-lines 120` — warn when a single function exceeds this line count (default: 120)
 - `--no-syntax` — skip `node --check` (only if `node` is unavailable)
@@ -39,6 +40,7 @@ Exit codes:
 | `WARN` | `EMPTY_CATCH` | Empty `catch {}` blocks hiding failures |
 | `WARN` | `RAW_INNERHTML` | Dynamic `.innerHTML` without a visible escape helper (XSS / quote-breakage risk) |
 | `WARN` | `MONOLITH_FILE` / `GOD_FUNCTION` | Oversized files (>600L) or functions (>120L) that inflate token usage and edit risk |
+| `WARN` | `CODEMAP_STALE` | Auto-generated `CODEMAP.md` line counts drifted from source files |
 
 ## Output discipline
 

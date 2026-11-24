@@ -17,7 +17,8 @@ the helper reads only declared routes and never edits.
 | Resume a configured task | `context --route ID --format md`; act on it | nothing else unless the route is missing or inconsistent |
 | Start / adopt / enrich a project | inspect the root entrypoint, then seed or bind | [bootstrap.md](references/bootstrap.md), [schema.md](references/schema.md) when writing bindings |
 | Check context health | `check`; report, do not repair | [health.md](references/health.md); [trace.md](references/trace.md) only if a trace file exists |
-| Audit code/search token traps or build symbol map | `workspace_hygiene.py audit` / `init-ignore` / `codemap` | [hygiene.md](references/hygiene.md) |
+| Audit code/search traps, codemap, or data schema | `workspace_hygiene.py audit` / `codemap` / `peek` | [hygiene.md](references/hygiene.md) |
+| Profile session token/screenshot leaks | `token_profiler.py --limit 5` | [hygiene.md](references/hygiene.md) |
 | Link a staged BUILD-CONTROL | `--control FILE` | [integration.md](references/integration.md) |
 | One snippet or a scoped edit | use the supplied material or existing route | none of this skill |
 
@@ -78,8 +79,8 @@ python3 $H context --root . --route resume-wording --format md
   handoff or compaction. Two failed attempts without new evidence means replan the read.
 - Reports carry evidence, impact and a focused remedy. Bytes are not tokens; never
   promise savings from a smaller file alone, and keep verification in the task context.
-- For code/search hygiene (`.rgignore` against large/minified/snapshot files, auto `CODEMAP.md`
-  for >600L files) and the **Routine-to-Script** rule (workflows repeating ≥2 times or >20 rows),
-  use `scripts/workspace_hygiene.py` and [references/hygiene.md](references/hygiene.md).
+- For code/search hygiene (`.rgignore`, auto `CODEMAP.md` `--write`/`--check`, zero-PII `peek`,
+  `token_profiler.py`, DOM-first/subagent media quarantine, and **Routine-to-Script**),
+  use `scripts/workspace_hygiene.py`, `scripts/token_profiler.py`, and [references/hygiene.md](references/hygiene.md).
 - For Google Apps Script (`.gs`) and HTML/JS repos, wire `gas-html-guard` into `AGENTS.md` /
   `deploy.sh` as a mandatory pre-push gate.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Anti-slop & syntax back-pressure gate for Google Apps Script (.gs) and HTML/JS projects.
 
-Stdlib Python 3 + `node --check` (no npm dependencies). Fast, deterministic,
+Stdlib Python 3.9+ + `node --check` (no npm dependencies). Fast, deterministic,
 token-efficient output: prints counts and `file:line` findings only.
 
 Exit codes:
@@ -155,7 +155,6 @@ def check_js_syntax(
     cleaned = strip_gas_scriptlets(js_text) if strip_scriptlets else js_text
     if not cleaned.strip():
         return
-    # Prefix blank lines so node reports the exact 1-based line number of the original file
     padded = ("\n" * (line_offset - 1)) + cleaned
     with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=False) as tf:
         tf.write(padded)
@@ -185,12 +184,6 @@ def check_js_syntax(
             pass
 
 
-def strip_comments_and_strings_for_scan(line: str) -> str:
-    """Quick single-line strip for heuristic pattern checks."""
-    out = re.sub(r"//.*$", "", line)
-    return out
-
-
 def extract_top_level_decls(js_text: str, line_offset: int) -> list[tuple[str, int]]:
     """Find top-level `function foo(` declarations (brace depth == 0) for global collision checks."""
     decls: list[tuple[str, int]] = []
@@ -204,13 +197,11 @@ def extract_top_level_decls(js_text: str, line_offset: int) -> list[tuple[str, i
                 continue
             line = line[end_idx + 2 :]
             in_block_comment = False
-        # Strip inline /* ... */ and // comments for brace counting
         cleaned = re.sub(r"/\*[\s\S]*?\*/", "", line)
         if "/*" in cleaned:
             cleaned = cleaned.split("/*", 1)[0]
             in_block_comment = True
         cleaned = re.sub(r"//.*$", "", cleaned)
-        # Strip string literals to avoid counting braces inside strings
         no_str = re.sub(r"""(['"`])(?:\\.|(?!\1).)*\1""", '""', cleaned)
         if depth == 0:
             m = re.match(r"^\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(", no_str)
@@ -231,11 +222,10 @@ def check_js_antislop(
     findings: list[Finding],
 ) -> None:
     lines = js_text.splitlines()
-    # 1. Track loop depth for GAS I/O in loop & function lengths for god-function check
     brace_depth = 0
     loop_depths: list[int] = []
     pending_loop = False
-    func_stack: list[tuple[str, int, int]] = []  # (name, start_line, start_depth)
+    func_stack: list[tuple[str, int, int]] = []
     in_block_comment = False
 
     gas_io_re = re.compile(
@@ -261,15 +251,12 @@ def check_js_antislop(
         cleaned = re.sub(r"//.*$", "", cleaned)
         no_str = re.sub(r"""(['"`])(?:\\.|(?!\1).)*\1""", '""', cleaned)
 
-        # debugger; check
         if re.search(r"\bdebugger\b", no_str):
             findings.append(Finding("FAIL", "DEBUGGER", rel_path, idx, "Leftover `debugger` statement"))
 
-        # Empty catch check
         if empty_catch_re.search(no_str):
             findings.append(Finding("WARN", "EMPTY_CATCH", rel_path, idx, "Empty `catch {}` hides errors silently"))
 
-        # GAS include() getContent() trap
         if is_gs and re.search(r"createHtmlOutputFromFile\s*\([^)]*\)\s*\.\s*getContent\s*\(", cleaned):
             findings.append(
                 Finding(
@@ -281,20 +268,19 @@ def check_js_antislop(
                 )
             )
 
-        # GAS loop I/O check
         if is_gs and loop_depths and gas_io_re.search(no_str):
             m_io = gas_io_re.search(no_str)
-            findings.append(
-                Finding(
-                    "WARN",
-                    "GAS_LOOP_IO",
-                    rel_path,
-                    idx,
-                    f"Spreadsheet call `.{m_io.group(1)}()` inside loop — prefer batch `getValues()`/`setValues()`",
+            if m_io:
+                findings.append(
+                    Finding(
+                        "WARN",
+                        "GAS_LOOP_IO",
+                        rel_path,
+                        idx,
+                        f"Spreadsheet call `.{m_io.group(1)}()` inside loop — prefer batch `getValues()`/`setValues()`",
+                    )
                 )
-            )
 
-        # Raw innerHTML with dynamic interpolation/concatenation (client HTML/JS)
         if not is_gs:
             m_ih = raw_innerhtml_re.search(cleaned)
             if m_ih:
@@ -311,12 +297,10 @@ def check_js_antislop(
                         )
                     )
 
-        # Track function start for god-function check
         m_fn = re.match(r"^\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(", no_str)
         if m_fn and "{" in no_str:
             func_stack.append((m_fn.group(1), idx, brace_depth))
 
-        # Track loop entry
         if loop_re.search(no_str):
             if "{" in no_str:
                 loop_depths.append(brace_depth)
@@ -346,7 +330,6 @@ def check_js_antislop(
                     )
                 )
 
-    # Multi-line google.script.run without withFailureHandler (client HTML/JS)
     if not is_gs and "google.script.run" in js_text:
         for m in re.finditer(r"google\.script\.run\b([^;]{0,400});", js_text):
             chain = m.group(1)
@@ -363,7 +346,126 @@ def check_js_antislop(
                 )
 
 
-def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bool) -> tuple[int, list[Finding], int]:
+def collect_git_changed_lines(root: Path) -> dict[str, set[int] | None] | None:
+    """Return {rel_posix: set_of_changed_1based_lines | None (untracked)} or None if not in a git repo."""
+    try:
+        top_proc = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except OSError:
+        return None
+    if top_proc.returncode != 0:
+        return None
+    toplevel = Path(top_proc.stdout.strip()).resolve()
+    root_resolved = root.resolve()
+
+    has_head = subprocess.run(
+        ["git", "-C", str(toplevel), "rev-parse", "--verify", "HEAD"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).returncode == 0
+
+    changed: dict[str, set[int] | None] = {}
+
+    def map_rel(git_rel_path: str) -> str | None:
+        full = (toplevel / git_rel_path).resolve()
+        try:
+            return full.relative_to(root_resolved).as_posix()
+        except ValueError:
+            return None
+
+    if has_head:
+        diff_proc = subprocess.run(
+            ["git", "-C", str(toplevel), "diff", "-U0", "HEAD", "--", str(root_resolved)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        cur_rel: str | None = None
+        for line in diff_proc.stdout.splitlines():
+            if line.startswith("+++ b/"):
+                cur_rel = map_rel(line[6:])
+                if cur_rel is not None and cur_rel not in changed:
+                    changed[cur_rel] = set()
+            elif line.startswith("+++ /dev/null"):
+                cur_rel = None
+            elif line.startswith("@@ ") and cur_rel is not None:
+                m = re.search(r"\+(\d+)(?:,(\d+))?", line)
+                if m:
+                    start = int(m.group(1))
+                    count = int(m.group(2)) if m.group(2) is not None else 1
+                    lo = max(1, start - 1)
+                    hi = max(start, start + max(1, count))
+                    target_set = changed[cur_rel]
+                    if target_set is not None:
+                        target_set.update(range(lo, hi + 1))
+
+    untracked_proc = subprocess.run(
+        ["git", "-C", str(toplevel), "ls-files", "--others", "--exclude-standard", "--", str(root_resolved)],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    for raw_rel in untracked_proc.stdout.splitlines():
+        rel = map_rel(raw_rel.strip())
+        if rel is not None:
+            changed[rel] = None
+
+    return changed
+
+
+def check_codemap_staleness(root: Path, file_lines: dict[str, int], files_with_funcs: set[str]) -> list[Finding]:
+    """Warn when an auto-generated CODEMAP.md (with workspace-hygiene markers) has drifted."""
+    warnings: list[Finding] = []
+    for name in ("CODEMAP.md", "docs/CODEMAP.md"):
+        fp = root / name
+        if not fp.is_file():
+            continue
+        text = fp.read_text(encoding="utf-8", errors="ignore")
+        marker = "<!-- workspace-hygiene:codemap:start -->"
+        if marker not in text:
+            continue
+        end_marker = "<!-- workspace-hygiene:codemap:end -->"
+        s = text.find(marker)
+        e = text.find(end_marker, s)
+        section = text[s:e] if e != -1 else text[s:]
+        recorded: dict[str, int] = {}
+        for m in re.finditer(r"^## `([^`]+)` \((\d+)L\)", section, re.MULTILINE):
+            recorded[m.group(1)] = int(m.group(2))
+        drifted: list[str] = []
+        for rel, cur_lines in sorted(file_lines.items()):
+            if rel in recorded:
+                if recorded[rel] != cur_lines:
+                    drifted.append(f"{rel} ({recorded[rel]}L->{cur_lines}L)")
+            elif rel in files_with_funcs:
+                drifted.append(f"{rel} (missing)")
+        if drifted:
+            sample = ", ".join(drifted[:3])
+            more = f" +{len(drifted) - 3} more" if len(drifted) > 3 else ""
+            warnings.append(
+                Finding(
+                    "WARN",
+                    "CODEMAP_STALE",
+                    name,
+                    1,
+                    f"Auto CODEMAP drifted ({sample}{more}); refresh with workspace_hygiene.py codemap --write",
+                )
+            )
+        break
+    return warnings
+
+
+def run_guard(
+    target: Path,
+    max_lines: int,
+    max_func_lines: int,
+    skip_syntax: bool,
+    changed_only: bool = False,
+) -> tuple[int, list[Finding], int] | tuple[int, list[Finding], int, int]:
     root = target if target.is_dir() else target.parent
     ignore_patterns = load_ignore_patterns(root)
     files = collect_files(target, ignore_patterns)
@@ -372,9 +474,10 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
     if not skip_syntax and not node_bin:
         findings.append(Finding("WARN", "ENV", ".", 0, "`node` not found in PATH — skipped JS syntax check"))
 
-    # Track global function declarations per directory for .gs and partial .html
     gs_globals: dict[Path, dict[str, list[tuple[str, int]]]] = {}
     html_partial_globals: dict[Path, dict[str, list[tuple[str, int]]]] = {}
+    file_lines: dict[str, int] = {}
+    files_with_funcs: set[str] = set()
 
     for fp in files:
         rel = fp.relative_to(root).as_posix() if target.is_dir() else fp.name
@@ -385,9 +488,10 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
             continue
 
         line_count = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
-        # Skip minified/bundled vendor files (e.g. xlsx.js, 1-line fixtures)
         if len(text) >= 30_000 and (len(text) / max(1, line_count)) >= 500:
             continue
+        file_lines[rel] = line_count
+
         if line_count > max_lines:
             findings.append(
                 Finding(
@@ -405,9 +509,12 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
             if node_bin:
                 check_js_syntax(node_bin, text, rel, 1, findings, strip_scriptlets=False)
             check_js_antislop(text, rel, 1, is_gs, max_func_lines, findings)
+            decls = extract_top_level_decls(text, 1)
+            if decls:
+                files_with_funcs.add(rel)
             if is_gs:
                 dir_map = gs_globals.setdefault(fp.parent, {})
-                for fn_name, ln in extract_top_level_decls(text, 1):
+                for fn_name, ln in decls:
                     dir_map.setdefault(fn_name, []).append((rel, ln))
         elif ext == ".html":
             is_partial = not re.search(r"<!DOCTYPE|<html\b", text, re.IGNORECASE)
@@ -416,12 +523,14 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
                 if node_bin:
                     check_js_syntax(node_bin, body, rel, start_line, findings, strip_scriptlets=True)
                 check_js_antislop(body, rel, start_line, False, max_func_lines, findings)
+                decls = extract_top_level_decls(body, start_line)
+                if decls:
+                    files_with_funcs.add(rel)
                 if is_partial:
                     dir_map = html_partial_globals.setdefault(fp.parent, {})
-                    for fn_name, ln in extract_top_level_decls(body, start_line):
+                    for fn_name, ln in decls:
                         dir_map.setdefault(fn_name, []).append((rel, ln))
 
-    # Check .gs global collisions (FAIL — GAS merges all .gs files in a project)
     for _, dir_map in gs_globals.items():
         for fn_name, locs in sorted(dir_map.items()):
             distinct_files = {p for p, _ in locs}
@@ -438,7 +547,6 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
                     )
                 )
 
-    # Check partial .html global collisions (WARN — included into same window scope)
     for _, dir_map in html_partial_globals.items():
         for fn_name, locs in sorted(dir_map.items()):
             distinct_files = {p for p, _ in locs}
@@ -455,19 +563,55 @@ def run_guard(target: Path, max_lines: int, max_func_lines: int, skip_syntax: bo
                     )
                 )
 
+    if target.is_dir():
+        findings.extend(check_codemap_staleness(root, file_lines, files_with_funcs))
+
+    suppressed_warns = 0
+    if changed_only:
+        changed_map = collect_git_changed_lines(root)
+        if changed_map is not None:
+            filtered: list[Finding] = []
+            for f in findings:
+                if f.severity == "FAIL":
+                    filtered.append(f)
+                    continue
+                if f.rule == "CODEMAP_STALE":
+                    # Show CODEMAP_STALE if CODEMAP.md or any scanned code file was touched in git
+                    if f.path in changed_map or any(k in changed_map for k in file_lines):
+                        filtered.append(f)
+                    else:
+                        suppressed_warns += 1
+                    continue
+                if f.path in changed_map:
+                    lines_set = changed_map[f.path]
+                    if lines_set is None or f.rule == "MONOLITH_FILE" or f.line in lines_set:
+                        filtered.append(f)
+                        continue
+                suppressed_warns += 1
+            findings = filtered
+
     has_fail = any(f.severity == "FAIL" for f in findings)
     has_warn = any(f.severity == "WARN" for f in findings)
     code = 2 if has_fail else (1 if has_warn else 0)
+    if changed_only:
+        return code, findings, len(files), suppressed_warns
     return code, findings, len(files)
 
 
-def format_report(code: int, findings: list[Finding], file_count: int, target: Path) -> str:
+def format_report(
+    code: int,
+    findings: list[Finding],
+    file_count: int,
+    target: Path,
+    suppressed_warns: int = 0,
+) -> str:
     verdict = {0: "PASS", 1: "WARN", 2: "FAIL"}[code]
     fails = [f for f in findings if f.severity == "FAIL"]
     warns = [f for f in findings if f.severity == "WARN"]
+    sup_note = f" (suppressed {suppressed_warns} unchanged legacy WARN via --changed)" if suppressed_warns else ""
     lines = [
         f"GAS-HTML-GUARD {verdict} — scanned {file_count} file(s) in {target}",
-        f"Summary: {len(fails)} FAIL, {len(warns)} WARN",
+        f"Summary: {len(fails)} FAIL, {len(warns)} WARN{sup_note}",
     ]
     if not findings:
         return "\n".join(lines)
@@ -494,6 +638,7 @@ def main() -> int:
     parser.add_argument("--max-lines", type=int, default=600, help="Warn when a code file exceeds this line count (default: 600)")
     parser.add_argument("--max-func-lines", type=int, default=120, help="Warn when a function exceeds this line count (default: 120)")
     parser.add_argument("--no-syntax", action="store_true", help="Skip `node --check` syntax verification")
+    parser.add_argument("--changed", action="store_true", help="Keep all FAILs, but show WARNs only on git-changed lines/files")
     args = parser.parse_args()
 
     target = Path(args.target).resolve()
@@ -501,8 +646,13 @@ def main() -> int:
         print(f"ERROR: target not found: {target}", file=sys.stderr)
         return 2
 
-    code, findings, file_count = run_guard(target, args.max_lines, args.max_func_lines, args.no_syntax)
-    print(format_report(code, findings, file_count, target))
+    res = run_guard(target, args.max_lines, args.max_func_lines, args.no_syntax, changed_only=args.changed)
+    if args.changed:
+        code, findings, file_count, suppressed = res  # type: ignore[misc]
+    else:
+        code, findings, file_count = res  # type: ignore[misc]
+        suppressed = 0
+    print(format_report(code, findings, file_count, target, suppressed_warns=suppressed))
     return code
 
 

@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Workspace & code token-efficiency hygiene helper (stdlib Python 3 only).
+"""Workspace & code token-efficiency hygiene helper (stdlib Python 3.9+ only).
 
 Complements `project_context.py` (which governs docs/routes) by protecting
-search and code reading from token traps:
+search, code reading, and data inspection from token traps:
   - `audit`:       detect unignored large/minified/snapshot/legacy files and monoliths
   - `init-ignore`: preview or write a targeted `.rgignore` for real noise in the repo
-  - `codemap`:     generate a compact file -> function(line) symbol map for .gs/.js/.html
+  - `codemap`:     generate, update (marker-safe), or `--check` a `CODEMAP.md` symbol map
+  - `peek`:        inspect `.json`/`.jsonl`/`.csv`/`.tsv` schema & counts without printing values
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import fnmatch
+import json
 import os
 import re
 import sys
@@ -32,6 +35,10 @@ NOISY_DIR_CANDIDATES = {
 TEXT_EXTS = {".gs", ".js", ".mjs", ".cjs", ".ts", ".html", ".css", ".json", ".md", ".csv", ".txt", ".py"}
 CODE_EXTS = {".gs", ".js", ".mjs", ".cjs", ".html"}
 
+CODEMAP_START = "<!-- workspace-hygiene:codemap:start -->"
+CODEMAP_END = "<!-- workspace-hygiene:codemap:end -->"
+PEEK_MAX_BYTES = 80 * 1024 * 1024  # 80 MB safety cap
+
 
 def load_rgignore(root: Path) -> list[str]:
     patterns: list[str] = []
@@ -44,6 +51,58 @@ def load_rgignore(root: Path) -> list[str]:
                     continue
                 patterns.append(line)
     return patterns
+
+
+def load_protected_prefixes(root: Path) -> set[str]:
+    """Collect relative directory prefixes that belong to active routed work (must not be bulk-ignored)."""
+    protected: set[str] = set()
+
+    def add_path_str(raw_path: str) -> None:
+        clean = raw_path.strip().strip("`'\"").split("#", 1)[0].strip()
+        if not clean or "://" in clean or clean.startswith("/"):
+            return
+        parts = [p for p in Path(clean).parts if p not in (".", "..")]
+        if not parts:
+            return
+        # If the path sits inside a noisy candidate (e.g. outputs/WEB-V2_2026-11-16/...), protect up to depth 2
+        if parts[0] in NOISY_DIR_CANDIDATES and len(parts) >= 2:
+            protected.add(f"{parts[0]}/{parts[1]}")
+        elif len(parts) >= 2:
+            protected.add(parts[0])
+            protected.add(f"{parts[0]}/{parts[1]}")
+
+    pc = root / "project-context.json"
+    if pc.is_file():
+        try:
+            data = json.loads(pc.read_text(encoding="utf-8"))
+            for b in data.get("bindings", []):
+                if isinstance(b, dict) and isinstance(b.get("path"), str):
+                    add_path_str(b["path"])
+        except (ValueError, OSError):
+            pass
+
+    agents = root / "AGENTS.md"
+    if agents.is_file():
+        try:
+            txt = agents.read_text(encoding="utf-8", errors="ignore")
+            for m in re.finditer(r"(?:outputs|archive|private|legacy|reference)/[A-Za-z0-9_.\-\u0e00-\u0e7f]+", txt):
+                add_path_str(m.group(0))
+        except OSError:
+            pass
+
+    return protected
+
+
+def is_protected_dir(rel_posix: str, protected: set[str]) -> bool:
+    for p in protected:
+        if rel_posix == p or rel_posix.startswith(p + "/"):
+            return True
+    return False
+
+
+def has_protected_descendant(rel_posix: str, protected: set[str]) -> bool:
+    prefix = rel_posix + "/"
+    return any(p == rel_posix or p.startswith(prefix) for p in protected)
 
 
 def matches_ignore(rel_posix: str, is_dir: bool, patterns: list[str]) -> bool:
@@ -63,6 +122,7 @@ def matches_ignore(rel_posix: str, is_dir: bool, patterns: list[str]) -> bool:
 
 def cmd_audit(root: Path, large_kb: int, monolith_lines: int) -> int:
     patterns = load_rgignore(root)
+    protected = load_protected_prefixes(root)
     has_ignore_file = (root / ".rgignore").is_file() or (root / ".ignore").is_file()
 
     noisy_dirs_unignored: list[str] = []
@@ -79,7 +139,14 @@ def cmd_audit(root: Path, large_kb: int, monolith_lines: int) -> int:
             rel = (rel_dir / d).as_posix() if str(rel_dir) != "." else d
             if matches_ignore(rel, True, patterns):
                 continue
+            in_protected_parent = rel_dir.as_posix() in NOISY_DIR_CANDIDATES and has_protected_descendant(rel_dir.as_posix(), protected)
             if d in NOISY_DIR_CANDIDATES:
+                if has_protected_descendant(rel, protected):
+                    # Descend so we only flag unprotected sibling dumps inside outputs/, etc.
+                    kept.append(d)
+                    continue
+                noisy_dirs_unignored.append(rel + "/")
+            elif in_protected_parent and not is_protected_dir(rel, protected):
                 noisy_dirs_unignored.append(rel + "/")
             kept.append(d)
         dirnames[:] = kept
@@ -98,12 +165,11 @@ def cmd_audit(root: Path, large_kb: int, monolith_lines: int) -> int:
                 continue
             lines = raw.count(b"\n") + (1 if raw and not raw.endswith(b"\n") else 0)
             avg_line = (size / lines) if lines else 0
-            is_minified = (size >= 30_000 and avg_line >= 500)
+            is_minified = size >= 30_000 and avg_line >= 500
             if size >= large_kb * 1024 or is_minified:
                 large_files.append((size, lines, rel, is_minified))
             if fp.suffix.lower() in CODE_EXTS and lines > monolith_lines:
-                # Skip files already inside noisy dirs so we report active code monoliths cleanly
-                if not any(part in NOISY_DIR_CANDIDATES for part in Path(rel).parts):
+                if not any(part in NOISY_DIR_CANDIDATES for part in Path(rel).parts) or is_protected_dir(rel_dir.as_posix(), protected):
                     monoliths.append((lines, rel))
 
     large_files.sort(reverse=True)
@@ -152,6 +218,7 @@ def cmd_audit(root: Path, large_kb: int, monolith_lines: int) -> int:
 
 def cmd_init_ignore(root: Path, write: bool, large_kb: int) -> int:
     existing = load_rgignore(root)
+    protected = load_protected_prefixes(root)
     suggested: list[str] = []
 
     for dirpath, dirnames, filenames in os.walk(root):
@@ -161,11 +228,22 @@ def cmd_init_ignore(root: Path, write: bool, large_kb: int) -> int:
             if d in ALWAYS_SKIP_DIRS:
                 continue
             rel = (rel_dir / d).as_posix() if str(rel_dir) != "." else d
+            if matches_ignore(rel, True, existing):
+                continue
             if d in NOISY_DIR_CANDIDATES:
+                if has_protected_descendant(rel, protected):
+                    kept.append(d)
+                    continue
                 pat = rel + "/"
                 if pat not in existing and pat not in suggested:
                     suggested.append(pat)
                 continue
+            if rel_dir.as_posix() in NOISY_DIR_CANDIDATES and has_protected_descendant(rel_dir.as_posix(), protected):
+                if not is_protected_dir(rel, protected):
+                    pat = rel + "/"
+                    if pat not in existing and pat not in suggested:
+                        suggested.append(pat)
+                    continue
             kept.append(d)
         dirnames[:] = kept
 
@@ -260,12 +338,14 @@ def extract_symbols_from_js(js_text: str, line_offset: int) -> list[tuple[str, i
         if depth == scopes[-1]:
             if RE_IIFE.match(no_str):
                 opens_scope = True
-            elif (m := RE_CLASS.match(no_str)):
-                name, opens_class = m.group(1), True
             else:
-                m = RE_FUNC.match(no_str) or RE_VAR_FUNC.match(no_str) or RE_MEMBER.match(no_str)
-                if m:
-                    name = m.group(1)
+                m_cls = RE_CLASS.match(no_str)
+                if m_cls:
+                    name, opens_class = m_cls.group(1), True
+                else:
+                    m = RE_FUNC.match(no_str) or RE_VAR_FUNC.match(no_str) or RE_MEMBER.match(no_str)
+                    if m:
+                        name = m.group(1)
         elif classes and depth == classes[-1][0]:
             m = RE_METHOD.match(no_str)
             if m and m.group(1) not in JS_KEYWORDS:
@@ -277,7 +357,7 @@ def extract_symbols_from_js(js_text: str, line_offset: int) -> list[tuple[str, i
         if depth > start_depth:
             if opens_scope:
                 scopes.append(start_depth + 1)
-            elif opens_class:
+            elif opens_class and name:
                 classes.append((start_depth + 1, name))
         while len(scopes) > 1 and depth < scopes[-1]:
             scopes.pop()
@@ -306,7 +386,8 @@ def extract_html_scripts(html_text: str) -> list[tuple[int, str]]:
     return blocks
 
 
-def cmd_codemap(root: Path, write_path: str | None) -> int:
+def build_codemap_block(root: Path) -> tuple[str, int]:
+    """Build the marker-bounded CODEMAP body (`<!-- workspace-hygiene:codemap:start -->`..end) and file count."""
     patterns = load_rgignore(root)
     rows: list[tuple[str, int, list[tuple[str, int, int]]]] = []
 
@@ -333,7 +414,6 @@ def cmd_codemap(root: Path, write_path: str | None) -> int:
             except (UnicodeDecodeError, OSError):
                 continue
             lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
-            # Skip minified 1-liners
             if len(text) >= 30_000 and (len(text) / max(1, lines)) >= 500:
                 continue
             syms: list[tuple[str, int, int]] = []
@@ -345,9 +425,7 @@ def cmd_codemap(root: Path, write_path: str | None) -> int:
             rows.append((rel, lines, syms))
 
     out = [
-        "# CODEMAP (auto-generated symbol index)",
-        "",
-        "<!-- workspace-hygiene:codemap:start -->",
+        CODEMAP_START,
         "Use line ranges below to read only the needed function instead of loading whole files.",
         "",
     ]
@@ -361,18 +439,212 @@ def cmd_codemap(root: Path, write_path: str | None) -> int:
             if len(syms) > MAX_SYMS:
                 out.append(f"- *... and {len(syms) - MAX_SYMS} more functions*")
         out.append("")
-    out.append("<!-- workspace-hygiene:codemap:end -->")
-    rendered = "\n".join(out) + "\n"
+    out.append(CODEMAP_END)
+    return "\n".join(out), len(rows)
 
+
+def extract_marker_span(text: str) -> tuple[int, int] | None:
+    s = text.find(CODEMAP_START)
+    if s == -1:
+        return None
+    e = text.find(CODEMAP_END, s)
+    if e == -1:
+        return None
+    return s, e + len(CODEMAP_END)
+
+
+def cmd_codemap(root: Path, write_path: str | None, check_path: str | None = None, force: bool = False) -> int:
+    block, file_count = build_codemap_block(root)
+
+    if check_path is not None:
+        dest = (root / check_path).resolve()
+        if not dest.is_file():
+            print(f"MISSING CODEMAP: {dest}")
+            return 1
+        existing = dest.read_text(encoding="utf-8", errors="ignore")
+        span = extract_marker_span(existing)
+        if span is None:
+            print(f"SKIP CODEMAP CHECK: hand-crafted file without auto markers ({dest})")
+            return 0
+        current_block = existing[span[0] : span[1]]
+        if current_block == block:
+            print(f"CODEMAP OK — {file_count} file(s) up to date")
+            return 0
+        print(f"STALE CODEMAP — symbol line ranges drifted; run: workspace_hygiene.py codemap --root {root} --write {check_path}")
+        return 1
+
+    rendered = "# CODEMAP (auto-generated symbol index)\n\n" + block + "\n"
     if write_path:
         dest = (root / write_path).resolve()
         dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_file():
+            existing = dest.read_text(encoding="utf-8", errors="ignore")
+            span = extract_marker_span(existing)
+            if span is not None:
+                updated = existing[: span[0]] + block + existing[span[1] :]
+                dest.write_text(updated, encoding="utf-8")
+                print(f"Updated CODEMAP ({file_count} file(s), preserved outer sections) in {dest}")
+                return 0
+            if not force:
+                print(f"ERROR: existing {dest} has no workspace-hygiene markers; pass --force to overwrite", file=sys.stderr)
+                return 2
         dest.write_text(rendered, encoding="utf-8")
-        print(f"Wrote CODEMAP ({len(rows)} file(s), {len(rendered.splitlines())} lines) to {dest}")
+        print(f"Wrote CODEMAP ({file_count} file(s), {len(rendered.splitlines())} lines) to {dest}")
     else:
         print(rendered[:12000])
         if len(rendered) > 12000:
-            print(f"\n... truncated at 12,000 chars; pass `--write CODEMAP.md` to save full map.")
+            print("\n... truncated at 12,000 chars; pass `--write CODEMAP.md` to save full map.")
+    return 0
+
+
+def _describe_value_shape(val: object, depth: int = 0, max_keys: int = 12) -> str:
+    """Return a zero-PII type/shape summary for any JSON value (never prints raw strings/numbers)."""
+    if val is None:
+        return "null"
+    if isinstance(val, bool):
+        return "bool"
+    if isinstance(val, int):
+        return "int"
+    if isinstance(val, float):
+        return "float"
+    if isinstance(val, str):
+        return "str"
+    if isinstance(val, list):
+        n = len(val)
+        if n == 0:
+            return "list[0]"
+        elem_types = sorted({_describe_value_shape(x, depth=depth + 1) for x in val[:5]})
+        if depth >= 1 and len(elem_types) == 1 and elem_types[0].startswith("dict"):
+            # Show union of keys on sampled dicts without values
+            keys: list[str] = []
+            for item in val[:5]:
+                if isinstance(item, dict):
+                    for k in item.keys():
+                        sk = str(k)
+                        if sk not in keys:
+                            keys.append(sk)
+            shown = ", ".join(keys[:max_keys])
+            more = f", +{len(keys) - max_keys}" if len(keys) > max_keys else ""
+            return f"list[{n}] of dict{{{shown}{more}}}"
+        return f"list[{n}]<{', '.join(elem_types[:3])}>"
+    if isinstance(val, dict):
+        n = len(val)
+        if depth >= 2:
+            return f"dict{{{n} keys}}"
+        keys = [str(k) for k in list(val.keys())[:max_keys]]
+        more = f", +{n - max_keys}" if n > max_keys else ""
+        return f"dict{{{', '.join(keys)}{more}}}"
+    return type(val).__name__
+
+
+def _classify_cell_text(raw: str) -> str:
+    s = raw.strip()
+    if not s:
+        return "empty"
+    if re.fullmatch(r"-?\d+", s):
+        return "int"
+    if re.fullmatch(r"-?\d+\.\d+", s):
+        return "float"
+    return f"str(len={len(s)})"
+
+
+def cmd_peek(file_arg: str, max_chars: int = 2000) -> int:
+    fp = Path(file_arg).expanduser().resolve()
+    if not fp.is_file():
+        print(f"ERROR: file not found: {fp}", file=sys.stderr)
+        return 2
+    size = fp.stat().st_size
+    if size > PEEK_MAX_BYTES:
+        print(f"PEEK SKIPPED: {fp.name} is {size / (1024 * 1024):.1f} MB (> 80 MB cap)")
+        return 0
+
+    ext = fp.suffix.lower()
+    out = [f"PEEK {fp.name} ({size / 1024:.1f} KB, ext={ext or 'none'})"]
+
+    if ext == ".json":
+        try:
+            data = json.loads(fp.read_text(encoding="utf-8", errors="ignore"))
+        except ValueError as exc:
+            print(f"ERROR: invalid JSON in {fp.name}: {exc}", file=sys.stderr)
+            return 2
+        if isinstance(data, list):
+            out.append(f"Top-level: list (len={len(data)})")
+            if data and all(isinstance(x, dict) for x in data[:5]):
+                field_types: dict[str, set[str]] = {}
+                for item in data[:5]:
+                    assert isinstance(item, dict)
+                    for k, v in item.items():
+                        field_types.setdefault(str(k), set()).add(_describe_value_shape(v, depth=1))
+                out.append(f"Item keys ({len(field_types)}):")
+                for k, tset in list(field_types.items())[:25]:
+                    out.append(f"  - {k}: {' | '.join(sorted(tset))}")
+                if len(field_types) > 25:
+                    out.append(f"  ... +{len(field_types) - 25} more keys")
+            else:
+                out.append("Element shapes: " + _describe_value_shape(data, depth=0))
+        elif isinstance(data, dict):
+            out.append(f"Top-level: dict ({len(data)} keys)")
+            for idx, (k, v) in enumerate(data.items()):
+                if idx >= 25:
+                    out.append(f"  ... +{len(data) - 25} more keys")
+                    break
+                out.append(f"  - {k}: {_describe_value_shape(v, depth=1)}")
+        else:
+            out.append(f"Top-level: {_describe_value_shape(data, depth=0)}")
+
+    elif ext == ".jsonl":
+        total = 0
+        first_obj = None
+        with fp.open("r", encoding="utf-8", errors="ignore") as fh:
+            for raw in fh:
+                s = raw.strip()
+                if not s:
+                    continue
+                total += 1
+                if first_obj is None:
+                    try:
+                        first_obj = json.loads(s)
+                    except ValueError:
+                        first_obj = None
+        out.append(f"Lines: {total}")
+        if isinstance(first_obj, dict):
+            out.append(f"First record keys ({len(first_obj)}):")
+            for idx, (k, v) in enumerate(first_obj.items()):
+                if idx >= 25:
+                    out.append(f"  ... +{len(first_obj) - 25} more keys")
+                    break
+                out.append(f"  - {k}: {_describe_value_shape(v, depth=1)}")
+        elif first_obj is not None:
+            out.append(f"First record: {_describe_value_shape(first_obj, depth=0)}")
+
+    elif ext in (".csv", ".tsv"):
+        delim = "\t" if ext == ".tsv" else ","
+        with fp.open("r", encoding="utf-8", errors="ignore", newline="") as fh:
+            reader = csv.reader(fh, delimiter=delim)
+            rows = []
+            total_rows = 0
+            for r in reader:
+                total_rows += 1
+                if len(rows) < 2:
+                    rows.append(r)
+        headers = rows[0] if rows else []
+        sample = rows[1] if len(rows) > 1 else []
+        out.append(f"Rows: {total_rows} (incl. header) | Columns: {len(headers)}")
+        for i, h in enumerate(headers[:25]):
+            shape = _classify_cell_text(sample[i]) if i < len(sample) else "no-sample-row"
+            out.append(f"  - col[{i}] {h}: {shape}")
+        if len(headers) > 25:
+            out.append(f"  ... +{len(headers) - 25} more columns")
+
+    else:
+        raw_text = fp.read_text(encoding="utf-8", errors="ignore")
+        line_cnt = raw_text.count("\n") + (1 if raw_text and not raw_text.endswith("\n") else 0)
+        out.append(f"Text file: {line_cnt} lines (schema peek supports .json, .jsonl, .csv, .tsv)")
+
+    rendered = "\n".join(out)
+    if len(rendered) > max_chars:
+        rendered = rendered[: max_chars - 24].rstrip() + "\n... [truncated]"
+    print(rendered)
     return 0
 
 
@@ -390,11 +662,20 @@ def main() -> int:
     p_ign.add_argument("--write", action="store_true", help="Write/append entries to .rgignore")
     p_ign.add_argument("--large-kb", type=int, default=100, help="Base large file threshold in KB (default: 100)")
 
-    p_map = sub.add_parser("codemap", help="Generate a compact file -> function(line) index")
+    p_map = sub.add_parser("codemap", help="Generate, update, or check a file -> function(line) index")
     p_map.add_argument("--root", default=".", help="Project root directory")
     p_map.add_argument("--write", help="Relative path to write (e.g. CODEMAP.md)")
+    p_map.add_argument("--check", nargs="?", const="CODEMAP.md", default=None, help="Verify CODEMAP.md is fresh (exit 1 if stale)")
+    p_map.add_argument("--force", action="store_true", help="Overwrite an existing CODEMAP.md without auto markers")
+
+    p_peek = sub.add_parser("peek", help="Inspect .json/.jsonl/.csv/.tsv schema & counts without raw values")
+    p_peek.add_argument("file", help="Path to data file")
+    p_peek.add_argument("--max-chars", type=int, default=2000, help="Max output characters (default: 2000)")
 
     args = parser.parse_args()
+    if args.cmd == "peek":
+        return cmd_peek(args.file, args.max_chars)
+
     root = Path(args.root).resolve()
     if not root.is_dir():
         print(f"ERROR: root directory not found: {root}", file=sys.stderr)
@@ -404,7 +685,7 @@ def main() -> int:
         return cmd_audit(root, args.large_kb, args.monolith_lines)
     if args.cmd == "init-ignore":
         return cmd_init_ignore(root, args.write, args.large_kb)
-    return cmd_codemap(root, args.write)
+    return cmd_codemap(root, args.write, check_path=args.check, force=args.force)
 
 
 if __name__ == "__main__":

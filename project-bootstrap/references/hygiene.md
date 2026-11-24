@@ -1,38 +1,59 @@
 # Workspace & Code Token Hygiene
 
 `project_context.py` protects **document routing** (`AGENTS.md`, `STATE.md`, `docs/`).
-`workspace_hygiene.py` protects **code search & reading** — the other half of token cost.
+`workspace_hygiene.py` and `token_profiler.py` protect **code search, media/browser usage, and session length**.
 
 ## 1. Stop search traps with `.rgignore`
 
-One unignored minified fixture (e.g. 750 KB on 1 line) or 7 snapshot copies of an HTML app can burn tens of thousands of tokens on a single `grep`/`rg` call.
+Unignored minified fixtures or historical dumps burn tens of thousands of tokens on a single `grep`/`rg` call:
 
 ```sh
 W=<skill-directory>/scripts/workspace_hygiene.py
 python3 $W audit --root <root>
-python3 $W init-ignore --root <root>          # dry-run preview
+python3 $W init-ignore --root <root>          # dry-run preview (respects live project-context routes)
 python3 $W init-ignore --root <root> --write  # apply safely
 ```
 
-Always keep `legacy/`, `private/`, `outputs/`, `_snapshots/`, `archive/`, `reference/`, and minified vendor/fixture JS out of default search.
+Always keep `legacy/`, `private/`, `_snapshots/`, `archive/`, `reference/`, cold `outputs/`, and minified vendor/fixture JS out of default search.
 
-## 2. Jump to functions with an auto `CODEMAP.md`
+## 2. Jump to functions with `CODEMAP.md`
 
-For monolith files (>600 lines, e.g. `Code.gs` or `core.js`), reading the whole file every turn burns context. Generate a compact symbol index once (and refresh after major refactors):
+For large code files (>600 lines, e.g. `Code.gs` or `core.js`), read `CODEMAP.md` first and open only the `Lstart-Lend` range you need:
 
 ```sh
-python3 $W codemap --root <root> --write CODEMAP.md
+python3 $W codemap --root <root> --write CODEMAP.md   # creates or updates marker block only
+python3 $W codemap --root <root> --check CODEMAP.md   # exit 1 if symbol line ranges drifted
 ```
 
-Agents read `CODEMAP.md` first, then open only the exact `Lstart-Lend` range of the function they need.
+It indexes file scope, wrapping IIFE bodies, `A.fn = ...`, `X.prototype.fn`, and class methods (up to 200 symbols/file). Custom sections outside `<!-- workspace-hygiene:codemap:start/end -->` are preserved; hand-crafted maps without markers are never overwritten unless `--force` is passed.
 
-It indexes module-level code: file scope and the body of a wrapping IIFE (`(function(){ … })()`), which most browser scripts use. Listed: `function f()`, `const f = () =>`, member assignments (`A.save = function`, `A.pages.plan = {`, `X.prototype.m = function`) and class methods (`Engine.search`). Helpers nested inside a function are not listed. Up to 200 symbols per file.
+## 3. Peek large data schemas without dumping rows (`peek`)
 
-## 3. Routine-to-Script rule (the 11% Token Pattern)
+Never `read_file` or dump raw JSON/CSV/JSONL tables just to check keys or row counts:
 
-Whenever a workflow repeats **≥ 2 times** or inspects **> 20 rows/records** (e.g. `ppksar` audit/write cycles, gradebook checks, batch document generation):
+```sh
+python3 $W peek path/to/data.json
+```
 
-1. Put variable targets/rules in a machine-readable JSON (`targets.json` or `config.json`), not prose.
-2. Run deterministic capture/check scripts that read raw files/exports directly and print **only counts, verdicts, and mismatch IDs** — never dump raw rows into LLM stdout.
-3. Let the check script generate `check.json` / `closeout.md` (including `before` vs `after` diff so untouched fields stay untouched).
-4. Record concrete tool quirks once in a `Known Tool Pitfalls` section so future sessions never burn tokens retrying broken paths.
+Prints only counts, column headers, and key/type shapes — zero raw values or PII.
+
+## 4. Measure real session leaks (`token_profiler.py`)
+
+```sh
+P=<skill-directory>/scripts/token_profiler.py
+python3 $P --limit 5 [--project <name>] [--json]
+```
+
+Profiles `~/.claude/projects/**/*.jsonl` (counts + bytes only, zero chat text) and flags:
+- **DOM-First, Screenshot-Last:** prefer `javascript_tool` (<1 KB/call) over browser screenshots (`computer` / `browser_batch` ~40–70 KB/call); screenshot only the final visual pass.
+- **Subagent Media Quarantine:** delegate multi-page PDF or rendered PNG inspection to a subagent so binary payloads never stay in the main thread across hundreds of turns.
+- **Thread Length Multiplier:** once a session exceeds ~150–200 API calls, run `handoff` to reset `cache_read` overhead.
+
+## 5. Routine-to-Script rule (the 11% Token Pattern)
+
+Whenever a workflow repeats **≥ 2 times** or inspects **> 20 rows/records** (e.g. `ppksar` audit/write, gradebook checks, batch document generation):
+
+1. Put variable targets/rules in JSON (`targets.json` or `config.json`), not prose.
+2. Run deterministic capture/check scripts that read raw files directly and emit **only counts, verdicts, and mismatch IDs**.
+3. Let the check script generate `check.json` / `closeout.md` (`before` vs `after` diff).
+4. Record tool quirks once in `Known Tool Pitfalls` so future sessions never burn tokens retrying broken paths.
