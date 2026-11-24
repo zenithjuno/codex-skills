@@ -80,3 +80,4 @@ module. Sizes pt; margins/gaps twips; `_cm` widths take cm, else EMUs.
 - `produce.py --word-check [--page-plan plan.json] [--profile solve-tutoring]`
 - `word_export_pdf.py IN.docx OUT.pdf [--json]` — shared copy-only Word exporter
 - `word_page_check.py WORD.pdf --plan plan.json` — unique explicit page anchors
+- `audit_docx_math_size.py FILE.docx [--fix (-i | --output OUT.docx)]` — audit or normalize OMML sizes (fraction `<m:f>` = 13 pt / `sz=26`, non-fraction = 12 pt / `sz=24`)

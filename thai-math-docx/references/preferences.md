@@ -16,6 +16,7 @@ never a compatibility target.
 - Thai prose and Thai-style labels: `TH Sarabun New` 16 pt through Complex Script.
 - Ordinary Latin/admin text: `Cambria` 12 pt. Cleared or pasted sample formatting
   is not evidence to omit direct formatting from generated content.
+- **OMML equation size (`Cambria Math`):** equations **without** a stacked fraction (`<m:f>`) use **12 pt (`w:sz="24"`)**; equations **containing** a stacked fraction (`<m:f>`) use **13 pt (`w:sz="26"`)**. Both keep `w:szCs="32"` (16 pt) so Thai typed after an equation stays 16 pt. Enforced automatically in `math_omml()`, checked in `audit_docx_omml.py` / `verify_thai_math_docx.py`, and repairable on legacy DOCX via `audit_docx_math_size.py --fix`.
 - Footer text and footer page fields: `TH Sarabun New` 12 pt throughout.
 - Paragraph line spacing is **Single (`1.0`)**, never `1.15`. Before/after default to **0 pt**; when an actual paragraph gap is needed, use **6 pt only**. This includes tables, headers/footers, styles and document defaults. The shared save path normalizes legacy values to 0, preserves explicit 6 pt, and the QA gate rejects other values. A later explicit teacher instruction can override this preference.
 - Keep student-facing text, labels, answer lines, and tables editable in Word.
@@ -93,6 +94,8 @@ THAI_MATH_DOCX_PROFILE selects the teacher’s plain paragraphs and centered
 three-column cases, using เมื่อ (thai_text) or ; as the middle cell. With no
 profile, other paragraph/cases defaults remain unchanged. See
 [teaching-page-layout.md](teaching-page-layout.md) for assemblies and profile use.
+
+For the teacher's personal heading and callout-box inventory (PPK-style border/shading headings and 1-column `cantSplit` callout tables with inline icons, replacing floating shapes), see [callout-box-inventory.md](callout-box-inventory.md).
 
 ## Validation and handoff
 

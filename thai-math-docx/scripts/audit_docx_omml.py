@@ -142,6 +142,7 @@ def audit_word_roots(
     literal_structural_glyphs: list[tuple[str, str, str, str]] = []
     redundant_radicand_delimiters: list[tuple[str, str]] = []
     numerator_unary_minus: list[tuple[str, str]] = []
+    math_size_mismatches: list[tuple[str, str, str, str]] = []
 
     for name, root in word_roots:
         files_seen.append(name)
@@ -179,6 +180,20 @@ def audit_word_roots(
             first = numerator[0]
             if first.tag == q("m", "r") and text_content(first).strip() == "−":
                 numerator_unary_minus.append((name, text_content(numerator).strip()))
+
+        for omath_el in root.findall(".//m:oMath", NS):
+            has_frac = omath_el.find(".//m:f", NS) is not None
+            expected_sz = "26" if has_frac else "24"
+            for math_run in omath_el.findall(".//m:r", NS):
+                text = text_content(math_run)
+                if THAI_RE.search(text):
+                    continue
+                w_rpr = math_run.find("w:rPr", NS)
+                sz = None if w_rpr is None else w_rpr.find("w:sz", NS)
+                actual_sz = "24" if sz is None else (sz.get(w_attr("val")) or "24")
+                if actual_sz != expected_sz:
+                    math_size_mismatches.append((name, actual_sz, expected_sz, text_content(omath_el).strip()))
+                    break
 
     image_count = counts["word_drawing"] + counts["word_pict"] + counts["vml_image"]
     failures: list[str] = []
@@ -218,6 +233,12 @@ def audit_word_roots(
         failures.append(
             f"{name}: unary minus starts inside fraction numerator; emit the sign "
             f"before the m:f object: {snippet!r}",
+        )
+    for name, actual_sz, expected_sz, text in math_size_mismatches:
+        snippet = text if len(text) <= 40 else text[:37] + "..."
+        kind = "fraction (13 pt / sz=26)" if expected_sz == "26" else "non-fraction (12 pt / sz=24)"
+        failures.append(
+            f"{name}: OMML math size mismatch (got sz={actual_sz}, expected {kind}): {snippet!r}",
         )
 
     metrics = {key: counts[key] for key in REPORT_COUNT_KEYS}

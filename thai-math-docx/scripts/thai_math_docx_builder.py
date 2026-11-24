@@ -542,6 +542,8 @@ def math_omml(expr: dict[str, Any] | list[Any] | str) -> str:
         body = items_fragment(expr)
     else:
         body = item_to_omml_fragment(expr)
+    if "<m:f>" in body or "<m:f " in body:
+        body = body.replace('<w:sz w:val="24"/>', '<w:sz w:val="26"/>')
     return f'<m:oMath xmlns:m="{M_NS}" xmlns:w="{W_NS}">{body}</m:oMath>'
 
 
