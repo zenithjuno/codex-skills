@@ -41,6 +41,14 @@ class NoteNotationTests(unittest.TestCase):
         # A Markdown table divider written with a literal escaped pipe is not LaTeX.
         self.assertEqual([], self._scan(r"| ก \| ข | ค |"))
 
+    def test_ascii_pipe_inside_table_code_fails(self) -> None:
+        hits = self._scan("| ข้อ 1 | `|x|³` | ตอบ |")
+        self.assertEqual(1, len(hits))
+        self.assertIn("U+2223", hits[0][1])
+
+    def test_unicode_abs_inside_table_code_passes(self) -> None:
+        self.assertEqual([], self._scan("| ข้อ 1 | `∣x∣³` | `{x ∈ ℝ ∣ x ≥ 0}` |"))
+
 
 if __name__ == "__main__":
     unittest.main()

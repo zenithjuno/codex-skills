@@ -31,6 +31,10 @@ PATTERNS = [
 ]
 
 
+INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+UNESCAPED_PIPE_RE = re.compile(r"(?<!\\)\|")
+
+
 def scan(path: Path) -> list[tuple[int, str, str]]:
     hits: list[tuple[int, str, str]] = []
     for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
@@ -38,6 +42,15 @@ def scan(path: Path) -> list[tuple[int, str, str]]:
             match = pattern.search(line)
             if match:
                 hits.append((lineno, label, match.group(0)))
+        stripped = line.strip()
+        if stripped.startswith("|") and stripped.endswith("|"):
+            for code_match in INLINE_CODE_RE.finditer(line):
+                if UNESCAPED_PIPE_RE.search(code_match.group(1)):
+                    hits.append((
+                        lineno,
+                        "ASCII pipe '|' inside inline code in a Markdown table row breaks columns (use Unicode '∣' U+2223 for abs/set-builder)",
+                        code_match.group(0),
+                    ))
     return hits
 
 
