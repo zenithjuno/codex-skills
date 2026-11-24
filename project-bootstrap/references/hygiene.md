@@ -26,6 +26,8 @@ python3 $W codemap --root <root> --write CODEMAP.md
 
 Agents read `CODEMAP.md` first, then open only the exact `Lstart-Lend` range of the function they need.
 
+It indexes module-level code: file scope and the body of a wrapping IIFE (`(function(){ … })()`), which most browser scripts use. Listed: `function f()`, `const f = () =>`, member assignments (`A.save = function`, `A.pages.plan = {`, `X.prototype.m = function`) and class methods (`Engine.search`). Helpers nested inside a function are not listed. Up to 200 symbols per file.
+
 ## 3. Routine-to-Script rule (the 11% Token Pattern)
 
 Whenever a workflow repeats **≥ 2 times** or inspects **> 20 rows/records** (e.g. `ppksar` audit/write cycles, gradebook checks, batch document generation):

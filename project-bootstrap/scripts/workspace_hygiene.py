@@ -209,12 +209,35 @@ def cmd_init_ignore(root: Path, write: bool, large_kb: int) -> int:
     return 0
 
 
+MAX_SYMS = 200   # per file; a 1,800-line file can hold 150 functions and that is where the map pays off most
+JS_KEYWORDS = {"if", "for", "while", "switch", "catch", "function", "return", "with", "else", "do", "try", "new", "typeof"}
+# opens a wrapper whose body is really module scope: (function(){  (function (root) {  (() => {  !function(){  ;(async () => {
+RE_IIFE = re.compile(r"^\s*[;!+]?\s*\(\s*(?:async\s*)?(?:function\s*[\w$]*\s*\([^)]*\)|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)\s*\{\s*$"
+                     r"|^\s*[;!+]\s*(?:async\s*)?function\s*[\w$]*\s*\([^)]*\)\s*\{\s*$")
+RE_FUNC = re.compile(r"^\s*(?:export\s+)?(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)\s*\(")
+RE_VAR_FUNC = re.compile(r"^\s*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?"
+                         r"(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)")
+# A.save = function(…){   S.Dyn.prototype.week = (…) => {   A.pages.plan = {
+RE_MEMBER = re.compile(r"^\s*((?:[A-Za-z_$][\w$]*)(?:\.[A-Za-z_$][\w$]*)+)\s*=\s*(?:async\s*)?"
+                       r"(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>|\{)")
+RE_CLASS = re.compile(r"^\s*(?:export\s+)?(?:default\s+)?class\s+([A-Za-z_$][\w$]*)")
+RE_METHOD = re.compile(r"^\s*(?:(?:static|async|get|set)\s+)*\*?\s*(#?[A-Za-z_$][\w$]*)\s*\(")
+
+
 def extract_symbols_from_js(js_text: str, line_offset: int) -> list[tuple[str, int, int]]:
-    """Return list of (symbol_name, start_line, end_line) for top-level functions."""
+    """Return (symbol_name, start_line, end_line) for module-level functions.
+
+    Module level means file scope or the body of a wrapping IIFE (`(function(){ … })()`), so
+    browser scripts that keep everything in one closure still get indexed. Besides
+    `function f()` and `const f = () =>`, it lists member assignments (`A.save = function`,
+    `A.pages.plan = {`) and class methods (`Engine.search`). Nested helpers are skipped.
+    """
     symbols: list[tuple[str, int, int]] = []
     depth = 0
     in_block_comment = False
-    active_fn: tuple[str, int] | None = None
+    scopes = [0]                                  # depths that count as module level
+    classes: list[tuple[int, str]] = []           # (body depth, class name)
+    open_syms: list[tuple[str, int, int]] = []    # (name, start line, depth it opened at)
 
     for idx, raw_line in enumerate(js_text.splitlines(), start=line_offset):
         line = raw_line
@@ -231,23 +254,43 @@ def extract_symbols_from_js(js_text: str, line_offset: int) -> list[tuple[str, i
         cleaned = re.sub(r"//.*$", "", cleaned)
         no_str = re.sub(r"""(['"`])(?:\\.|(?!\1).)*\1""", '""', cleaned)
 
-        if depth == 0:
-            m = re.match(r"^\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(", no_str)
-            if not m:
-                m = re.match(r"^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>)", no_str)
-            if m and "{" in no_str:
-                active_fn = (m.group(1), idx)
+        start_depth = depth
+        name = None
+        opens_scope = opens_class = False
+        if depth == scopes[-1]:
+            if RE_IIFE.match(no_str):
+                opens_scope = True
+            elif (m := RE_CLASS.match(no_str)):
+                name, opens_class = m.group(1), True
+            else:
+                m = RE_FUNC.match(no_str) or RE_VAR_FUNC.match(no_str) or RE_MEMBER.match(no_str)
+                if m:
+                    name = m.group(1)
+        elif classes and depth == classes[-1][0]:
+            m = RE_METHOD.match(no_str)
+            if m and m.group(1) not in JS_KEYWORDS:
+                name = classes[-1][1] + "." + m.group(1)
+        if name and "{" in no_str:
+            open_syms.append((name, idx, start_depth))
 
-        depth += no_str.count("{") - no_str.count("}")
-        if depth < 0:
-            depth = 0
-        if active_fn is not None and depth == 0:
-            symbols.append((active_fn[0], active_fn[1], idx))
-            active_fn = None
+        depth = max(0, depth + no_str.count("{") - no_str.count("}"))
+        if depth > start_depth:
+            if opens_scope:
+                scopes.append(start_depth + 1)
+            elif opens_class:
+                classes.append((start_depth + 1, name))
+        while len(scopes) > 1 and depth < scopes[-1]:
+            scopes.pop()
+        while classes and depth < classes[-1][0]:
+            classes.pop()
+        while open_syms and depth <= open_syms[-1][2]:
+            sym, start, _ = open_syms.pop()
+            symbols.append((sym, start, idx))
 
-    if active_fn is not None:
-        end_ln = line_offset + max(0, len(js_text.splitlines()) - 1)
-        symbols.append((active_fn[0], active_fn[1], end_ln))
+    end_ln = line_offset + max(0, len(js_text.splitlines()) - 1)
+    for sym, start, _ in open_syms:
+        symbols.append((sym, start, end_ln))
+    symbols.sort(key=lambda s: s[1])
     return symbols
 
 
@@ -311,12 +354,12 @@ def cmd_codemap(root: Path, write_path: str | None) -> int:
     for rel, lines, syms in rows:
         out.append(f"## `{rel}` ({lines}L)")
         if not syms:
-            out.append("- *(no top-level JS functions detected)*")
+            out.append("- *(no module-level JS functions detected)*")
         else:
-            chunks = [f"`{name}` (L{s}-L{e})" for name, s, e in syms[:40]]
+            chunks = [f"`{name}` (L{s}-L{e})" for name, s, e in syms[:MAX_SYMS]]
             out.append("- " + ", ".join(chunks))
-            if len(syms) > 40:
-                out.append(f"- *... and {len(syms) - 40} more functions*")
+            if len(syms) > MAX_SYMS:
+                out.append(f"- *... and {len(syms) - MAX_SYMS} more functions*")
         out.append("")
     out.append("<!-- workspace-hygiene:codemap:end -->")
     rendered = "\n".join(out) + "\n"
