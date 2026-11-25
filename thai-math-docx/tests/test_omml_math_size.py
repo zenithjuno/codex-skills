@@ -18,15 +18,16 @@ from thai_math_expr import frac, sup
 
 
 class OmmlMathSizeTests(unittest.TestCase):
-    def test_math_omml_uses_12pt_for_non_fraction_14pt_for_fraction_and_10pt_for_sub_example(self) -> None:
+    def test_math_omml_uses_12pt_for_non_fraction_14pt_inside_m_f_only_and_10pt_for_sub_example(self) -> None:
         non_frac_xml = builder.math_omml([sup("x", "2"), "=", "4"])
         frac_xml = builder.math_omml([frac("1", "2"), "+", "x"])
         subex_xml = builder.math_omml([sup("b", "4"), "≥", "0"], tier="sub_example")
 
         self.assertIn('w:sz w:val="24"', non_frac_xml)
         self.assertNotIn('w:sz w:val="28"', non_frac_xml)
+        # Mixed equation: 1/2 inside <m:f> is 14pt (28), while + x outside <m:f> stays 12pt (24)
         self.assertIn('w:sz w:val="28"', frac_xml)
-        self.assertNotIn('w:sz w:val="24"', frac_xml)
+        self.assertIn('w:sz w:val="24"', frac_xml)
         self.assertIn('w:sz w:val="20"', subex_xml)
         self.assertIn('w:szCs w:val="28"', subex_xml)
 

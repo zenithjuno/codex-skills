@@ -63,24 +63,38 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
 
             if is_subex:
                 subex_total += 1
-                expected_sz = "24" if has_frac else "20"
                 expected_cs = "28"
             else:
                 if has_frac:
                     frac_total += 1
                 else:
                     nonfrac_total += 1
-                expected_sz = "28" if has_frac else "24"
                 expected_cs = "32"
+            frac_runs = {
+                r for f_el in omath.findall(f".//{M}f")
+                for r in f_el.findall(f".//{M}r")
+            }
+            frac_ctrl = {
+                cp for f_el in omath.findall(f".//{M}f")
+                for cp in f_el.findall(f".//{M}ctrlPr")
+            }
             eq_bad = False
+            first_expected = "24"
 
             for math_run in omath.findall(f".//{M}r"):
                 if THAI_RE.search(_text(math_run)):
                     continue
+                in_frac = math_run in frac_runs
+                if is_subex:
+                    expected_sz = "24" if in_frac else "20"
+                else:
+                    expected_sz = "28" if in_frac else "24"
                 rPr = math_run.find(f"{W}rPr")
                 sz = None if rPr is None else rPr.find(f"{W}sz")
                 actual_sz = "24" if sz is None else (sz.get(f"{W}val") or "24")
                 if actual_sz != expected_sz:
+                    if not eq_bad:
+                        first_expected = expected_sz
                     eq_bad = True
                     if fix:
                         if rPr is None:
@@ -95,15 +109,17 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
                         sz_cs.set(f"{W}val", expected_cs)
                         part_changed = True
 
-            # Also keep ctrlPr sz aligned when fixing so Word UI shows consistent 14pt / 12pt / 10pt
+            # Also keep ctrlPr sz aligned per-run when fixing so Word UI shows consistent 14pt / 12pt / 10pt
             if fix and eq_bad:
                 for cp in omath.findall(f".//{M}ctrlPr"):
                     rPr = cp.find(f"{W}rPr")
                     if rPr is not None:
+                        cp_in_frac = cp in frac_ctrl
+                        cp_sz = ("24" if cp_in_frac else "20") if is_subex else ("28" if cp_in_frac else "24")
                         sz = rPr.find(f"{W}sz")
                         if sz is None:
                             sz = ET.SubElement(rPr, f"{W}sz")
-                        sz.set(f"{W}val", expected_sz)
+                        sz.set(f"{W}val", cp_sz)
                         sz_cs = rPr.find(f"{W}szCs")
                         if sz_cs is None:
                             sz_cs = ET.SubElement(rPr, f"{W}szCs")
@@ -113,7 +129,7 @@ def audit_or_fix_docx(docx_path: Path, *, fix: bool = False, output_path: Path |
             if eq_bad:
                 mismatches.append({
                     "part": name,
-                    "expected_sz": expected_sz,
+                    "expected_sz": first_expected,
                     "snippet": _text(omath).strip()[:50],
                 })
 

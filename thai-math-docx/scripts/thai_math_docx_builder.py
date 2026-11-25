@@ -554,14 +554,32 @@ def math_omml(expr: dict[str, Any] | list[Any] | str, *, tier: str = "body") -> 
         body = items_fragment(expr)
     else:
         body = item_to_omml_fragment(expr)
+    xml_str = f'<m:oMath xmlns:m="{M_NS}" xmlns:w="{W_NS}">{body}</m:oMath>'
     has_frac = "<m:f>" in body or "<m:f " in body
-    if tier == "sub_example":
-        target_sz = "24" if has_frac else "20"
-        body = body.replace('<w:sz w:val="24"/>', f'<w:sz w:val="{target_sz}"/>')
-        body = body.replace('<w:szCs w:val="32"/>', '<w:szCs w:val="28"/>')
-    elif has_frac:
-        body = body.replace('<w:sz w:val="24"/>', '<w:sz w:val="28"/>')
-    return f'<m:oMath xmlns:m="{M_NS}" xmlns:w="{W_NS}">{body}</m:oMath>'
+    if tier == "sub_example" or has_frac:
+        om_el = parse_xml(xml_str)
+        frac_runs = {
+            r for f_el in om_el.findall(f".//{{{M_NS}}}f")
+            for r in f_el.findall(f".//{{{M_NS}}}r")
+        }
+        for r in om_el.findall(f".//{{{M_NS}}}r"):
+            r_pr = r.find(f"{{{W_NS}}}rPr")
+            if r_pr is None:
+                continue
+            in_frac = r in frac_runs
+            sz = r_pr.find(f"{{{W_NS}}}sz")
+            if sz is not None:
+                if tier == "sub_example":
+                    sz.set(f"{{{W_NS}}}val", "24" if in_frac else "20")
+                else:
+                    sz.set(f"{{{W_NS}}}val", "28" if in_frac else "24")
+            if tier == "sub_example":
+                sz_cs = r_pr.find(f"{{{W_NS}}}szCs")
+                if sz_cs is not None:
+                    sz_cs.set(f"{{{W_NS}}}val", "28")
+        from lxml import etree as _ET
+        return _ET.tostring(om_el, encoding="unicode")
+    return xml_str
 
 
 def append_math(paragraph: Any, expr: dict[str, Any] | list[Any] | str, *, tier: str = "body") -> None:

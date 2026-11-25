@@ -183,20 +183,24 @@ def audit_word_roots(
                 numerator_unary_minus.append((name, text_content(numerator).strip()))
 
         for omath_el in root.findall(".//m:oMath", NS):
-            has_frac = omath_el.find(".//m:f", NS) is not None
+            frac_runs = {
+                id(r) for f_el in omath_el.findall(".//m:f", NS)
+                for r in f_el.findall(".//m:r", NS)
+            }
             for math_run in omath_el.findall(".//m:r", NS):
                 text = text_content(math_run)
                 if THAI_RE.search(text):
                     continue
+                in_frac = id(math_run) in frac_runs
                 w_rpr = math_run.find("w:rPr", NS)
                 sz = None if w_rpr is None else w_rpr.find("w:sz", NS)
                 sz_cs = None if w_rpr is None else w_rpr.find("w:szCs", NS)
                 actual_sz = "24" if sz is None else (sz.get(w_attr("val")) or "24")
                 actual_cs = "32" if sz_cs is None else (sz_cs.get(w_attr("val")) or "32")
                 if actual_cs == "28":
-                    expected_sz = "24" if has_frac else "20"
+                    expected_sz = "24" if in_frac else "20"
                 else:
-                    expected_sz = "28" if has_frac else "24"
+                    expected_sz = "28" if in_frac else "24"
                 if actual_sz != expected_sz:
                     math_size_mismatches.append((name, actual_sz, expected_sz, text_content(omath_el).strip()))
                     break
