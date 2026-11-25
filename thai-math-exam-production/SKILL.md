@@ -9,7 +9,7 @@ description: >
   answer-key checking.
 ---
 
-<!-- SKILL-VERSION: 2026.11.23 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.25 | name: thai-math-exam-production | canonical: ~/.codex/skills/thai-math-exam-production | bump this date on every edit -->
 
 # Thai Math Exam Production
 
@@ -43,7 +43,7 @@ material already read; on a fresh session recover current state from files.
 | Revise one item | That item's prompt/solution and applicable taxonomy/config; neighboring items only when reuse, order or dependencies matter |
 | Parallel set | Add the workflow's Parallel Mode Overlay and the approved reference items needed for the current gate; analyze the full reference at the source gate and compare both complete papers at paper review |
 | Whole-paper review / export | Read the complete selected paper and working solutions, blueprint and acceptance criteria; local item excerpts cannot establish paper-level correctness |
-| Answer key / blind audit / export | Workflow's "Independent audit and export"; `assets/ANSWER-KEY.template.md`; the project's DOCX preference note |
+| Answer key / blind audit / export | Workflow's "Independent audit and export"; `assets/ANSWER-KEY.template.md`; [answer-key-presets.md](references/answer-key-presets.md) (`rath-center-student` / `teacher-full`); the project's DOCX preference note |
 
 Scripts live in this skill's `scripts/`; use their absolute paths from a project
 workspace. Useful commands (prefix each script with that directory):
@@ -147,7 +147,9 @@ Export approved content through `thai-math-docx` and its unified QA: the
 generator reads approved state directly, never retyped text; the answer-key
 builder checks stem and choice fidelity against the approved variants; the
 student paper is questions-only and the answer-key DOCX is produced only when
-the teacher asks. When the teacher supplies an optical/printed answer sheet PDF
+the teacher asks (use preset `rath-center-student` in
+[answer-key-presets.md](references/answer-key-presets.md) for student
+self-study/remedial keys, or `teacher-full` when rubrics are needed). When the teacher supplies an optical/printed answer sheet PDF
 for a split objective `(ป)` + written `(อ)` exam, also assemble the final
 print-ready duplex packet (`<ชื่อข้อสอบ> (พร้อมพิมพ์).pdf`: 2 pages `(ป)` + 1 page
 answer sheet + 1 page `(อ)` = 4 pages A4). Keep document QA distinct from
