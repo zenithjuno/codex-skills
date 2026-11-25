@@ -589,6 +589,21 @@ def add_styled_heading(
         builder.set_thai_label_run(paragraph.add_run(text_or_parts), bold=True, size=preset["size_pt"])
     else:
         builder.append_parts(paragraph, list(text_or_parts))
+        ns_w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        sz_cs_val = str(preset["size_pt"] * 2)
+        sz_val = str(max(24, (preset["size_pt"] - 5) * 2))
+        for run in paragraph.runs:
+            run.bold = True
+            r_pr = run._r.get_or_add_rPr()
+            for tag in ("bCs", "cs"):
+                if r_pr.find(f"{{{ns_w}}}{tag}") is None:
+                    r_pr.append(parse_xml(f'<w:{tag} xmlns:w="{ns_w}"/>'))
+            for tag, val in (("sz", sz_val), ("szCs", sz_cs_val)):
+                el = r_pr.find(f"{{{ns_w}}}{tag}")
+                if el is None:
+                    r_pr.append(parse_xml(f'<w:{tag} xmlns:w="{ns_w}" w:val="{val}"/>'))
+                else:
+                    el.set(f"{{{ns_w}}}val", val)
     _apply_run_color(paragraph, preset["text_color"])
     use_icon = (kind == "exercise_banner") if icon is None else icon
     if use_icon:

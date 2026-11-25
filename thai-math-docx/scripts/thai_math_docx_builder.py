@@ -169,6 +169,12 @@ def set_thai_body_run(run: Any, bold: bool | None = None, size: int = 16,
             run.bold = bold
         set_run_font(run, ascii_font="TH Sarabun New", cs_font="TH Sarabun New", size=size)
         r_pr = run._r.get_or_add_rPr()
+        if bold is True:
+            ensure_child(r_pr, "w:bCs")
+        elif bold is False:
+            bcs = r_pr.find(qn("w:bCs"))
+            if bcs is not None:
+                r_pr.remove(bcs)
         ensure_child(r_pr, "w:sz").set(qn("w:val"), str(size * 2))
         ensure_child(r_pr, "w:szCs").set(qn("w:val"), str(size * 2))
         if r_pr.find(qn("w:cs")) is None:
@@ -181,6 +187,12 @@ def set_thai_body_run(run: Any, bold: bool | None = None, size: int = 16,
         run.bold = bold
     set_run_font(run, ascii_font="Cambria", cs_font="TH Sarabun New", size=12)
     r_pr = run._r.get_or_add_rPr()
+    if bold is True:
+        ensure_child(r_pr, "w:bCs")
+    elif bold is False:
+        bcs = r_pr.find(qn("w:bCs"))
+        if bcs is not None:
+            r_pr.remove(bcs)
     ensure_child(r_pr, "w:sz").set(qn("w:val"), "24")
     ensure_child(r_pr, "w:szCs").set(qn("w:val"), str(size * 2))
     if r_pr.find(qn("w:cs")) is None:
