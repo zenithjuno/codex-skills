@@ -33,17 +33,38 @@ PATTERNS = [
 
 INLINE_CODE_RE = re.compile(r"`([^`]+)`")
 UNESCAPED_PIPE_RE = re.compile(r"(?<!\\)\|")
+TABLE_SEP_RE = re.compile(r"^\|(?:\s*:?-{1,}:?\s*\|)+$")
+FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+
+
+def _count_table_cols(stripped_line: str) -> int:
+    return len(UNESCAPED_PIPE_RE.findall(stripped_line)) - 1
 
 
 def scan(path: Path) -> list[tuple[int, str, str]]:
     hits: list[tuple[int, str, str]] = []
-    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    lines = path.read_text(encoding="utf-8").splitlines()
+    in_fence = False
+    table_header_cols: int | None = None
+
+    for idx, line in enumerate(lines):
+        lineno = idx + 1
+        stripped = line.strip()
+
+        if FENCE_RE.match(line):
+            in_fence = not in_fence
+            table_header_cols = None
+            continue
+        if in_fence:
+            continue
+
         for pattern, label in PATTERNS:
             match = pattern.search(line)
             if match:
                 hits.append((lineno, label, match.group(0)))
-        stripped = line.strip()
-        if stripped.startswith("|") and stripped.endswith("|"):
+
+        is_table_line = stripped.startswith("|") and stripped.endswith("|") and len(stripped) >= 2
+        if is_table_line:
             for code_match in INLINE_CODE_RE.finditer(line):
                 if UNESCAPED_PIPE_RE.search(code_match.group(1)):
                     hits.append((
@@ -51,6 +72,21 @@ def scan(path: Path) -> list[tuple[int, str, str]]:
                         "ASCII pipe '|' inside inline code in a Markdown table row breaks columns (use Unicode '∣' U+2223 for abs/set-builder)",
                         code_match.group(0),
                     ))
+
+            if table_header_cols is None:
+                if idx + 1 < len(lines) and TABLE_SEP_RE.match(lines[idx + 1].strip()):
+                    table_header_cols = _count_table_cols(stripped)
+            else:
+                row_cols = _count_table_cols(stripped)
+                if row_cols != table_header_cols:
+                    hits.append((
+                        lineno,
+                        f"Markdown table row has {row_cols} column(s), expected {table_header_cols} (likely unescaped ASCII '|' — use Unicode '∣' U+2223 for math)",
+                        stripped[:80],
+                    ))
+        else:
+            table_header_cols = None
+
     return hits
 
 
