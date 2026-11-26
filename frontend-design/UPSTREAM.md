@@ -10,4 +10,6 @@ This skill is borrowed. Update it with `python3 tools/upstream_sync.py check fro
 
 Taken unchanged from Anthropic's skill (Apache-2.0; LICENSE.txt is upstream's), as shipped in the
 `frontend-design` 1.1.1 plugin accepted in claude.ai. The file tree matches the pinned commit exactly (checked 2026-11-17).
-- Local changes: none.
+- Local changes:
+  - Added `SKILL-VERSION` stamp.
+  - Tuned `description` with Thai + English auto-triggers and explicit handoff boundaries with `ui-ux-pro-max` (design-system/domain DB) and `web-design-guidelines` (post-build UI/a11y audit).

@@ -54,6 +54,8 @@
 | [`ship-check`](ship-check) | ด่านสุดท้ายก่อนปล่อยให้ผู้เรียนใช้ — สแกนหา ship-blocker + dry-run + เช็กลิสต์ความพร้อม |
 | [`playwright`](playwright) | ขับเบราว์เซอร์จริงจาก terminal เพื่อทดสอบหน้าเว็บ |
 | [`frontend-design`](frontend-design) | แนวทางออกแบบหน้าเว็บ/UI ให้มีทิศทางชัดและไม่ดูเป็นเทมเพลตซ้ำ ๆ (ของ Anthropic) |
+| [`ui-ux-pro-max`](ui-ux-pro-max) | คลังฐานข้อมูล Design System ในเครื่อง (คู่สีตามโดเมน ฟอนต์ สไตล์ กราฟ 23 stack) ใช้เสริมร่วมกับ `frontend-design` |
+| [`web-design-guidelines`](web-design-guidelines) | ตรวจโค้ด UI/Accessibility หลังสร้างเสร็จตามกฎ Vercel 100+ ข้อ (ชี้เป็น `file:line`) |
 | [`answer-me-with-html`](answer-me-with-html) | ตอบคำถามซับซ้อนเป็นหน้า HTML หน้าเดียว (ผัง ตาราง แถบงบ) — มีโน้ตภาษาไทย งบประมาณ และสมการ |
 
 ---
@@ -126,7 +128,9 @@ for s in ~/.codex/skills/*/; do ln -sfn "$s" ~/.claude/skills/"$(basename "$s")"
 | `verification-before-completion` | ดัดแปลงจาก [obra/superpowers](https://github.com/obra/superpowers) | MIT |
 | `karpathy-guidelines` | จาก [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) เรียบเรียงจากข้อสังเกตของ [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) | MIT |
 | `answer-me-with-html` | จาก [QingYunA/answer-me-with-html](https://github.com/QingYunA/answer-me-with-html) + โน้ตภาษาไทย/งบประมาณ/สมการของเรา | MIT |
-| `frontend-design` | จาก [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) © Anthropic, PBC — ไม่ได้แก้ไข | Apache-2.0 — ดู [`frontend-design/LICENSE.txt`](frontend-design/LICENSE.txt) |
+| `frontend-design` | จาก [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) © Anthropic, PBC + ปรับ `description` กันชน | Apache-2.0 — ดู [`frontend-design/LICENSE.txt`](frontend-design/LICENSE.txt) |
+| `ui-ux-pro-max` | จาก [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) + ปรับขอบเขต/path ข้ามค่าย | MIT — ดู [`ui-ux-pro-max/LICENSE.txt`](ui-ux-pro-max/LICENSE.txt) |
+| `web-design-guidelines` | จาก [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) + ปรับ `description` โหมด audit | ตามต้นทาง Vercel Labs |
 | `skill-creator` | จาก [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) © Anthropic, PBC — ไม่ได้แก้ไข | Apache-2.0 — ดู [`skill-creator/LICENSE.txt`](skill-creator/LICENSE.txt) |
 
 ### สกิลที่ยืมมา: รับอัปเดตจากต้นทาง

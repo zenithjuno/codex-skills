@@ -1,8 +1,10 @@
 ---
 name: frontend-design
-description: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+description: "Distinctive visual art direction & anti-AI-slop guidance when designing, building, or reshaping web UI (ออกแบบหน้าเว็บ, ทำหน้าเว็บ, ปรับหน้าตา UI, landing page). Owns layout concept, typography, taste, and microcopy. For domain palettes/design-system DB or stack patterns, pair with ui-ux-pro-max; for post-build a11y/code audits, use web-design-guidelines."
 license: Complete terms in LICENSE.txt
 ---
+
+<!-- SKILL-VERSION: 2026.11.26 | name: frontend-design | canonical: ~/.codex/skills/frontend-design | bump this date on every edit -->
 
 # Frontend Design
 
