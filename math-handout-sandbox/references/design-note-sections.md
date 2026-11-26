@@ -33,7 +33,7 @@ A note missing any of these cannot be argued or approved.
 |---|---|
 | **Contract** | The machine header — deliverable, scaffolding, slug, output. Tooling reads it. |
 | **Learning objective** | What mastery looks like, in one sentence the teacher can say aloud. |
-| **Progression map** | The sequence and the job of each item. This is where approval actually happens — the teacher's most-valued section. |
+| **Progression map** | The sequence and the job of each item. This is where approval actually happens — the teacher's most-valued section. **When adapting an existing source (note has `Source observations`), always include a `Source status` (`สถานะเทียบต้นฉบับ`) column (`คงเดิม (...)` · `ปรับจาก (...)` · `เพิ่มใหม่`) on every row** so the teacher can scan what stayed vs changed vs was newly added directly in the map. |
 | **Approved content** | The material itself (assembled from `content-components.md`). |
 
 ## Spine when adapting — the source-critique pipeline

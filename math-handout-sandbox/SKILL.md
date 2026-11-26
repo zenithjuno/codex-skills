@@ -6,7 +6,7 @@ description: >
   direct Thai DOCX repair or one-off formatting.
 ---
 
-<!-- SKILL-VERSION: 2026.11.25 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
+<!-- SKILL-VERSION: 2026.11.26 | name: math-handout-sandbox | canonical: ~/.codex/skills/math-handout-sandbox | bump this date on every edit -->
 
 # Math Handout Sandbox
 
